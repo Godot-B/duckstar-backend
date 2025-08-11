@@ -41,7 +41,7 @@ public class Anime extends BaseEntity {
 
     private String titleEng;
 
-    private LocalDate airDate;
+    private LocalDate premiereDate;
 
     @Column(length = 4)
     @Enumerated(EnumType.STRING)
@@ -62,7 +62,7 @@ public class Anime extends BaseEntity {
     private String author;  // 원작
 
     @Column(length = 5)
-    private String minAge;
+    private String maturityRating;
 
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<SiteType, String> officialSite = new HashMap<>();

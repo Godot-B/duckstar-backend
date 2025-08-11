@@ -18,6 +18,10 @@ public class Character extends BaseEntity {
     @Column(name = "character_id")  // id 이름 명시
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anime_id")
+    private Anime anime;
+
     private String nameKor;
 
     private String nameKanji;

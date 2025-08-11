@@ -1,7 +1,7 @@
 package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.Character;
+import com.duckstar.domain.Ott;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AnimeCharacter extends BaseEntity {
+public class AnimeOtt extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +22,8 @@ public class AnimeCharacter extends BaseEntity {
     private Anime anime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "character_id")
-    private Character character;
+    @JoinColumn(name = "ott_id")
+    private Ott ott;
+
+    private String watchUrl;
 }
