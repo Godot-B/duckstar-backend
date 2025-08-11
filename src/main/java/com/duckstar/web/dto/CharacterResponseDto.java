@@ -43,8 +43,8 @@ public class CharacterResponseDto {
 
         Integer weeksOnTop10;
 
-        Integer malePercent;
+        Double malePercent;
 
-        Integer femalePercent;
+        Double femalePercent;
     }
 }

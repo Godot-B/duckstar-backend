@@ -45,7 +45,7 @@ public class WeekAnime extends BaseEntity {
     // 기록용
     private Double votePercent;
 
-    private Integer malePercent;
+    private Double malePercent;
 
     private Integer peakRank;
 
