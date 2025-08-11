@@ -5,7 +5,6 @@ import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.enums.SiteType;
-import com.duckstar.domain.medal.AnimeMedal;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -14,9 +13,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -38,11 +35,11 @@ public class Anime extends BaseEntity {
 
     private Integer totalEpisodes;
 
-    private String nameKor;
+    private String titleKor;
 
-    private String nameOrigin;
+    private String titleOrigin;
 
-    private String nameEng;
+    private String titleEng;
 
     private LocalDate airDate;
 
@@ -69,4 +66,14 @@ public class Anime extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<SiteType, String> officialSite = new HashMap<>();
+
+    private Integer debutRank;
+
+    private LocalDate debutDate;
+
+    private Integer peakRank;
+
+    private LocalDate PeakDate;
+
+    private Integer weeksOnTop10;
 }

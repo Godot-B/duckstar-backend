@@ -1,5 +1,6 @@
 package com.duckstar.domain;
 
+import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.Gender;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "characters")
-public class Character {
+public class Character extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

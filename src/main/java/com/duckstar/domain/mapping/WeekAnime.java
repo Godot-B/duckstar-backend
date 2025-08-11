@@ -8,6 +8,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -34,17 +36,20 @@ public class WeekAnime extends BaseEntity {
 
     private Integer consecutiveWeeksAtSameRank;
 
-    // 득표 수
     private Integer totalVoteCount;
 
-    private Integer maleVoteCount;
+    private Integer maleCount;
 
-    private Integer femaleVoteCount;
+    private Integer femaleCount;
 
-    // 득표율: 기록용
+    // 기록용
     private Double votePercent;
 
-    private Double maleVotePercent;
+    private Integer malePercent;
 
-    private Double femaleVotePercent;
+    private Integer peakRank;
+
+    private LocalDate peakDate;
+
+    private Integer weeksOnTop10;
 }
