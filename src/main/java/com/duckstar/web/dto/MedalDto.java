@@ -4,17 +4,47 @@ import com.duckstar.domain.enums.MedalType;
 import lombok.Builder;
 import lombok.Getter;
 
-@Builder
-@Getter
+import java.time.LocalDate;
+import java.util.List;
+
 public class MedalDto {
 
-    MedalType type;
+    @Builder
+    @Getter
+    public static class RackPage {
+        List<RackUnitDto> rackUnits;
 
-    Integer rank;
+        // 페이징 관련
+        Integer listSize;
+        Integer totalPage;
+        Long totalElements;
+        Boolean isFirst;
+        Boolean isLast;
+    }
 
-    Integer year;
+    @Builder
+    @Getter
+    public static class RackUnitDto {
+        MedalPreviewDto medalPreview;
 
-    Integer quarter;
+        LocalDate startDate;
 
-    Integer week;
+        LocalDate endDate;
+
+        VoteResponseDto.VoteRatioDto voteRatio;
+    }
+
+    @Builder
+    @Getter
+    public static class MedalPreviewDto {
+        MedalType type;
+
+        Integer rank;
+
+        Integer year;
+
+        Integer quarter;
+
+        Integer week;
+    }
 }

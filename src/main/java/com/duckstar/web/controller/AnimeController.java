@@ -20,8 +20,7 @@ public class AnimeController {
     @Operation(summary = "애니 홈 API",
             description = "애니메이션 홈 정보 조회")
     @GetMapping("/{animeId}")
-    public ApiResponse<AnimeResponseDto.AnimeInfoDto> getAnimeHomeById(
-            @PathVariable Long animeId) {
+    public ApiResponse<AnimeResponseDto> getAnimeHomeById(@PathVariable Long animeId) {
         return ApiResponse.onSuccess(
                 /*animeRepository.getAnimeHomeDtoById(animeId)*/null);
     }

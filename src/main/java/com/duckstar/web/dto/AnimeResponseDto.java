@@ -1,9 +1,10 @@
 package com.duckstar.web.dto;
 
-import com.duckstar.domain.enums.DayOfWeekShort;
-import com.duckstar.domain.enums.Medium;
-import com.duckstar.domain.enums.OttType;
-import com.duckstar.domain.enums.SeasonType;
+import com.duckstar.domain.enums.*;
+import com.duckstar.validation.annotation.MedalTypeSubset;
+import com.duckstar.web.dto.CharacterResponseDto.CharacterHomePreviewPage;
+import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
+import com.duckstar.web.dto.MedalDto.RackPage;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,35 +12,42 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+@Builder
+@Getter
 public class AnimeResponseDto {
 
-    @Builder
-    @Getter
-    public static class AnimeRankPreviewDto {
-        Integer rank;
+    AnimeInfoDto info;
 
-        Integer rankDiff;
+    AnimeStatDto stat;
 
-        Integer consecutiveWeeksAtSameRank;
+    // 초기 데이터: 첫 페이지
+    RackPage rackPage;
 
-        String thumbnailUrl;
-
-        String nameKor;
-
-        String corp;
-
-        Double votePercent;
-    }
+    // 초기 데이터: 첫 페이지
+    CharacterHomePreviewPage characterHomePreviewPage;
 
     @Builder
     @Getter
     public static class AnimeRankDto {
-        AnimeRankPreviewDto rankPreview;
+        CardDto card;
 
-        List<MedalDto> medals;
+        @MedalTypeSubset(anyOf = {
+                MedalType.GOLD,
+                MedalType.SILVER,
+                MedalType.BRONZE
+        })
+        List<MedalPreviewDto> medalPreviews;
+
+        AnimeStatDto stat;
+
+        VoteResponseDto.VoteRatioDto voteRatio;
 
         Long animeId;
+    }
 
+    @Builder
+    @Getter
+    public static class AnimeStatDto {
         Integer debutRank;
 
         LocalDate debutDate;
@@ -49,10 +57,14 @@ public class AnimeResponseDto {
         LocalDate peakDate;
 
         Integer weeksOnTop10;
+    }
 
-        Double malePercent;
+    @Builder
+    @Getter
+    public static class AnimeRankPreviewDto {
+        CardDto card;
 
-        Double femalePercent;
+        Double votePercent;
     }
 
     @Builder

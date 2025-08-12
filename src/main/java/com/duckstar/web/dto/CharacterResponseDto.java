@@ -11,30 +11,41 @@ public class CharacterResponseDto {
     @Builder
     @Getter
     public static class CharacterRankPreviewDto {
-        Integer rank;
 
-        Integer rankDiff;
-
-        Integer consecutiveWeeksAtSameRank;
-
-        String thumbnailUrl;
-
-        String nameKor;
-
-        String animeTitleKor;
-
-        Double votePercent;
     }
 
     @Builder
     @Getter
     public static class CharacterRankDto {
-        CharacterRankPreviewDto rankPreview;
 
-        List<MedalDto> medals;
+    }
 
-        Long characterId;
+    @Builder
+    @Getter
+    public static class CharacterHomePreviewPage {
+        List<CharacterHomePreviewDto> characterHomePreviews;
 
+        // 페이징 관련
+        Integer listSize;
+        Integer totalPage;
+        Long totalElements;
+        Boolean isFirst;
+        Boolean isLast;
+    }
+
+    @Builder
+    @Getter
+    public static class CharacterHomePreviewDto {
+        String thumbnailUrl;
+
+        String nameKor;
+
+        String cv;
+    }
+
+    @Builder
+    @Getter
+    public static class CharacterStatDto {
         // 데뷔 순위 없다
 
         Integer peakRank;
@@ -42,9 +53,5 @@ public class CharacterResponseDto {
         LocalDate peakDate;
 
         Integer weeksOnTop10;
-
-        Double malePercent;
-
-        Double femalePercent;
     }
 }

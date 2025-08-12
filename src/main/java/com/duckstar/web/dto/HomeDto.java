@@ -1,9 +1,8 @@
 package com.duckstar.web.dto;
 
-import com.duckstar.crawler.dto.CrawlerDto;
-import com.duckstar.crawler.dto.CrawlerDto.CrawlerRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankPreviewDto;
 import com.duckstar.web.dto.CharacterResponseDto.CharacterRankPreviewDto;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,7 +18,8 @@ public class HomeDto {
 
     WeeklyTopDto weeklyTop;
 
-    List<WeekDto> weeksMenu;
+    @Size(max = 12, message = "드롭다운용 weeks 리스트는 최대 12개까지입니다.")
+    List<WeekDto> weeks;
 
     @Builder
     @Getter
@@ -44,18 +44,21 @@ public class HomeDto {
     @Builder
     @Getter
     public static class WeeklyTopDto {
+        // 애니메이션 톱 N
         List<AnimeRankPreviewDto> animeRankPreviews;
 
-        List<CrawlerRankDto> animeTrendAnimeRanks;
+        List<CardDto> animeTrendAnimeRanks;
 
-        List<CrawlerRankDto> aniLabAnimeRanks;
+        List<CardDto> aniLabAnimeRanks;
 
+        // 남캐 톱 N
         List<CharacterRankPreviewDto> heroRankPreviews;
 
-        List<CrawlerRankDto> animeTrendHeroRanks;
+        List<CardDto> animeTrendHeroRanks;
 
+        // 여캐 톱 N
         List<CharacterRankPreviewDto> heroineRankPreviews;
 
-        List<CrawlerRankDto> animeTrendHeroineRanks;
+        List<CardDto> animeTrendHeroineRanks;
     }
 }

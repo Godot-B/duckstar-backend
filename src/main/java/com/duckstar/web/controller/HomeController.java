@@ -24,7 +24,10 @@ public class HomeController {
                     3. 드롭다운용 최근 12주""")
     @GetMapping("")
     public ApiResponse<HomeDto> getHome(
-            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size) {
+            @RequestParam(defaultValue = "10")
+            @Min(1) @Max(50)
+            int size
+    ) {
 
         return ApiResponse.onSuccess(null);
     }
@@ -38,7 +41,9 @@ public class HomeController {
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+            @RequestParam(defaultValue = "10")
+            @Min(1) @Max(50)
+            int size
     ) {
 
         return ApiResponse.onSuccess(null);

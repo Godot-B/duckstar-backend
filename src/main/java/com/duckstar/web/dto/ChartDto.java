@@ -1,6 +1,5 @@
 package com.duckstar.web.dto;
 
-import com.duckstar.crawler.dto.CrawlerDto.CrawlerRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.CharacterResponseDto.CharacterRankDto;
 import lombok.Builder;
@@ -15,7 +14,15 @@ public class ChartDto {
     public static class AnimeRankSliceDto {
         List<AnimeRankDto> animeRanks;
 
-        List<CrawlerRankDto> crawlerRanks;
+        List<CardDto> crawlerRanks;
+
+        Boolean hasNext;
+    }
+
+    @Builder
+    @Getter
+    public static class AniLabRankSliceDto {
+        List<CardDto> crawlerRanks;
 
         Boolean hasNext;
     }
@@ -25,7 +32,7 @@ public class ChartDto {
     public static class CharacterRankSliceDto {
         List<CharacterRankDto> characterRanks;
 
-        List<CrawlerRankDto> crawlerRanks;
+        List<CardDto> crawlerRanks;
 
         Boolean hasNext;
     }
