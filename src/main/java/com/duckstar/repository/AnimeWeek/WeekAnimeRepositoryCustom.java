@@ -1,9 +1,11 @@
 package com.duckstar.repository.AnimeWeek;
 
-import com.duckstar.web.dto.WeekResponseDto;
-
 import java.time.LocalDateTime;
 
+import static com.duckstar.web.dto.WeekResponseDto.*;
+
 public interface WeekAnimeRepositoryCustom {
-    WeekResponseDto.WeekDataDto getWeekDataByAnimeInfo(Long animeId, LocalDateTime premiereDateTime);
+    WeekDataDto getWeekDataByAnimeInfo(Long animeId, LocalDateTime premiereDateTime);
+
+
 }

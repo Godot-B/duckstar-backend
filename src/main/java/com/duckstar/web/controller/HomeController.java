@@ -1,7 +1,12 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
+import com.duckstar.domain.mapping.WeekAnime;
+import com.duckstar.service.AnimeService;
+import com.duckstar.service.HomeService;
+import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.ChartDto;
+import com.duckstar.web.dto.ChartDto.AniLabRankSliceDto;
 import com.duckstar.web.dto.HomeDto;
 import com.duckstar.web.dto.HomeDto.WeeklyTopDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,11 +19,16 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/home")
 @RequiredArgsConstructor
 @Validated
 public class HomeController {
+
+    private final HomeService homeService;
+    private final WeekService weekService;
 
     // caffeinate 필요 ?
     @Operation(summary = "홈페이지 초기 데이터 조회 API", description =
@@ -30,11 +40,9 @@ public class HomeController {
     @GetMapping("")
     public ApiResponse<HomeDto> getHome(
             @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50)
-            int size
+            @Min(1) @Max(50) int size
     ) {
-
-        return ApiResponse.onSuccess(null);
+        return ApiResponse.onSuccess(homeService.getHome(size));
     }
 
     @Operation(summary = "주차별 애니메이션 TOP N개 조회 API (with Anime Trend)", description =
@@ -47,21 +55,23 @@ public class HomeController {
             @PathVariable Integer quarter,
             @PathVariable Integer week,
             @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50)
-            int size
+            @Min(1) @Max(50) int size
     ) {
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
-        return ApiResponse.onSuccess(null);
+        return ApiResponse.onSuccess(
+                homeService.getAnimeWeeklyTopDto(weekId, size));
     }
 
     @Operation(summary = "주차별 AniLab TOP N개 조회 API",
             description = "프론트 탭 전환용: path variable 해당 주차 AniLab TOP N개")
     @GetMapping("/{year}/{quarter}/{week}/anime/with-lab")
-    public ApiResponse<ChartDto.AniLabRankSliceDto> getWeeklyAnimeChartWithAniLab(
+    public ApiResponse<AniLabRankSliceDto> getWeeklyAnimeChartWithAniLab(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week
     ) {
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
         return ApiResponse.onSuccess(null);
     }
@@ -79,6 +89,7 @@ public class HomeController {
             @Min(1) @Max(50)
             int size
     ) {
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
         return ApiResponse.onSuccess(null);
     }
@@ -96,6 +107,7 @@ public class HomeController {
             @Min(1) @Max(50)
             int size
     ) {
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
         return ApiResponse.onSuccess(null);
     }

@@ -22,8 +22,7 @@ public class AnimeController {
 
     private final AnimeService animeService;
 
-    @Operation(summary = "애니메이션 홈 초기 데이터 조회 API", description =
-            "분기 성적 탭, 등장인물 탭 페이지 포함 여부 결정해주세요.")
+    @Operation(summary = "애니메이션 홈 조회 API")
     @GetMapping("/{animeId}")
     public ApiResponse<AnimeHomeDto> getAnimeHomeById(@PathVariable Long animeId) {
         return ApiResponse.onSuccess(

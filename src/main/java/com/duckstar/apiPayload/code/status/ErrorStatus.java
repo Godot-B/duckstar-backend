@@ -18,6 +18,9 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
+
+    // 주 관련
+    WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
     ;
 
     private final HttpStatus httpStatus;
