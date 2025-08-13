@@ -14,19 +14,32 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_season_yt",
+                        columnList = "year_value, type")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_season_yt",
+                        columnNames = {"year_value", "type"})
+        }
+)
 public class Season extends BaseEntity {
 
-    // 태그 역할 엔티티. 애니 분류 용도이며
-    // Week 엔티티와는 직접적인 연관 ❌
+    // Anime 의 사회적 분류 카테고리. 날짜의 엄밀함 보장 ❌
+    // 예: 3/31 방영 애니는 1분기지만 SPRING
+    // 절기 판단 기준: 춘하추동, 방영일
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer year;
+    @Column(nullable = false)
+    private Integer yearValue;
 
+    @Column(length = 10, nullable = false)
     private SeasonType type;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<AnimeSeason> animeSeasons = new ArrayList<>();
+    @Column(nullable = false)
+    private Integer typeOrder;
 }

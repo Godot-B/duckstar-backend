@@ -18,12 +18,13 @@ public class AnimeOtt extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "anime_id")
+    @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ott_id")
+    @JoinColumn(name = "ott_id", nullable = false)
     private Ott ott;
 
+    @Column(length = 512)
     private String watchUrl;
 }

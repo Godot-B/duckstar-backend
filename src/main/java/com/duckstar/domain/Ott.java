@@ -17,8 +17,12 @@ public class Ott extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "anime_id")
+    @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
+    @Column(length = 10, nullable = false)
     private OttType type;
+
+    @Column(nullable = false)
+    private Integer typeOrder;
 }

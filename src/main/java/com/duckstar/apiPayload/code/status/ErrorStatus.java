@@ -16,6 +16,8 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
+    // 애니메이션
+    ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
     ;
 
     private final HttpStatus httpStatus;

@@ -16,7 +16,7 @@ public class MedalPreviewListValidator implements ConstraintValidator<MedalTypeS
 
     @Override
     public void initialize(MedalTypeSubset constraintAnnotation) {
-        this.allowedTypes = Set.of(constraintAnnotation.anyOf());
+        allowedTypes = Set.of(constraintAnnotation.anyOf());
     }
 
     @Override

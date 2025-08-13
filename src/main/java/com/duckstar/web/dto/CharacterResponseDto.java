@@ -22,21 +22,8 @@ public class CharacterResponseDto {
 
     @Builder
     @Getter
-    public static class CharacterHomePreviewPage {
-        List<CharacterHomePreviewDto> characterHomePreviews;
-
-        // 페이징 관련
-        Integer listSize;
-        Integer totalPage;
-        Long totalElements;
-        Boolean isFirst;
-        Boolean isLast;
-    }
-
-    @Builder
-    @Getter
     public static class CharacterHomePreviewDto {
-        String thumbnailUrl;
+        String mainThumbnailUrl;
 
         String nameKor;
 

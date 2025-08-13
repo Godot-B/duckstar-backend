@@ -1,22 +1,18 @@
 package com.duckstar.web.dto;
 
-
+import com.duckstar.web.dto.WeekResponseDto.WeekDto;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 @Getter
-public class WeekDto {
+public class QuarterDto {
 
     Integer year;
 
     Integer quarter;
 
-    Integer week;
-
-    LocalDate startDate;
-
-    LocalDate endDate;
+    List<WeekDto> weekDtos;
 }

@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -18,10 +20,7 @@ public class Character extends BaseEntity {
     @Column(name = "character_id")  // id 이름 명시
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "anime_id")
-    private Anime anime;
-
+    @Column(nullable = false)
     private String nameKor;
 
     private String nameKanji;
@@ -30,7 +29,19 @@ public class Character extends BaseEntity {
 
     private String cv;  // 성우
 
-    @Column(length = 10)
     @Enumerated(EnumType.STRING)
+    @Column(length = 10)
     private Gender gender;
+
+    @Column(length = 1024)
+    private String mainImageUrl;
+
+    @Column(length = 1024)
+    private String mainThumbnailUrl;
+
+    private Integer peakRank;
+
+    private LocalDate peakDate;
+
+    private Integer weeksOnTop10;
 }

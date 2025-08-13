@@ -11,11 +11,27 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_week_q", columnList = "quarter_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_week_qw",
+                        columnNames = {"quarter_id", "week_value"})
+        }
+)
 public class Week extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quarter_id", nullable = false)
+    private Quarter quarter;
+
+    @Column(nullable = false)
+    private Integer weekValue;
 
     @Column(nullable = false)
     private LocalDateTime startDateTime;
@@ -24,15 +40,8 @@ public class Week extends BaseEntity {
     private LocalDateTime endDateTime;
 
     @Column(nullable = false)
-    private Integer year;
-
-    @Column(nullable = false)
-    private Integer quarter;
-
-    @Column(nullable = false)
-    private Integer week;
-
     private Integer animeTotalVoteCount;
 
+    @Column(nullable = false)
     private Integer characterTotalVoteCount;
 }

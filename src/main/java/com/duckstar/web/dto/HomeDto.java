@@ -1,25 +1,41 @@
 package com.duckstar.web.dto;
 
-import com.duckstar.web.dto.AnimeResponseDto.AnimeRankPreviewDto;
-import com.duckstar.web.dto.CharacterResponseDto.CharacterRankPreviewDto;
+import com.duckstar.web.dto.SummaryDto.RankPreviewDto;
+import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
+import static com.duckstar.web.dto.WeekResponseDto.*;
+
 @Builder
 @Getter
 public class HomeDto {
 
-    List<HotAnimeDto> hotAnimes;
+    WeeklyTopDto weeklyTopDto;
 
-    List<HotCharacterDto> hotCharacters;
-
-    WeeklyTopDto weeklyTop;
+    HotBannerDto hotBannerDto;
 
     @Size(max = 12, message = "드롭다운용 weeks 리스트는 최대 12개까지입니다.")
-    List<WeekDto> weeks;
+    List<WeekDto> weekDtos;
+
+    @Builder
+    @Getter
+    public static class WeeklyTopDto {
+        List<RankPreviewDto> rankPreviews;
+
+        List<RankSummaryDto> crawlerRankDtos;
+    }
+
+    @Builder
+    @Getter
+    public static class HotBannerDto {
+        List<HotAnimeDto> hotAnimeDtos;
+
+        List<HotCharacterDto> hotCharacterDtos;
+    }
 
     @Builder
     @Getter
@@ -39,26 +55,5 @@ public class HomeDto {
         String imageUrl;
 
         String animeImgUrl;
-    }
-
-    @Builder
-    @Getter
-    public static class WeeklyTopDto {
-        // 애니메이션 톱 N
-        List<AnimeRankPreviewDto> animeRankPreviews;
-
-        List<CardDto> animeTrendAnimeRanks;
-
-        List<CardDto> aniLabAnimeRanks;
-
-        // 남캐 톱 N
-        List<CharacterRankPreviewDto> heroRankPreviews;
-
-        List<CardDto> animeTrendHeroRanks;
-
-        // 여캐 톱 N
-        List<CharacterRankPreviewDto> heroineRankPreviews;
-
-        List<CardDto> animeTrendHeroineRanks;
     }
 }

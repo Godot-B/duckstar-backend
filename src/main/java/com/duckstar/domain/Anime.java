@@ -13,6 +13,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,26 +26,27 @@ public class Anime extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 10)
     @Enumerated(EnumType.STRING)
+    @Column(length = 10, nullable = false)
     private Medium medium;  // TVA, MOVIE
 
-    @Column(length = 20)
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private AnimeStatus status;     // 방영(상영) 상태
 
     private Integer totalEpisodes;
 
+    private LocalDateTime premiereDateTime;
+
+    @Column(nullable = false)
     private String titleKor;
 
     private String titleOrigin;
 
     private String titleEng;
 
-    private LocalDate premiereDate;
-
-    @Column(length = 4)
     @Enumerated(EnumType.STRING)
+    @Column(length = 4)
     private DayOfWeekShort dayOfWeek;
 
     @Column(length = 5)
@@ -61,11 +63,16 @@ public class Anime extends BaseEntity {
     @Column(length = 100)
     private String author;  // 원작
 
-    @Column(length = 5)
-    private String maturityRating;
+    private Integer minAge;  // 시청 등급
 
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<SiteType, String> officialSite = new HashMap<>();
+
+    @Column(length = 1024)
+    private String mainImageUrl;
+
+    @Column(length = 1024)
+    private String mainThumbnailUrl;
 
     private Integer debutRank;
 
@@ -73,7 +80,7 @@ public class Anime extends BaseEntity {
 
     private Integer peakRank;
 
-    private LocalDate PeakDate;
+    private LocalDate peakDate;
 
     private Integer weeksOnTop10;
 }

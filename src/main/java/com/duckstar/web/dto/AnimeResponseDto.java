@@ -2,34 +2,37 @@ package com.duckstar.web.dto;
 
 import com.duckstar.domain.enums.*;
 import com.duckstar.validation.annotation.MedalTypeSubset;
-import com.duckstar.web.dto.CharacterResponseDto.CharacterHomePreviewPage;
+import com.duckstar.web.dto.CharacterResponseDto.CharacterHomePreviewDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
-import com.duckstar.web.dto.MedalDto.RackPage;
+import com.duckstar.web.dto.WeekResponseDto.WeekDataDto;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Builder
-@Getter
 public class AnimeResponseDto {
 
-    AnimeInfoDto info;
+    @Builder
+    @Getter
+    public static class AnimeHomeDto {
+        AnimeInfoDto info;
 
-    AnimeStatDto stat;
+        AnimeStatDto stat;
 
-    // 초기 데이터: 첫 페이지
-    RackPage rackPage;
+        WeekDataDto weekDataDto;
 
-    // 초기 데이터: 첫 페이지
-    CharacterHomePreviewPage characterHomePreviewPage;
+        List<CharacterHomePreviewDto> characterHomePreviewDtos;
+    }
 
     @Builder
     @Getter
     public static class AnimeRankDto {
-        CardDto card;
+        Long animeId;
+
+        SummaryDto.RankSummaryDto card;
 
         @MedalTypeSubset(anyOf = {
                 MedalType.GOLD,
@@ -41,8 +44,6 @@ public class AnimeResponseDto {
         AnimeStatDto stat;
 
         VoteResponseDto.VoteRatioDto voteRatio;
-
-        Long animeId;
     }
 
     @Builder
@@ -61,30 +62,22 @@ public class AnimeResponseDto {
 
     @Builder
     @Getter
-    public static class AnimeRankPreviewDto {
-        CardDto card;
-
-        Double votePercent;
-    }
-
-    @Builder
-    @Getter
     public static class AnimeInfoDto {
-        String imageUrl;
+        Medium medium;
+
+        AnimeStatus status;
+
+        Integer totalEpisodes;
+
+        LocalDateTime premiereDateTime;
 
         String titleKor;
 
         String titleOrigin;
 
-        List<SeasonDto> seasons;
-
-        Medium medium;  // TVA, MOVIE
-
         DayOfWeekShort dayOfWeek;
 
         String airTime;
-
-        List<OttDto> otts;
 
         String corp;
 
@@ -94,11 +87,15 @@ public class AnimeResponseDto {
 
         String author;
 
-        LocalDate premiereDate;
+        Integer minAge;
 
-        String maturityRating;
+        Map<SiteType, String> officalSite;
 
-        Map<String, String> officalSite;
+        String mainImageUrl;
+
+        List<SeasonDto> seasonDtos;
+
+        List<OttDto> ottDtos;
     }
 
     @Builder

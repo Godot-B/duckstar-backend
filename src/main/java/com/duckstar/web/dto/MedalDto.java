@@ -1,6 +1,7 @@
 package com.duckstar.web.dto;
 
 import com.duckstar.domain.enums.MedalType;
+import com.duckstar.web.dto.VoteResponseDto.VoteRatioDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,27 +12,14 @@ public class MedalDto {
 
     @Builder
     @Getter
-    public static class RackPage {
-        List<RackUnitDto> rackUnits;
-
-        // 페이징 관련
-        Integer listSize;
-        Integer totalPage;
-        Long totalElements;
-        Boolean isFirst;
-        Boolean isLast;
-    }
-
-    @Builder
-    @Getter
     public static class RackUnitDto {
-        MedalPreviewDto medalPreview;
-
         LocalDate startDate;
 
         LocalDate endDate;
 
-        VoteResponseDto.VoteRatioDto voteRatio;
+        MedalPreviewDto medalPreviewDto;
+
+        VoteRatioDto voteRatioDto;
     }
 
     @Builder
