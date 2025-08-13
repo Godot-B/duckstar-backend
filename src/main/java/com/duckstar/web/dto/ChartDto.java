@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
 
 public class ChartDto {
 
@@ -15,17 +16,11 @@ public class ChartDto {
     public static class AnimeRankSliceDto {
         List<AnimeRankDto> animeRankDtos;
 
-        List<RankSummaryDto> crawlerRankDtos;
+        List<RankSummaryDto> animeTrendRankDtos;
 
-        Boolean hasNext;
-    }
+        List<RankSummaryDto> aniLabRankDtos;
 
-    @Builder
-    @Getter
-    public static class AniLabRankSliceDto {
-        List<RankSummaryDto> crawlerRankDtos;
-
-        Boolean hasNext;
+        PageInfo pageInfo;
     }
 
     @Builder
@@ -35,6 +30,16 @@ public class ChartDto {
 
         List<RankSummaryDto> crawlerRankDtos;
 
+        PageInfo page;
+    }
+
+    @Builder
+    @Getter
+    public static class PageInfo {
         Boolean hasNext;
+
+        Integer page;
+
+        Integer size;
     }
 }

@@ -1,14 +1,21 @@
 package com.duckstar.repository.AnimeWeek;
 
+import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QRankInfo;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.mapping.QWeekAnime;
+import com.duckstar.web.dto.AnimeResponseDto;
+import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
+import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
 import com.duckstar.web.dto.MedalDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.MedalDto.RackUnitDto;
+import com.duckstar.web.dto.SummaryDto;
+import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
 import com.duckstar.web.dto.VoteResponseDto;
 import com.duckstar.web.dto.VoteResponseDto.VoteRatioDto;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTemplate;
@@ -24,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.WeekResponseDto.*;
@@ -35,6 +43,101 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
     private final JPAQueryFactory queryFactory;
     private final QWeekAnime weekAnime = QWeekAnime.weekAnime;
     private final QWeek week = QWeek.week;
+    private final QAnime anime = QAnime.anime;
+
+    @Override
+    public List<AnimeRankDto> getAnimeRankDtosByWeekId(Long weekId, Pageable pageable) {
+        List<Tuple> tuples = queryFactory.select(
+                        anime.id,
+                        weekAnime.rankInfo.rank,
+                        weekAnime.rankInfo.rankDiff,
+                        weekAnime.rankInfo.consecutiveWeeksAtSameRank,
+                        anime.mainThumbnailUrl,
+                        anime.titleKor,
+                        anime.corp,
+                        anime.debutRank,
+                        anime.debutDate,
+                        weekAnime.rankInfo.peakRank,
+                        weekAnime.rankInfo.peakDate,
+                        weekAnime.rankInfo.weeksOnTop10,
+                        weekAnime.rankInfo.votePercent,
+                        weekAnime.rankInfo.malePercent
+                ).from(weekAnime)
+                .join(anime).on(anime.id.eq(weekAnime.anime.id))
+                .where(weekAnime.week.id.eq(weekId))
+                // 추후에 메달 개수 정렬 기준 2순위로 삽입
+                .orderBy(weekAnime.rankInfo.rank.asc(), anime.titleKor.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<Long> animeIds = tuples.stream()
+                .map(t -> t.get(anime.id))
+                .toList();
+        if (animeIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 이해 필요
+        Map<Long, List<MedalPreviewDto>> medalsByAnimeId = queryFactory.from(weekAnime)
+                .join(week).on(week.id.eq(weekAnime.week.id))
+                .where(weekAnime.anime.id.in(animeIds))
+                .orderBy(week.startDateTime.asc())
+                .transform(
+                        GroupBy.groupBy(weekAnime.anime.id).as(
+                                GroupBy.list(Projections.constructor(
+                                        MedalPreviewDto.class,
+                                        weekAnime.rankInfo.type,
+                                        weekAnime.rankInfo.rank,
+                                        week.quarter.yearValue,
+                                        week.quarter.quarterValue,
+                                        week.weekValue
+                                ))
+                        )
+                );
+
+        return tuples.stream()
+                .map(t -> {
+                    Long animeId = t.get(anime.id);
+
+                    RankSummaryDto rankSummaryDto = RankSummaryDto.builder()
+                            .rank(t.get(weekAnime.rankInfo.rank))
+                            .rankDiff(t.get(weekAnime.rankInfo.rankDiff))
+                            .consecutiveWeeksAtSameRank(t.get(weekAnime.rankInfo.consecutiveWeeksAtSameRank))
+                            .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
+                            .title(t.get(anime.titleKor))
+                            .subTitle(t.get(anime.corp))
+                            .build();
+
+                    List<MedalPreviewDto> medalPreviewDtos =
+                            medalsByAnimeId.getOrDefault(animeId, List.of());
+
+                    AnimeStatDto animeStatDto = AnimeStatDto.builder()
+                            .debutRank(t.get(anime.debutRank))
+                            .debutDate(t.get(anime.debutDate))
+                            .peakRank(t.get(weekAnime.rankInfo.peakRank))
+                            .peakDate(t.get(weekAnime.rankInfo.peakDate))
+                            .weeksOnTop10(t.get(weekAnime.rankInfo.weeksOnTop10))
+                            .build();
+
+                    Double malePercent = t.get(weekAnime.rankInfo.malePercent);
+                    if (malePercent == null) malePercent = 0.0;
+                    VoteRatioDto voteRatioDto = VoteRatioDto.builder()
+                            .votePercent(t.get(weekAnime.rankInfo.votePercent))
+                            .malePercent(malePercent)
+                            .femalePercent(100.0 - malePercent)
+                            .build();
+
+                    return AnimeRankDto.builder()
+                            .animeId(animeId)
+                            .rankSummaryDto(rankSummaryDto)
+                            .medalPreviews(medalPreviewDtos)
+                            .animeStatDto(animeStatDto)
+                            .voteRatioDto(voteRatioDto)
+                            .build();
+                })
+                .toList();
+    }
 
     @Override
     public WeekDataDto getWeekDataByAnimeInfo(Long animeId, LocalDateTime premiereDateTime) {

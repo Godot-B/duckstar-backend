@@ -1,25 +1,17 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
-import com.duckstar.domain.mapping.WeekAnime;
-import com.duckstar.service.AnimeService;
 import com.duckstar.service.HomeService;
 import com.duckstar.service.WeekService;
-import com.duckstar.web.dto.ChartDto;
-import com.duckstar.web.dto.ChartDto.AniLabRankSliceDto;
 import com.duckstar.web.dto.HomeDto;
 import com.duckstar.web.dto.HomeDto.WeeklyTopDto;
+import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/home")
@@ -50,7 +42,7 @@ public class HomeController {
                     path variable 해당 주차
                     애니 & Anime Trend TOP N개""")
     @GetMapping("/{year}/{quarter}/{week}/anime")
-    public ApiResponse<WeeklyTopDto> getAnimeTop10ByWeek(
+    public ApiResponse<WeeklyTopDto> getAnimeTopNByWeek(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week,
@@ -66,10 +58,12 @@ public class HomeController {
     @Operation(summary = "주차별 AniLab TOP N개 조회 API",
             description = "프론트 탭 전환용: path variable 해당 주차 AniLab TOP N개")
     @GetMapping("/{year}/{quarter}/{week}/anime/with-lab")
-    public ApiResponse<AniLabRankSliceDto> getWeeklyAnimeChartWithAniLab(
+    public ApiResponse<RankSummaryDto> getWeeklyAniLab(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
-            @PathVariable Integer week
+            @PathVariable Integer week,
+            @RequestParam(defaultValue = "10")
+            @Min(1) @Max(50) int size
     ) {
         Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
@@ -81,13 +75,12 @@ public class HomeController {
                     path variable 해당 주차
                     남캐 & Anime Trend TOP N개""")
     @GetMapping("/{year}/{quarter}/{week}/hero")
-    public ApiResponse<WeeklyTopDto> getHeroTop10ByWeek(
+    public ApiResponse<WeeklyTopDto> getHeroTopNByWeek(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week,
             @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50)
-            int size
+            @Min(1) @Max(50) int size
     ) {
         Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
@@ -99,13 +92,12 @@ public class HomeController {
                     path variable 해당 주차
                     여캐 & Anime Trend TOP N개""")
     @GetMapping("/{year}/{quarter}/{week}/heroine")
-    public ApiResponse<WeeklyTopDto> getHeroineTop10ByWeek(
+    public ApiResponse<WeeklyTopDto> getHeroineTopNByWeek(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week,
             @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50)
-            int size
+            @Min(1) @Max(50) int size
     ) {
         Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
