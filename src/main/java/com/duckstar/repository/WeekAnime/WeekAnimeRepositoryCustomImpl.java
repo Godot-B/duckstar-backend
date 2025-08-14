@@ -1,30 +1,21 @@
-package com.duckstar.repository.AnimeWeek;
+package com.duckstar.repository.WeekAnime;
 
 import com.duckstar.domain.QAnime;
-import com.duckstar.domain.QRankInfo;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.mapping.QWeekAnime;
-import com.duckstar.web.dto.AnimeResponseDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
-import com.duckstar.web.dto.MedalDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.MedalDto.RackUnitDto;
-import com.duckstar.web.dto.SummaryDto;
 import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
-import com.duckstar.web.dto.VoteResponseDto;
 import com.duckstar.web.dto.VoteResponseDto.VoteRatioDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTemplate;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -32,7 +23,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.WeekResponseDto.*;
 

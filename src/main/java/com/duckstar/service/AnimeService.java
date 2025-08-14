@@ -10,7 +10,7 @@ import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.AnimeRepository;
-import com.duckstar.repository.AnimeWeek.WeekAnimeRepository;
+import com.duckstar.repository.WeekAnime.WeekAnimeRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.SearchResponseDto.AnimePreviewDto;

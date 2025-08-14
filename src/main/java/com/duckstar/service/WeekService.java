@@ -3,7 +3,7 @@ package com.duckstar.service;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
-import com.duckstar.repository.AnimeWeek.WeekAnimeRepository;
+import com.duckstar.repository.WeekAnime.WeekAnimeRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.ChartDto.AnimeRankSliceDto;

@@ -1,4 +1,4 @@
-package com.duckstar.repository.AnimeWeek;
+package com.duckstar.repository.WeekAnime;
 
 import com.duckstar.domain.mapping.WeekAnime;
 import org.springframework.data.domain.Pageable;

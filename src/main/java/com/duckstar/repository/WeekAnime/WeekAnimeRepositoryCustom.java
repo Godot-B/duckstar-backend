@@ -1,6 +1,5 @@
-package com.duckstar.repository.AnimeWeek;
+package com.duckstar.repository.WeekAnime;
 
-import com.duckstar.web.dto.AnimeResponseDto;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
