@@ -46,9 +46,9 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                         anime.genre,
                         anime.medium
                 )
-                .from(anime)
-                .join(animeSeason).on(animeSeason.anime.id.eq(anime.id))
-                // 현 주차로 스코프 고정: 없을 수도 있으니 leftJoin
+                .from(animeSeason)
+                .join(anime).on(anime.id.eq(animeSeason.anime.id))
+                // 현재 주차 한정: weekAnime null 가능 = leftJoin
                 .leftJoin(weekAnime).on(weekAnime.anime.id.eq(anime.id)
                         .and(weekAnime.week.id.eq(currentWeekId)))
                 .where(animeSeason.season.quarter.id.eq(quarterId))
@@ -62,6 +62,7 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
             return List.of();
         }
 
+        // transform, GroupBy 이해 필요
         Map<Long, List<OttDto>> ottDtosMap = queryFactory.from(animeOtt)
                 .join(ott).on(animeOtt.ott.id.eq(ott.id))
                 .where(animeOtt.anime.id.in(animeIds))

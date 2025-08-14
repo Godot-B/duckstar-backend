@@ -68,7 +68,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
             return List.of();
         }
 
-        // GroupBy 이해 필요
+        // transform, GroupBy 이해 필요
         Map<Long, List<MedalPreviewDto>> medalDtosMap = queryFactory.from(weekAnime)
                 .join(week).on(week.id.eq(weekAnime.week.id))
                 .where(weekAnime.anime.id.in(animeIds))
