@@ -1,10 +1,12 @@
 package com.duckstar.domain;
 
+import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +23,9 @@ import java.util.List;
                         columnNames = {"year_value", "quarter_value"})
         }
 )
-public class Quarter {
+public class Quarter extends BaseEntity {
+
+    // 차트용. 날짜의 엄밀함 보장 ⭕️
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +36,4 @@ public class Quarter {
 
     @Column(nullable = false)
     private Integer quarterValue;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<Week> weeks = new ArrayList<>();
 }

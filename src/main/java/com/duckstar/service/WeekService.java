@@ -1,24 +1,21 @@
 package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.repository.AnimeWeek.WeekAnimeRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.ChartDto.AnimeRankSliceDto;
-import com.duckstar.web.dto.SummaryDto;
+import com.duckstar.web.dto.PageInfo;
 import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import static com.duckstar.web.dto.ChartDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +24,11 @@ public class WeekService {
 
     private final WeekRepository weekRepository;
     private final WeekAnimeRepository weekAnimeRepository;
+
+    public Long getQuarterIdByYQ(Integer year, Integer quarter) {
+        return weekRepository.findQuarterIdByYQ(year, quarter)
+                .orElseThrow(() -> new QuarterHandler(ErrorStatus.QUARTER_NOT_FOUND));
+    }
 
     public Long getWeekIdByYQW(Integer year, Integer quarter, Integer week) {
         return weekRepository.findWeekIdByYQW(year, quarter, week)
@@ -45,7 +47,7 @@ public class WeekService {
 
         List<AnimeRankDto> rows =
                 weekAnimeRepository.getAnimeRankDtosByWeekId(weekId, overFetch);
-        boolean leftHasNext = rows.size() > size;
+        boolean duckstarHasNext = rows.size() > size;
 
         List<RankSummaryDto> animeTrendRankDtos = null;
         boolean animeTrendHasNext = false;
@@ -53,7 +55,7 @@ public class WeekService {
         List<RankSummaryDto> aniLabRankDtos = null;
         boolean aniLabHasNext = false;
 
-        boolean hasNextTotal = leftHasNext || animeTrendHasNext || aniLabHasNext;
+        boolean hasNextTotal = duckstarHasNext || animeTrendHasNext || aniLabHasNext;
 
         if (hasNextTotal) rows = rows.subList(0, size);
 

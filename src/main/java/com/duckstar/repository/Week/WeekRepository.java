@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface WeekRepository extends JpaRepository<Week, Long>, WeekRepositoryCustom {
-    List<Week> findByStartDateTimeLessThanEqualOrderByStartDateTimeDesc(LocalDateTime startDateTimeIsLessThan, PageRequest pageRequest);
+    List<Week> findByStartDateTimeLessThanEqualOrderByStartDateTimeDesc(LocalDateTime now, PageRequest pageRequest);
+
+    Optional<Long> findWeekIdByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(LocalDateTime now1, LocalDateTime now2);
 }

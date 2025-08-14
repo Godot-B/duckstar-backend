@@ -2,7 +2,6 @@ package com.duckstar.web.dto;
 
 import com.duckstar.domain.enums.*;
 import com.duckstar.validation.annotation.MedalTypeSubset;
-import com.duckstar.web.dto.CharacterResponseDto.CharacterHomePreviewDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
 import com.duckstar.web.dto.WeekResponseDto.WeekDataDto;
@@ -27,9 +26,9 @@ public class AnimeResponseDto {
 
         WeekDataDto weekDataDto;
 
-        List<CharacterHomePreviewDto> characterHomePreviewDtos;
+        List<CastPreviewDto> castPreviewDtos;
     }
-
+    
     @Builder
     @Getter
     public static class AnimeRankDto {
@@ -113,5 +112,15 @@ public class AnimeResponseDto {
     public static class OttDto {
         OttType ottType;
         String watchUrl;
+    }
+    
+    @Builder
+    @Getter
+    public static class CastPreviewDto {
+        String mainThumbnailUrl;
+
+        String nameKor;
+
+        String cv;
     }
 }

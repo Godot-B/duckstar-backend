@@ -14,6 +14,19 @@ public class WeekRepositoryCustomImpl implements WeekRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QWeek week = QWeek.week;
+    private final QQuarter quarter = QQuarter.quarter;
+
+    @Override
+    public Optional<Long> findQuarterIdByYQ(int yearValue, int quarterValue) {
+        Long quarterId = queryFactory.select(quarter.id)
+                .from(quarter)
+                .where(
+                        quarter.yearValue.eq(yearValue),
+                        quarter.quarterValue.eq(quarterValue)
+                )
+                .fetchOne();
+        return Optional.ofNullable(quarterId);
+    }
 
     @Override
     public Optional<Long> findWeekIdByYQW(int yearValue, int quarterValue, int weekValue) {

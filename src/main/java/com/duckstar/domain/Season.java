@@ -34,6 +34,10 @@ public class Season extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quarter_id")
+    private Quarter quarter;
+
     @Column(nullable = false)
     private Integer yearValue;
 

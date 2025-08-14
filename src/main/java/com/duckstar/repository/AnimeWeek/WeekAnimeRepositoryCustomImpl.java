@@ -78,23 +78,22 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
             return List.of();
         }
 
-        // 이해 필요
-        Map<Long, List<MedalPreviewDto>> medalsByAnimeId = queryFactory.from(weekAnime)
+        // GroupBy 이해 필요
+        Map<Long, List<MedalPreviewDto>> medalDtosMap = queryFactory.from(weekAnime)
                 .join(week).on(week.id.eq(weekAnime.week.id))
                 .where(weekAnime.anime.id.in(animeIds))
                 .orderBy(week.startDateTime.asc())
-                .transform(
-                        GroupBy.groupBy(weekAnime.anime.id).as(
-                                GroupBy.list(Projections.constructor(
+                .transform(GroupBy.groupBy(weekAnime.anime.id).as(
+                        GroupBy.list(
+                                Projections.constructor(
                                         MedalPreviewDto.class,
                                         weekAnime.rankInfo.type,
                                         weekAnime.rankInfo.rank,
                                         week.quarter.yearValue,
                                         week.quarter.quarterValue,
                                         week.weekValue
-                                ))
-                        )
-                );
+                                )
+                        )));
 
         return tuples.stream()
                 .map(t -> {
@@ -110,7 +109,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                             .build();
 
                     List<MedalPreviewDto> medalPreviewDtos =
-                            medalsByAnimeId.getOrDefault(animeId, List.of());
+                            medalDtosMap.getOrDefault(animeId, List.of());
 
                     AnimeStatDto animeStatDto = AnimeStatDto.builder()
                             .debutRank(t.get(anime.debutRank))

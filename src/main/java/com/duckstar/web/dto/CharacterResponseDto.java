@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public class CharacterResponseDto {
 
@@ -18,16 +17,6 @@ public class CharacterResponseDto {
     @Getter
     public static class CharacterRankDto {
 
-    }
-
-    @Builder
-    @Getter
-    public static class CharacterHomePreviewDto {
-        String mainThumbnailUrl;
-
-        String nameKor;
-
-        String cv;
     }
 
     @Builder

@@ -16,11 +16,14 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
-    // 애니메이션
-    ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
+    // 분기 관련
+    QUARTER_NOT_FOUND(HttpStatus.BAD_REQUEST, "QUARTER4001", "존재하지 않는 분기입니다."),
 
     // 주 관련
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
+
+    // 애니메이션
+    ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
     ;
 
     private final HttpStatus httpStatus;

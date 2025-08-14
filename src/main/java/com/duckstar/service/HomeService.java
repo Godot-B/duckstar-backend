@@ -6,8 +6,6 @@ import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.Week;
 import com.duckstar.repository.HomeBannerRepository;
 import com.duckstar.repository.Week.WeekRepository;
-import com.duckstar.web.dto.ChartDto;
-import com.duckstar.web.dto.ChartDto.AnimeRankSliceDto;
 import com.duckstar.web.dto.HomeDto;
 import com.duckstar.web.dto.HomeDto.HomeBannerDto;
 import com.duckstar.web.dto.HomeDto.WeeklyTopDto;
@@ -15,8 +13,8 @@ import com.duckstar.web.dto.SummaryDto.RankPreviewDto;
 import com.duckstar.web.dto.WeekResponseDto.WeekDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,12 +22,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class HomeService {
     private final AnimeService animeService;
 
     private final WeekRepository weekRepository;
     private final HomeBannerRepository homeBannerRepository;
-    private final WeekService weekService;
 
     public HomeDto getHome(int size) {
         LocalDateTime now = LocalDateTime.now();
@@ -79,8 +77,4 @@ public class HomeService {
                 )
                 .build();
     }
-
-//    public AnimeRankSliceDto getAnimeRankSliceDto(Long weekId, Pageable pageable) {
-//
-//    }
 }

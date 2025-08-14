@@ -30,6 +30,8 @@ public class WeekAnime extends BaseEntity {
 
     private Boolean isBreak;    // TVA 결방 주 여부
 
+    private LocalDateTime rescheduledAt;    // 변칙 편성 시간
+
     private LocalDateTime airDateTime;
 
     private Integer totalVoteCount;

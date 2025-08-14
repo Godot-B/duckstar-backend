@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Map;
 
 public class ChartDto {
 
@@ -30,16 +29,6 @@ public class ChartDto {
 
         List<RankSummaryDto> crawlerRankDtos;
 
-        PageInfo page;
-    }
-
-    @Builder
-    @Getter
-    public static class PageInfo {
-        Boolean hasNext;
-
-        Integer page;
-
-        Integer size;
+        PageInfo pageInfo;
     }
 }

@@ -1,5 +1,6 @@
 package com.duckstar.domain;
 
+import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.BannerType;
 import com.duckstar.domain.enums.ContentType;
 import jakarta.persistence.*;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class HomeBanner {
+public class HomeBanner extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
