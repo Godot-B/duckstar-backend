@@ -3,8 +3,8 @@ package com.duckstar.web.dto;
 import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.enums.BannerType;
 import com.duckstar.domain.enums.ContentType;
-import com.duckstar.web.dto.SummaryDto.RankPreviewDto;
-import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
+import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
+import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,9 +27,9 @@ public class HomeDto {
     @Builder
     @Getter
     public static class WeeklyTopDto {
-        List<RankPreviewDto> rankPreviews;
+        List<DuckstarRankPreviewDto> duckstarRankPreviews;
 
-        List<RankSummaryDto> crawlerRankDtos;
+        List<RankPreviewDto> crawlerRankDtos;
     }
 
     @Builder

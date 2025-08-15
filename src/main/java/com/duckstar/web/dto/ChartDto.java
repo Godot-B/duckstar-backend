@@ -2,7 +2,7 @@ package com.duckstar.web.dto;
 
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.CharacterResponseDto.CharacterRankDto;
-import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
+import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,9 +15,9 @@ public class ChartDto {
     public static class AnimeRankSliceDto {
         List<AnimeRankDto> animeRankDtos;
 
-        List<RankSummaryDto> animeTrendRankDtos;
+        List<RankPreviewDto> animeTrendRankDtos;
 
-        List<RankSummaryDto> aniLabRankDtos;
+        List<RankPreviewDto> aniLabRankDtos;
 
         PageInfo pageInfo;
     }
@@ -27,7 +27,7 @@ public class ChartDto {
     public static class CharacterRankSliceDto {
         List<CharacterRankDto> characterRankDtos;
 
-        List<RankSummaryDto> crawlerRankDtos;
+        List<RankPreviewDto> crawlerRankDtos;
 
         PageInfo pageInfo;
     }

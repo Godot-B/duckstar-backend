@@ -8,7 +8,7 @@ import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.ChartDto.AnimeRankSliceDto;
 import com.duckstar.web.dto.PageInfo;
-import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
+import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,10 +49,10 @@ public class WeekService {
                 weekAnimeRepository.getAnimeRankDtosByWeekId(weekId, overFetch);
         boolean duckstarHasNext = rows.size() > size;
 
-        List<RankSummaryDto> animeTrendRankDtos = null;
+        List<RankPreviewDto> animeTrendRankDtos = null;
         boolean animeTrendHasNext = false;
 
-        List<RankSummaryDto> aniLabRankDtos = null;
+        List<RankPreviewDto> aniLabRankDtos = null;
         boolean aniLabHasNext = false;
 
         boolean hasNextTotal = duckstarHasNext || animeTrendHasNext || aniLabHasNext;

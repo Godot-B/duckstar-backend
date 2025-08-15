@@ -14,7 +14,7 @@ import com.duckstar.repository.WeekAnime.WeekAnimeRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.SearchResponseDto.AnimePreviewDto;
-import com.duckstar.web.dto.SummaryDto.RankPreviewDto;
+import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -69,14 +69,14 @@ public class AnimeService {
         return schedule;
     }
 
-    public List<RankPreviewDto> getAnimeRankPreviewDtosByWeekId(Long weekId, int size) {
+    public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
         List<WeekAnime> weekAnimes = weekAnimeRepository.getWeekAnimesByWeekId(
                 weekId,
                 PageRequest.of(0, size)
         );
 
         return weekAnimes.stream()
-                .map(RankPreviewDto::from)
+                .map(DuckstarRankPreviewDto::from)
                 .toList();
     }
 
@@ -128,7 +128,7 @@ public class AnimeService {
                 .weekDataDto(
                         weekAnimeRepository.getWeekDataByAnimeInfo(animeId, premiereDateTime)
                 )
-                .castPreviewDtos(
+                .castPreviews(
                         animeCharacterRepository.getAllCharacterHomePreviewsByAnimeId(animeId)
                 )
                 .build();

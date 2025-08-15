@@ -5,7 +5,7 @@ import com.duckstar.service.HomeService;
 import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.HomeDto;
 import com.duckstar.web.dto.HomeDto.WeeklyTopDto;
-import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
+import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -58,7 +58,7 @@ public class HomeController {
     @Operation(summary = "주차별 AniLab TOP N개 조회 API",
             description = "프론트 탭 전환용: path variable 해당 주차 AniLab TOP N개")
     @GetMapping("/{year}/{quarter}/{week}/anime/with-lab")
-    public ApiResponse<RankSummaryDto> getWeeklyAniLab(
+    public ApiResponse<RankPreviewDto> getWeeklyAniLab(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week,

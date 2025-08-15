@@ -1,4 +1,4 @@
-package com.duckstar.domain;
+package com.duckstar.domain.vo;
 
 import com.duckstar.domain.enums.MedalType;
 import jakarta.persistence.*;

@@ -9,7 +9,7 @@ import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.HomeDto;
 import com.duckstar.web.dto.HomeDto.HomeBannerDto;
 import com.duckstar.web.dto.HomeDto.WeeklyTopDto;
-import com.duckstar.web.dto.SummaryDto.RankPreviewDto;
+import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
 import com.duckstar.web.dto.WeekResponseDto.WeekDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -41,8 +41,8 @@ public class HomeService {
                 .findFirst()
                 .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
-        List<RankPreviewDto> animeRankPreviewDtos =
-                animeService.getAnimeRankPreviewDtosByWeekId(currentWeek.getId(), size);
+        List<DuckstarRankPreviewDto> animeDuckstarRankPreviews =
+                animeService.getAnimeRankPreviewsByWeekId(currentWeek.getId(), size);
 
         List<HomeBanner> homeBanners =
                 homeBannerRepository.getHomeBannersByWeekId(currentWeek.getId());
@@ -52,7 +52,7 @@ public class HomeService {
                 .toList();
 
         WeeklyTopDto weeklyTopDto = WeeklyTopDto.builder()
-                .rankPreviews(animeRankPreviewDtos)
+                .duckstarRankPreviews(animeDuckstarRankPreviews)
                 .crawlerRankDtos(null)
                 .build();
 
@@ -69,8 +69,8 @@ public class HomeService {
 
     public WeeklyTopDto getAnimeWeeklyTopDto(Long weekId, int size) {
         return WeeklyTopDto.builder()
-                .rankPreviews(
-                        animeService.getAnimeRankPreviewDtosByWeekId(weekId, size)
+                .duckstarRankPreviews(
+                        animeService.getAnimeRankPreviewsByWeekId(weekId, size)
                 )
                 .crawlerRankDtos(
                         null

@@ -1,7 +1,7 @@
 package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.RankInfo;
+import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;

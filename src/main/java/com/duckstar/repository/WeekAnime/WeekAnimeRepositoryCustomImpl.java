@@ -7,8 +7,9 @@ import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.MedalDto.RackUnitDto;
-import com.duckstar.web.dto.SummaryDto.RankSummaryDto;
-import com.duckstar.web.dto.VoteResponseDto.VoteRatioDto;
+import com.duckstar.web.dto.RankInfoDto;
+import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
+import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
@@ -89,7 +90,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                 .map(t -> {
                     Long animeId = t.get(anime.id);
 
-                    RankSummaryDto rankSummaryDto = RankSummaryDto.builder()
+                    RankPreviewDto rankPreviewDto = RankPreviewDto.builder()
                             .rank(t.get(weekAnime.rankInfo.rank))
                             .rankDiff(t.get(weekAnime.rankInfo.rankDiff))
                             .consecutiveWeeksAtSameRank(t.get(weekAnime.rankInfo.consecutiveWeeksAtSameRank))
@@ -98,7 +99,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                             .subTitle(t.get(anime.corp))
                             .build();
 
-                    List<MedalPreviewDto> medalPreviewDtos =
+                    List<MedalPreviewDto> medalPreviews =
                             medalDtosMap.getOrDefault(animeId, List.of());
 
                     AnimeStatDto animeStatDto = AnimeStatDto.builder()
@@ -111,7 +112,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
 
                     Double malePercent = t.get(weekAnime.rankInfo.malePercent);
                     if (malePercent == null) malePercent = 0.0;
-                    VoteRatioDto voteRatioDto = VoteRatioDto.builder()
+                    VoteRatioDto voteRatioDto = RankInfoDto.VoteRatioDto.builder()
                             .votePercent(t.get(weekAnime.rankInfo.votePercent))
                             .malePercent(malePercent)
                             .femalePercent(100.0 - malePercent)
@@ -119,9 +120,9 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
 
                     return AnimeRankDto.builder()
                             .animeId(animeId)
-                            .rankSummaryDto(rankSummaryDto)
-                            .medalPreviews(medalPreviewDtos)
-                            .animeStatDto(animeStatDto)
+                            .rankPreviewDto(rankPreviewDto)
+                            .medalPreviews(medalPreviews)
+                            .stat(animeStatDto)
                             .voteRatioDto(voteRatioDto)
                             .build();
                 })
@@ -189,7 +190,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                     Double malePercent = t.get(weekAnime.rankInfo.malePercent);
                     if (malePercent == null) malePercent = 0.0;
 
-                    VoteRatioDto voteRatioDto = VoteRatioDto.builder()
+                    VoteRatioDto voteRatioDto = RankInfoDto.VoteRatioDto.builder()
                             .votePercent(t.get(weekAnime.rankInfo.votePercent))
                             .malePercent(malePercent)
                             .femalePercent(100.0 - malePercent)

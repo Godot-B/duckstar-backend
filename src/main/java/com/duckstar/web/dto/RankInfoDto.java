@@ -1,16 +1,16 @@
 package com.duckstar.web.dto;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.RankInfo;
+import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.domain.mapping.WeekAnime;
 import lombok.Builder;
 import lombok.Getter;
 
-public class SummaryDto {
+public class RankInfoDto {
 
     @Builder
     @Getter
-    public static class RankSummaryDto {
+    public static class RankPreviewDto {
         Integer rank;
 
         Integer rankDiff;
@@ -26,15 +26,15 @@ public class SummaryDto {
 
     @Builder
     @Getter
-    public static class RankPreviewDto {
+    public static class DuckstarRankPreviewDto {
         Double votePercent;
 
-        RankSummaryDto rankSummaryDto;
+        RankPreviewDto rankPreviewDto;
 
-        public static RankPreviewDto from(WeekAnime weekAnime) {
+        public static DuckstarRankPreviewDto from(WeekAnime weekAnime) {
             RankInfo rankInfo = weekAnime.getRankInfo();
             Anime anime = weekAnime.getAnime();
-            SummaryDto.RankSummaryDto rankSummaryDto = SummaryDto.RankSummaryDto.builder()
+            RankPreviewDto rankPreviewDto = RankPreviewDto.builder()
                     .rank(rankInfo.getRank())
                     .rankDiff(rankInfo.getRankDiff())
                     .consecutiveWeeksAtSameRank(rankInfo.getConsecutiveWeeksAtSameRank())
@@ -43,15 +43,20 @@ public class SummaryDto {
                     .subTitle(anime.getCorp())
                     .build();
 
-            return RankPreviewDto.builder()
+            return DuckstarRankPreviewDto.builder()
                     .votePercent(rankInfo.getVotePercent())
-                    .rankSummaryDto(rankSummaryDto)
+                    .rankPreviewDto(rankPreviewDto)
                     .build();
         }
+    }
 
+    @Builder
+    @Getter
+    public static class VoteRatioDto {
+        Double votePercent;
 
-//        public static RankPreviewDto from(WeekCharacter weekAnime) {
-//
-//        }
+        Double malePercent;
+
+        Double femalePercent;
     }
 }
