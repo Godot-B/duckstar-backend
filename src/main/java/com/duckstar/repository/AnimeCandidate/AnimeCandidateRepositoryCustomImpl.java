@@ -1,8 +1,9 @@
-package com.duckstar.repository.WeekAnime;
+package com.duckstar.repository.AnimeCandidate;
 
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
-import com.duckstar.domain.mapping.QWeekAnime;
+import com.duckstar.domain.mapping.QAnimeCandidate;
+import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
@@ -21,18 +22,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static com.duckstar.web.dto.WeekResponseDto.*;
-
 @Repository
 @RequiredArgsConstructor
-public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom {
+public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-    private final QWeekAnime weekAnime = QWeekAnime.weekAnime;
+    private final QAnimeCandidate animeCandidate = QAnimeCandidate.animeCandidate;
+    private final QEpisode episode = QEpisode.episode;
     private final QWeek week = QWeek.week;
     private final QAnime anime = QAnime.anime;
 
@@ -40,24 +39,24 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
     public List<AnimeRankDto> getAnimeRankDtosByWeekId(Long weekId, Pageable pageable) {
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
-                        weekAnime.rankInfo.rank,
-                        weekAnime.rankInfo.rankDiff,
-                        weekAnime.rankInfo.consecutiveWeeksAtSameRank,
+                        animeCandidate.rankInfo.rank,
+                        animeCandidate.rankInfo.rankDiff,
+                        animeCandidate.rankInfo.consecutiveWeeksAtSameRank,
                         anime.mainThumbnailUrl,
                         anime.titleKor,
                         anime.corp,
                         anime.debutRank,
                         anime.debutDate,
-                        weekAnime.rankInfo.peakRank,
-                        weekAnime.rankInfo.peakDate,
-                        weekAnime.rankInfo.weeksOnTop10,
-                        weekAnime.rankInfo.votePercent,
-                        weekAnime.rankInfo.malePercent
-                ).from(weekAnime)
-                .join(anime).on(anime.id.eq(weekAnime.anime.id))
-                .where(weekAnime.week.id.eq(weekId))
+                        animeCandidate.rankInfo.peakRank,
+                        animeCandidate.rankInfo.peakDate,
+                        animeCandidate.rankInfo.weeksOnTop10,
+                        animeCandidate.rankInfo.votePercent,
+                        animeCandidate.rankInfo.malePercent
+                ).from(animeCandidate)
+                .join(anime).on(anime.id.eq(animeCandidate.anime.id))
+                .where(animeCandidate.week.id.eq(weekId))
                 // 추후에 메달 개수 정렬 기준 2순위로 삽입
-                .orderBy(weekAnime.rankInfo.rank.asc(), anime.titleKor.asc())
+                .orderBy(animeCandidate.rankInfo.rank.asc(), anime.titleKor.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -70,16 +69,16 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
         }
 
         // transform, GroupBy 이해 필요
-        Map<Long, List<MedalPreviewDto>> medalDtosMap = queryFactory.from(weekAnime)
-                .join(week).on(week.id.eq(weekAnime.week.id))
-                .where(weekAnime.anime.id.in(animeIds))
+        Map<Long, List<MedalPreviewDto>> medalDtosMap = queryFactory.from(animeCandidate)
+                .join(week).on(week.id.eq(animeCandidate.week.id))
+                .where(animeCandidate.anime.id.in(animeIds))
                 .orderBy(week.startDateTime.asc())
-                .transform(GroupBy.groupBy(weekAnime.anime.id).as(
+                .transform(GroupBy.groupBy(animeCandidate.anime.id).as(
                         GroupBy.list(
                                 Projections.constructor(
                                         MedalPreviewDto.class,
-                                        weekAnime.rankInfo.type,
-                                        weekAnime.rankInfo.rank,
+                                        animeCandidate.rankInfo.type,
+                                        animeCandidate.rankInfo.rank,
                                         week.quarter.yearValue,
                                         week.quarter.quarterValue,
                                         week.weekValue
@@ -91,9 +90,9 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                     Long animeId = t.get(anime.id);
 
                     RankPreviewDto rankPreviewDto = RankPreviewDto.builder()
-                            .rank(t.get(weekAnime.rankInfo.rank))
-                            .rankDiff(t.get(weekAnime.rankInfo.rankDiff))
-                            .consecutiveWeeksAtSameRank(t.get(weekAnime.rankInfo.consecutiveWeeksAtSameRank))
+                            .rank(t.get(animeCandidate.rankInfo.rank))
+                            .rankDiff(t.get(animeCandidate.rankInfo.rankDiff))
+                            .consecutiveWeeksAtSameRank(t.get(animeCandidate.rankInfo.consecutiveWeeksAtSameRank))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
                             .title(t.get(anime.titleKor))
                             .subTitle(t.get(anime.corp))
@@ -105,15 +104,15 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                     AnimeStatDto animeStatDto = AnimeStatDto.builder()
                             .debutRank(t.get(anime.debutRank))
                             .debutDate(t.get(anime.debutDate))
-                            .peakRank(t.get(weekAnime.rankInfo.peakRank))
-                            .peakDate(t.get(weekAnime.rankInfo.peakDate))
-                            .weeksOnTop10(t.get(weekAnime.rankInfo.weeksOnTop10))
+                            .peakRank(t.get(animeCandidate.rankInfo.peakRank))
+                            .peakDate(t.get(animeCandidate.rankInfo.peakDate))
+                            .weeksOnTop10(t.get(animeCandidate.rankInfo.weeksOnTop10))
                             .build();
 
-                    Double malePercent = t.get(weekAnime.rankInfo.malePercent);
+                    Double malePercent = t.get(animeCandidate.rankInfo.malePercent);
                     if (malePercent == null) malePercent = 0.0;
                     VoteRatioDto voteRatioDto = RankInfoDto.VoteRatioDto.builder()
-                            .votePercent(t.get(weekAnime.rankInfo.votePercent))
+                            .votePercent(t.get(animeCandidate.rankInfo.votePercent))
                             .malePercent(malePercent)
                             .femalePercent(100.0 - malePercent)
                             .build();
@@ -122,7 +121,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                             .animeId(animeId)
                             .rankPreviewDto(rankPreviewDto)
                             .medalPreviews(medalPreviews)
-                            .stat(animeStatDto)
+                            .animeStatDto(animeStatDto)
                             .voteRatioDto(voteRatioDto)
                             .build();
                 })
@@ -130,7 +129,7 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
     }
 
     @Override
-    public WeekDataDto getWeekDataByAnimeInfo(Long animeId, LocalDateTime premiereDateTime) {
+    public List<RackUnitDto> getRackUnitsByAnimeId(Long animeId) {
 
         DateTemplate<LocalDate> startDateTemplate = Expressions.dateTemplate(
                 LocalDate.class, "DATE({0})", week.startDateTime);
@@ -139,59 +138,41 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                 LocalDate.class, "DATE({0})", week.endDateTime);
 
         List<Tuple> tuples = queryFactory.select(
-                        weekAnime.isBreak,
+                        episode.episodeNumber,
+                        episode.isBreak,
+                        episode.airDateTime,
                         week.quarter.quarterValue,
                         week.weekValue,
-                        weekAnime.airDateTime,
                         startDateTemplate,
                         endDateTemplate,
                         week.quarter.yearValue,
-                        weekAnime.rankInfo.type,
-                        weekAnime.rankInfo.rank,
-                        weekAnime.rankInfo.votePercent,
-                        weekAnime.rankInfo.malePercent
+                        animeCandidate.rankInfo.type,
+                        animeCandidate.rankInfo.rank,
+                        animeCandidate.rankInfo.votePercent,
+                        animeCandidate.rankInfo.malePercent
                 )
-                .from(weekAnime)
-                .join(week).on(week.id.eq(weekAnime.week.id))
-                .where(weekAnime.anime.id.eq(animeId))
+                .from(animeCandidate)
+                .join(week).on(week.id.eq(animeCandidate.week.id))
+                .where(animeCandidate.anime.id.eq(animeId))
                 .orderBy(week.startDateTime.asc())
                 .fetch();
 
-        // 에피소드 공개
-        List<AllKindsWeekDto> allKindsWeekDtos = tuples.stream()
-                .map(t -> {
-                            LocalDateTime airDateTime = t.get(weekAnime.airDateTime);
-                            LocalDateTime airDateTimePlusWeek = (airDateTime == null) ?
-                                    null : airDateTime.plusWeeks(1);
-
-                            return AllKindsWeekDto.builder()
-                                    .isBreak(t.get(weekAnime.isBreak))
-                                    .quarter(t.get(week.quarter.quarterValue))
-                                    .week(t.get(week.weekValue))
-                                    .airDateTime(airDateTime)
-                                    .airDateTimePlusWeek(airDateTimePlusWeek)
-                                    .build();
-                        }
-                )
-                .toList();
-
-        // 분기 성적
-        List<RackUnitDto> rackUnitDtos = tuples.stream()
+        return tuples.stream()
                 .filter(this::isNotBreak)
                 .map(t -> {
                     MedalPreviewDto medalPreviewDto = MedalPreviewDto.builder()
-                            .type(t.get(weekAnime.rankInfo.type))
-                            .rank(t.get(weekAnime.rankInfo.rank))
+                            .type(t.get(animeCandidate.rankInfo.type))
+                            .rank(t.get(animeCandidate.rankInfo.rank))
                             .year(t.get(week.quarter.yearValue))
                             .quarter(t.get(week.quarter.quarterValue))
                             .week(t.get(week.weekValue))
                             .build();
 
-                    Double malePercent = t.get(weekAnime.rankInfo.malePercent);
+                    Double malePercent = t.get(animeCandidate.rankInfo.malePercent);
                     if (malePercent == null) malePercent = 0.0;
 
-                    VoteRatioDto voteRatioDto = RankInfoDto.VoteRatioDto.builder()
-                            .votePercent(t.get(weekAnime.rankInfo.votePercent))
+                    VoteRatioDto voteRatioDto = VoteRatioDto.builder()
+                            .votePercent(t.get(animeCandidate.rankInfo.votePercent))
                             .malePercent(malePercent)
                             .femalePercent(100.0 - malePercent)
                             .build();
@@ -204,15 +185,10 @@ public class WeekAnimeRepositoryCustomImpl implements WeekAnimeRepositoryCustom 
                             .build();
                 })
                 .toList();
-
-        return WeekDataDto.builder()
-                .allKindsWeekDtos(allKindsWeekDtos)
-                .rackUnitDtos(rackUnitDtos)
-                .build();
     }
 
     private boolean isNotBreak(Tuple t) {
-        Boolean isBreak = t.get(weekAnime.isBreak);
+        Boolean isBreak = t.get(episode.isBreak);
         return !(Boolean.TRUE.equals(isBreak));
     }
 }

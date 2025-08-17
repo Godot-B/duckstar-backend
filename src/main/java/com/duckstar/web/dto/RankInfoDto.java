@@ -2,7 +2,7 @@ package com.duckstar.web.dto;
 
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.vo.RankInfo;
-import com.duckstar.domain.mapping.WeekAnime;
+import com.duckstar.domain.mapping.AnimeCandidate;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -31,9 +31,9 @@ public class RankInfoDto {
 
         RankPreviewDto rankPreviewDto;
 
-        public static DuckstarRankPreviewDto from(WeekAnime weekAnime) {
-            RankInfo rankInfo = weekAnime.getRankInfo();
-            Anime anime = weekAnime.getAnime();
+        public static DuckstarRankPreviewDto from(AnimeCandidate animeCandidate) {
+            RankInfo rankInfo = animeCandidate.getRankInfo();
+            Anime anime = animeCandidate.getAnime();
             RankPreviewDto rankPreviewDto = RankPreviewDto.builder()
                     .rank(rankInfo.getRank())
                     .rankDiff(rankInfo.getRankDiff())

@@ -13,17 +13,11 @@ import static com.duckstar.web.dto.MedalDto.*;
 
 public class WeekResponseDto {
 
-    @Getter
-    @Builder
-    public static class WeekDataDto {
-        List<AllKindsWeekDto> allKindsWeekDtos;
-
-        List<RackUnitDto> rackUnitDtos;
-    }
-
     @Builder
     @Getter
-    public static class AllKindsWeekDto {
+    public static class EpisodeDto {
+        Integer episodeNumber;
+
         Boolean isBreak;
 
         Integer quarter;

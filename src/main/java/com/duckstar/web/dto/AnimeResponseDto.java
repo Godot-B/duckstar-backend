@@ -3,9 +3,10 @@ package com.duckstar.web.dto;
 import com.duckstar.domain.enums.*;
 import com.duckstar.validation.annotation.MedalTypeSubset;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
+import com.duckstar.web.dto.MedalDto.RackUnitDto;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
-import com.duckstar.web.dto.WeekResponseDto.WeekDataDto;
+import com.duckstar.web.dto.WeekResponseDto.EpisodeDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,11 +20,13 @@ public class AnimeResponseDto {
     @Builder
     @Getter
     public static class AnimeHomeDto {
-        AnimeInfoDto info;
+        AnimeInfoDto animeInfoDto;
 
-        AnimeStatDto stat;
+        AnimeStatDto animeStatDto;
 
-        WeekDataDto weekDataDto;
+        List<EpisodeDto> episodeDtos;
+
+        List<RackUnitDto> rackUnitDtos;
 
         List<CastPreviewDto> castPreviews;
     }
@@ -42,7 +45,7 @@ public class AnimeResponseDto {
         })
         List<MedalPreviewDto> medalPreviews;
 
-        AnimeStatDto stat;
+        AnimeStatDto animeStatDto;
 
         VoteRatioDto voteRatioDto;
     }

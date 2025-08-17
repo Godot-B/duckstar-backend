@@ -1,13 +1,12 @@
 package com.duckstar.repository.AnimeSeason;
 
 import com.duckstar.domain.*;
+import com.duckstar.domain.mapping.QAnimeCandidate;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QAnimeSeason;
-import com.duckstar.domain.mapping.QWeekAnime;
-import com.duckstar.web.dto.AnimeResponseDto;
+import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.web.dto.AnimeResponseDto.OttDto;
 import com.duckstar.web.dto.AnimeResponseDto.SeasonDto;
-import com.duckstar.web.dto.SearchResponseDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
@@ -28,7 +27,7 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
     private final QAnimeSeason animeSeason = QAnimeSeason.animeSeason;
     private final QSeason season = QSeason.season;
     private final QAnime anime = QAnime.anime;
-    private final QWeekAnime weekAnime = QWeekAnime.weekAnime;
+    private final QEpisode episode = QEpisode.episode;
     private final QOtt ott = QOtt.ott;
     private final QAnimeOtt animeOtt = QAnimeOtt.animeOtt;
 
@@ -38,19 +37,19 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                         anime.id,
                         anime.status,
                         anime.mainThumbnailUrl,
-                        weekAnime.isBreak,
+                        episode.isBreak,
                         anime.titleKor,
                         anime.dayOfWeek,
                         anime.airTime,
-                        weekAnime.rescheduledAt,
+                        episode.rescheduledAt,
                         anime.genre,
                         anime.medium
                 )
                 .from(animeSeason)
                 .join(anime).on(anime.id.eq(animeSeason.anime.id))
-                // 현재 주차 한정: weekAnime null 가능 = leftJoin
-                .leftJoin(weekAnime).on(weekAnime.anime.id.eq(anime.id)
-                        .and(weekAnime.week.id.eq(currentWeekId)))
+                // 현재 주차 한정: episode null 가능 = leftJoin
+                .leftJoin(episode).on(episode.anime.id.eq(anime.id)
+                        .and(episode.week.id.eq(currentWeekId)))
                 .where(animeSeason.season.quarter.id.eq(quarterId))
                 .orderBy(anime.airTime.asc())
                 .fetch();
@@ -85,11 +84,11 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                             .animeId(animeId)
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
                             .status(t.get(anime.status))
-                            .isBreak(t.get(weekAnime.isBreak))
+                            .isBreak(t.get(episode.isBreak))
                             .titleKor(t.get(anime.titleKor))
                             .dayOfWeek(t.get(anime.dayOfWeek))
                             .airTime(t.get(anime.airTime))
-                            .rescheduledAt(t.get(weekAnime.rescheduledAt))
+                            .rescheduledAt(t.get(episode.rescheduledAt))
                             .genre(t.get(anime.genre))
                             .medium(t.get(anime.medium))
                             .ottDtos(ottDtos)

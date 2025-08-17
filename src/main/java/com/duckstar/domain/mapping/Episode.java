@@ -1,7 +1,7 @@
 package com.duckstar.domain.mapping;
 
+
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class WeekAnime extends BaseEntity {
+public class Episode extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,22 +28,11 @@ public class WeekAnime extends BaseEntity {
     @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
+    private LocalDateTime airDateTime;
+
+    private Integer episodeNumber;
+
     private Boolean isBreak;    // TVA 결방 주 여부
 
     private LocalDateTime rescheduledAt;    // 변칙 편성 시간
-
-    private LocalDateTime airDateTime;
-
-    private Integer totalVoteCount;
-
-    private Integer maleCount;
-
-    private Integer femaleCount;
-
-    @Embedded
-    private RankInfo rankInfo;
-
-    public Boolean isBreak() {
-        return isBreak;
-    }
 }

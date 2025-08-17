@@ -3,7 +3,7 @@ package com.duckstar.service;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
-import com.duckstar.repository.WeekAnime.WeekAnimeRepository;
+import com.duckstar.repository.AnimeCandidate.AnimeCandidateCandidateRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.ChartDto.AnimeRankSliceDto;
@@ -23,7 +23,7 @@ import java.util.List;
 public class WeekService {
 
     private final WeekRepository weekRepository;
-    private final WeekAnimeRepository weekAnimeRepository;
+    private final AnimeCandidateCandidateRepository animeCandidateRepository;
 
     public Long getQuarterIdByYQ(Integer year, Integer quarter) {
         return weekRepository.findQuarterIdByYQ(year, quarter)
@@ -46,7 +46,7 @@ public class WeekService {
         );
 
         List<AnimeRankDto> rows =
-                weekAnimeRepository.getAnimeRankDtosByWeekId(weekId, overFetch);
+                animeCandidateRepository.getAnimeRankDtosByWeekId(weekId, overFetch);
         boolean duckstarHasNext = rows.size() > size;
 
         List<RankPreviewDto> animeTrendRankDtos = null;
