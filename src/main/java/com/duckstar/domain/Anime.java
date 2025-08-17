@@ -20,6 +20,12 @@ import java.util.Map;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_anime_t",
+                        columnList = "titleKor")
+        }
+)
 public class Anime extends BaseEntity {
 
     @Id

@@ -24,6 +24,19 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
+
+    // 투표
+    VOTE_CLOSED(HttpStatus.BAD_REQUEST, "VOTE4001", "현재 닫힌 투표입니다."),
+    ANIME_CANDIDATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE4002", "존재하지 않는 애니메이션 후보입니다."),
+    ALREADY_VOTED(HttpStatus.BAD_REQUEST, "VOTE4003", "이미 참여한 투표입니다."),
+    EMPTY_BALLOTS(HttpStatus.BAD_REQUEST, "VOTE4004", "투표지가 비어있습니다."),
+    DUPLICATE_CANDIDATE_INCLUDED(HttpStatus.BAD_REQUEST, "VOTE4005", "중복된 후보가 요청에 포함되어있습니다."),
+    INVALID_CANDIDATE_INCLUDED(HttpStatus.BAD_REQUEST, "VOTE4006", "이번 주 후보가 아닌 대상이 포함되어 있습니다."),
+    VOTE_LIMIT_SURPASSED(HttpStatus.BAD_REQUEST, "VOTE4007", "기본 투표 제한 수를 넘어섰습니다."),
+    NOT_VOTED_YET(HttpStatus.BAD_REQUEST, "VOTE4008", "아직 투표에 참여하지 않았습니다."),
+
+    VOTE_AUTH_REQUIRED(HttpStatus.CONFLICT, "VOTE4090", "투표 인증 정보가 없습니다."),
+
     ;
 
     private final HttpStatus httpStatus;

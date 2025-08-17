@@ -2,8 +2,8 @@ package com.duckstar.repository.AnimeCandidate;
 
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
-import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.domain.mapping.QAnimeCandidate;
+import com.duckstar.domain.mapping.QAnimeVote;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
@@ -12,7 +12,6 @@ import com.duckstar.web.dto.MedalDto.RackUnitDto;
 import com.duckstar.web.dto.RankInfoDto;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
-import com.duckstar.web.dto.VoteResponseDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
@@ -38,6 +37,17 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
     private final QEpisode episode = QEpisode.episode;
     private final QWeek week = QWeek.week;
     private final QAnime anime = QAnime.anime;
+
+    @Override
+    public List<Long> findValidIdsForWeek(Long ballotWeekId, List<Long> candidateIds) {
+        if (candidateIds == null || candidateIds.isEmpty()) return List.of();
+
+        return queryFactory.select(animeCandidate.id)
+                .from(animeCandidate)
+                .where(animeCandidate.week.id.eq(ballotWeekId)
+                        .and(animeCandidate.id.in(candidateIds)))
+                .fetch();
+    }
 
     @Override
     public List<AnimeCandidateDto> getAnimeCandidateDtosByWeekId(Long weekId) {
