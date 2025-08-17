@@ -2,20 +2,20 @@ package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
-import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.Anime;
+import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.AnimeRepository;
-import com.duckstar.repository.AnimeCandidate.AnimeCandidateCandidateRepository;
+import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
-import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.SearchResponseDto.AnimePreviewDto;
 import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
+import com.duckstar.web.dto.SearchResponseDto.AnimePreviewListDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
+import static com.duckstar.web.dto.WeekResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,24 +35,18 @@ import static com.duckstar.web.dto.AnimeResponseDto.*;
 public class AnimeService {
 
     private final AnimeRepository animeRepository;
-    private final AnimeCandidateCandidateRepository animeCandidateRepository;
+    private final AnimeCandidateRepository animeCandidateRepository;
     private final AnimeSeasonRepository animeSeasonRepository;
     private final AnimeOttRepository animeOttRepository;
     private final AnimeCharacterRepository animeCharacterRepository;
-    private final WeekRepository weekRepository;
     private final EpisodeRepository episodeRepository;
+    private final WeekService weekService;
 
-    private Long getCurrentWeekId() {
-        LocalDateTime now = LocalDateTime.now();
+    public AnimePreviewListDto getScheduleByQuarterId(Long quarterId) {
+        Week currentWeek = weekService.getCurrentWeek();
 
-        return weekRepository.findWeekIdByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(now, now)
-                .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
-    }
-
-    public Map<DayOfWeekShort, List<AnimePreviewDto>> getScheduleByQuarterId(Long quarterId) {
-        Long currentWeekId = getCurrentWeekId();
         List<AnimePreviewDto> animePreviews =
-                animeSeasonRepository.getSeasonAnimesByQuarterId(quarterId, currentWeekId);
+                animeSeasonRepository.getSeasonAnimePreviewsByQuarterId(quarterId, currentWeek.getId());
 
         Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
                 .collect(
@@ -68,11 +63,14 @@ public class AnimeService {
             schedule.putIfAbsent(key, List.of());
         }
 
-        return schedule;
+        return AnimePreviewListDto.builder()
+                .weekDto(WeekDto.from(currentWeek))
+                .schedule(schedule)
+                .build();
     }
 
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
-        List<AnimeCandidate> animeCandidates = animeCandidateRepository.getWeekAnimesByWeekId(
+        List<AnimeCandidate> animeCandidates = animeCandidateRepository.getAnimeCandidatesByWeekId(
                 weekId,
                 PageRequest.of(0, size)
         );
@@ -128,10 +126,10 @@ public class AnimeService {
                 .animeInfoDto(animeInfoDto)
                 .animeStatDto(animeStatDto)
                 .episodeDtos(
-                        episodeRepository.getEpisodesByAnimeId(animeId)
+                        episodeRepository.getEpisodeDtosByAnimeId(animeId)
                 )
                 .rackUnitDtos(
-                        animeCandidateRepository.getRackUnitsByAnimeId(animeId)
+                        animeCandidateRepository.getRackUnitDtosByAnimeId(animeId)
                 )
                 .castPreviews(
                         animeCharacterRepository.getAllCharacterHomePreviewsByAnimeId(animeId)

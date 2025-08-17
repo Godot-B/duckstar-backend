@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface AnimeCandidateCandidateRepository extends JpaRepository<AnimeCandidate, Long>, AnimeCandidateRepositoryCustom {
-    List<AnimeCandidate> getWeekAnimesByWeekId(Long weekId, Pageable pageable);
+public interface AnimeCandidateRepository extends JpaRepository<AnimeCandidate, Long>, AnimeCandidateRepositoryCustom {
+    List<AnimeCandidate> getAnimeCandidatesByWeekId(Long weekId, Pageable pageable);
 }

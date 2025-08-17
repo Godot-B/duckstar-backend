@@ -21,7 +21,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     private final QWeek week = QWeek.week;
 
     @Override
-    public List<EpisodeDto> getEpisodesByAnimeId(Long animeId) {
+    public List<EpisodeDto> getEpisodeDtosByAnimeId(Long animeId) {
 
         List<Tuple> tuples = queryFactory.select(
                         episode.episodeNumber,

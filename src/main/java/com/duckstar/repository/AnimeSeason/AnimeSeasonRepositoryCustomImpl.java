@@ -32,7 +32,7 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
     private final QAnimeOtt animeOtt = QAnimeOtt.animeOtt;
 
     @Override
-    public List<AnimePreviewDto> getSeasonAnimesByQuarterId(Long quarterId, Long currentWeekId) {
+    public List<AnimePreviewDto> getSeasonAnimePreviewsByQuarterId(Long quarterId, Long currentWeekId) {
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
                         anime.status,

@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         indexes = {
-                @Index(name = "idx_week_q", columnList = "quarter_id")
+                @Index(name = "idx_week_q",
+                        columnList = "quarter_id")
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_week_qw",

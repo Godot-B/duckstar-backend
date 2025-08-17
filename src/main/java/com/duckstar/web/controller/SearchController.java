@@ -4,7 +4,9 @@ import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.service.AnimeService;
 import com.duckstar.service.WeekService;
+import com.duckstar.web.dto.SearchResponseDto;
 import com.duckstar.web.dto.SearchResponseDto.AnimePreviewDto;
+import com.duckstar.web.dto.SearchResponseDto.AnimePreviewListDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -39,11 +41,7 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
                     2. 기본 상태 표시 <- NOW_SHOWING 경우만 방영까지 남은 시간 표시
                     3. 검색 - 애니메이션 제목 쿼리, 애니메이션 OTT 태그 필터 (메모리 상에서)""")
     @GetMapping("/{year}/{quarter}")
-    public ApiResponse<Map<DayOfWeekShort, List<AnimePreviewDto>>>
-    getSchedule(
-            @PathVariable Integer year,
-            @PathVariable Integer quarter
-    ) {
+    public ApiResponse<AnimePreviewListDto> getSchedule(@PathVariable Integer year, @PathVariable Integer quarter) {
         Long quarterId = weekService.getQuarterIdByYQ(year, quarter);
 
         return ApiResponse.onSuccess(

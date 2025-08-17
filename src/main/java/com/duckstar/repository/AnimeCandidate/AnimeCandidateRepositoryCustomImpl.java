@@ -2,6 +2,7 @@ package com.duckstar.repository.AnimeCandidate;
 
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
+import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.domain.mapping.QAnimeCandidate;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
@@ -11,6 +12,7 @@ import com.duckstar.web.dto.MedalDto.RackUnitDto;
 import com.duckstar.web.dto.RankInfoDto;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
+import com.duckstar.web.dto.VoteResponseDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
@@ -25,6 +27,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import static com.duckstar.web.dto.VoteResponseDto.*;
+
 @Repository
 @RequiredArgsConstructor
 public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateRepositoryCustom {
@@ -34,6 +38,23 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
     private final QEpisode episode = QEpisode.episode;
     private final QWeek week = QWeek.week;
     private final QAnime anime = QAnime.anime;
+
+    @Override
+    public List<AnimeCandidateDto> getAnimeCandidateDtosByWeekId(Long weekId) {
+        return queryFactory.select(
+                        Projections.constructor(
+                                AnimeCandidateDto.class,
+                                animeCandidate.id,
+                                anime.mainThumbnailUrl,
+                                anime.titleKor
+                        )
+                )
+                .from(animeCandidate)
+                .join(anime).on(anime.id.eq(animeCandidate.anime.id))
+                .where(animeCandidate.week.id.eq(weekId))
+                .orderBy(anime.titleKor.asc())
+                .fetch();
+    }
 
     @Override
     public List<AnimeRankDto> getAnimeRankDtosByWeekId(Long weekId, Pageable pageable) {
@@ -129,7 +150,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
     }
 
     @Override
-    public List<RackUnitDto> getRackUnitsByAnimeId(Long animeId) {
+    public List<RackUnitDto> getRackUnitDtosByAnimeId(Long animeId) {
 
         DateTemplate<LocalDate> startDateTemplate = Expressions.dateTemplate(
                 LocalDate.class, "DATE({0})", week.startDateTime);

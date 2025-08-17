@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface EpisodeRepositoryCustom {
 
-    List<EpisodeDto> getEpisodesByAnimeId(Long animeId);
+    List<EpisodeDto> getEpisodeDtosByAnimeId(Long animeId);
 }

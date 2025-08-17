@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface WeekRepository extends JpaRepository<Week, Long>, WeekRepositoryCustom {
     List<Week> findByStartDateTimeLessThanEqualOrderByStartDateTimeDesc(LocalDateTime now, PageRequest pageRequest);
 
-    Optional<Long> findWeekIdByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(LocalDateTime now1, LocalDateTime now2);
+    Optional<Week> findWeekByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(LocalDateTime now1, LocalDateTime now2);
 }

@@ -1,6 +1,5 @@
 package com.duckstar.domain.mapping;
 
-
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
