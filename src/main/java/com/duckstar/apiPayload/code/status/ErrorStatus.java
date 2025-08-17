@@ -37,6 +37,9 @@ public enum ErrorStatus implements BaseErrorCode {
 
     VOTE_AUTH_REQUIRED(HttpStatus.CONFLICT, "VOTE4090", "투표 인증 정보가 없습니다."),
 
+    // 인증 관련
+    UNSUPPORTED_OAUTH_TYPE(HttpStatus.BAD_REQUEST, "AUTH4001", "지원하지 않는 소셜 로그인 타입입니다."),
+
     ;
 
     private final HttpStatus httpStatus;

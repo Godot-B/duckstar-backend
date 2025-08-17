@@ -1,6 +1,6 @@
 package com.duckstar.domain.mapping;
 
-import com.duckstar.domain.Member;
+import com.duckstar.member.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.VoteCategory;
@@ -8,9 +8,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter

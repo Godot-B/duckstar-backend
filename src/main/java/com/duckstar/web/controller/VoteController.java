@@ -1,9 +1,7 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.VoteHandler;
-import com.duckstar.domain.Member;
+import com.duckstar.member.domain.Member;
 import com.duckstar.service.VoteService;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
 import com.duckstar.web.dto.VoteResponseDto.AnimeCandidateListDto;

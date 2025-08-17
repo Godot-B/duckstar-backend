@@ -2,7 +2,7 @@ package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.VoteHandler;
-import com.duckstar.domain.Member;
+import com.duckstar.member.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.BallotType;
 import com.duckstar.domain.enums.VoteCategory;

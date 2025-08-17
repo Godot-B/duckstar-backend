@@ -1,6 +1,5 @@
 package com.duckstar.domain.mapping;
 
-import com.duckstar.domain.Member;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.BallotType;
 import jakarta.persistence.*;
