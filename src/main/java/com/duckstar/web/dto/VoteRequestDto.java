@@ -8,7 +8,6 @@ import java.util.List;
 
 public class VoteRequestDto {
 
-    @Builder
     @Getter
     public static class AnimeVoteRequest {
         Long weekId;
@@ -16,7 +15,6 @@ public class VoteRequestDto {
         List<AnimeBallotDto> ballotDtos;
     }
     
-    @Builder
     @Getter
     public static class AnimeBallotDto {
         Long animeCandidateId;

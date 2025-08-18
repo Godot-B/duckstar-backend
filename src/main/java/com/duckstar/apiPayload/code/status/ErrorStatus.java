@@ -30,16 +30,25 @@ public enum ErrorStatus implements BaseErrorCode {
     ANIME_CANDIDATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE4002", "존재하지 않는 애니메이션 후보입니다."),
     ALREADY_VOTED(HttpStatus.BAD_REQUEST, "VOTE4003", "이미 참여한 투표입니다."),
     EMPTY_BALLOTS(HttpStatus.BAD_REQUEST, "VOTE4004", "투표지가 비어있습니다."),
-    DUPLICATE_CANDIDATE_INCLUDED(HttpStatus.BAD_REQUEST, "VOTE4005", "중복된 후보가 요청에 포함되어있습니다."),
+    DUPLICATE_CANDIDATE_INCLUDED(HttpStatus.BAD_REQUEST, "VOTE4005", "중복된 후보가 요청에 포함되어 있습니다."),
     INVALID_CANDIDATE_INCLUDED(HttpStatus.BAD_REQUEST, "VOTE4006", "이번 주 후보가 아닌 대상이 포함되어 있습니다."),
     VOTE_LIMIT_SURPASSED(HttpStatus.BAD_REQUEST, "VOTE4007", "기본 투표 제한 수를 넘어섰습니다."),
     NOT_VOTED_YET(HttpStatus.BAD_REQUEST, "VOTE4008", "아직 투표에 참여하지 않았습니다."),
 
-    VOTE_AUTH_REQUIRED(HttpStatus.CONFLICT, "VOTE4090", "투표 인증 정보가 없습니다."),
+    VOTE_AUTH_REQUIRED(HttpStatus.CONFLICT, "VOTE4090", "투표 인증 정보가 존재하지 않습니다."),
 
     // 인증 관련
-    UNSUPPORTED_OAUTH_TYPE(HttpStatus.BAD_REQUEST, "AUTH4001", "지원하지 않는 소셜 로그인 타입입니다."),
+    UNSUPPORTED_OAUTH_TYPE(HttpStatus.BAD_REQUEST, "AUTH4001", "지원하지 않는 소셜 로그인 제공자입니다."),
+    MEMBER_TOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4002", "회원의 JWT 토큰 데이터가 존재하지 않습니다."),
+    REFRESH_TOKEN_MISSING(HttpStatus.BAD_REQUEST, "AUTH4003", "리프레시 토큰이 요청에 포함되어 있지 않습니다.."),
+    OAUTH_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4004", "소셜 로그인 계정이 존재하지 않습니다."),
 
+    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "AUTH4010", "이미 사용된 리프레시 토큰입니다. 다시 로그인해 주세요."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4011", "리프레시 토큰이 만료되었습니다. 다시 로그인해 주세요."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "유효하지 않은 토큰입니다."),
+
+    // 회원 관련
+    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "존재하지 않는 회원입니다."),
     ;
 
     private final HttpStatus httpStatus;

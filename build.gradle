@@ -23,13 +23,29 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	set('springCloudVersion', "2025.0.0")
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'com.github.ben-manes.caffeine:caffeine'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
 	// ⭐ Spring boot 3.x이상에서 QueryDsl 패키지를 정의하는 방법
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
@@ -42,6 +58,7 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
