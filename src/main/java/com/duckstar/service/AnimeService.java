@@ -44,9 +44,15 @@ public class AnimeService {
 
     public AnimePreviewListDto getScheduleByQuarterId(Long quarterId) {
         Week currentWeek = weekService.getCurrentWeek();
+        LocalDateTime weekStart = currentWeek.getStartDateTime();
+        LocalDateTime weekEnd = currentWeek.getEndDateTime();
 
         List<AnimePreviewDto> animePreviews =
-                animeSeasonRepository.getSeasonAnimePreviewsByQuarterId(quarterId, currentWeek.getId());
+                animeSeasonRepository.getSeasonAnimePreviewsByQuarterAndWeek(
+                        quarterId,
+                        weekStart,
+                        weekEnd
+                );
 
         Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
                 .collect(
@@ -70,10 +76,11 @@ public class AnimeService {
     }
 
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
-        List<AnimeCandidate> animeCandidates = animeCandidateRepository.getAnimeCandidatesByWeekId(
-                weekId,
-                PageRequest.of(0, size)
-        );
+        List<AnimeCandidate> animeCandidates =
+                animeCandidateRepository.getAnimeCandidatesByWeekId(
+                        weekId,
+                        PageRequest.of(0, size)
+                );
 
         return animeCandidates.stream()
                 .map(DuckstarRankPreviewDto::from)
@@ -118,9 +125,6 @@ public class AnimeService {
                 .peakDate(anime.getPeakDate())
                 .weeksOnTop10(anime.getWeeksOnTop10())
                 .build();
-
-        // 댓글
-
 
         return AnimeHomeDto.builder()
                 .animeInfoDto(animeInfoDto)

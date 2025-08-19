@@ -7,9 +7,6 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-
-import static com.duckstar.web.dto.MedalDto.*;
 
 public class WeekResponseDto {
 
@@ -24,9 +21,11 @@ public class WeekResponseDto {
 
         Integer week;
 
-        LocalDateTime airDateTime;
+        LocalDateTime scheduledAt;
 
-        LocalDateTime airDateTimePlusWeek;
+        Boolean isRescheduled;
+
+        LocalDateTime nextEpScheduledAt;
     }
 
     @Builder

@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Getter
 public class MemberPrincipal implements OAuth2User {
@@ -58,6 +59,6 @@ public class MemberPrincipal implements OAuth2User {
     public boolean isAdmin() {
         return authorities.stream()
                 .anyMatch(auth ->
-                        auth.getAuthority().equals(Role.ADMIN.name()));
+                        Objects.equals(auth.getAuthority(), Role.ADMIN.name()));
     }
 }

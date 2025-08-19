@@ -2,7 +2,6 @@ package com.duckstar.repository.Episode;
 
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.mapping.QEpisode;
-import com.duckstar.web.dto.WeekResponseDto;
 import com.duckstar.web.dto.WeekResponseDto.EpisodeDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -10,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -26,33 +26,37 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
         List<Tuple> tuples = queryFactory.select(
                         episode.episodeNumber,
                         episode.isBreak,
-                        episode.airDateTime,
                         week.quarter.quarterValue,
                         week.weekValue,
-                        week.quarter.yearValue
+                        episode.scheduledAt,
+                        episode.isRescheduled
                 )
                 .from(episode)
                 .join(week).on(week.id.eq(episode.week.id))
                 .where(episode.anime.id.eq(animeId))
-                .orderBy(episode.airDateTime.asc())
+                .orderBy(episode.scheduledAt.asc())
                 .fetch();
 
-        return tuples.stream()
-                .map(t -> {
-                            LocalDateTime airDateTime = t.get(episode.airDateTime);
-                            LocalDateTime airDateTimePlusWeek = (airDateTime == null) ?
-                                    null : airDateTime.plusWeeks(1);
+        List<EpisodeDto> episodeDtos = new ArrayList<>();
+        for (int i = 0; i < tuples.size(); i++) {
+            Tuple current = tuples.get(i);
+            Tuple next = (i + 1) < tuples.size() ? tuples.get(i + 1) : null;
 
-                            return EpisodeDto.builder()
-                                    .episodeNumber(t.get(episode.episodeNumber))
-                                    .isBreak(t.get(episode.isBreak))
-                                    .quarter(t.get(week.quarter.quarterValue))
-                                    .week(t.get(week.weekValue))
-                                    .airDateTime(airDateTime)
-                                    .airDateTimePlusWeek(airDateTimePlusWeek)
-                                    .build();
-                        }
-                )
-                .toList();
+            EpisodeDto episodeDto = EpisodeDto.builder()
+                    .episodeNumber(current.get(episode.episodeNumber))
+                    .isBreak(current.get(episode.isBreak))
+                    .quarter(current.get(week.quarter.quarterValue))
+                    .week(current.get(week.weekValue))
+                    .scheduledAt(current.get(episode.scheduledAt))
+                    .isRescheduled(current.get(episode.isRescheduled))
+                    .nextEpScheduledAt(
+                            next != null ? next.get(episode.scheduledAt) : null
+                    )
+                    .build();
+
+            episodeDtos.add(episodeDto);
+        }
+
+        return episodeDtos;
     }
 }

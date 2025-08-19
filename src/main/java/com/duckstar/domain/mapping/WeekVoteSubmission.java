@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_week_principal_category",
+                @UniqueConstraint(name = "uk_submission_wpc",
                         columnNames = {"week_id", "principal_key", "category"})
         }
 )

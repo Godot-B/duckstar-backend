@@ -3,7 +3,6 @@ package com.duckstar.repository.AnimeCandidate;
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.mapping.QAnimeCandidate;
-import com.duckstar.domain.mapping.QAnimeVote;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
@@ -171,7 +170,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
         List<Tuple> tuples = queryFactory.select(
                         episode.episodeNumber,
                         episode.isBreak,
-                        episode.airDateTime,
+                        episode.scheduledAt,
                         week.quarter.quarterValue,
                         week.weekValue,
                         startDateTemplate,

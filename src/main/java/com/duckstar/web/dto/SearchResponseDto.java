@@ -38,9 +38,9 @@ public class SearchResponseDto {
 
         DayOfWeekShort dayOfWeek;
 
-        String airTime;
+        LocalDateTime scheduledAt;
 
-        LocalDateTime rescheduledAt;    // 변칙 편성 시간
+        Boolean isRescheduled;
 
         String genre;
 

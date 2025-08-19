@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String jwtAccessToken = resolveBearer(req);
         if (jwtAccessToken == null) {
-            jwtAccessToken = resolveFromCookie(req, "ACCESS_TOKEN");
+            jwtAccessToken = jwtTokenProvider.resolveFromCookie(req, "ACCESS_TOKEN");
         }
 
         Claims accessClaims = jwtTokenProvider.parseClaims(jwtAccessToken);
@@ -64,14 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String auth = req.getHeader("Authorization");
         if (auth != null && auth.startsWith("Bearer ")) {
             return auth.substring(7);
-        }
-        return null;
-    }
-
-    private String resolveFromCookie(HttpServletRequest req, String name) {
-        if (req.getCookies() == null) return null;
-        for (var c : req.getCookies()) {
-            if (name.equals(c.getName())) return c.getValue();
         }
         return null;
     }

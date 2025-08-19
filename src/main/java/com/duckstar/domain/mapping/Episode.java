@@ -13,6 +13,12 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_episode_e",
+                        columnNames = "episode_number"),
+        }
+)
 public class Episode extends BaseEntity {
 
     @Id
@@ -20,18 +26,16 @@ public class Episode extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "week_id", nullable = false)
-    private Week week;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
-    private LocalDateTime airDateTime;
-
     private Integer episodeNumber;
 
-    private Boolean isBreak;    // TVA 결방 주 여부
+    //=== 결방, 변칙 편성 update API 마련 필요 ===//
 
-    private LocalDateTime rescheduledAt;    // 변칙 편성 시간
+    private Boolean isBreak;
+
+    private Boolean isRescheduled;
+
+    private LocalDateTime scheduledAt;
 }

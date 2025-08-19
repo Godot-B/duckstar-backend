@@ -26,8 +26,8 @@ public class CommentResponseDto {
         Long authorId;
         Boolean canDeleteThis;
 
-        Long commentLikeId;
         Boolean isLiked;
+        Long commentLikeId;
         Integer likeCount;
 
         String nickname;
@@ -39,7 +39,6 @@ public class CommentResponseDto {
         String body;
 
         Integer replyCount;
-        List<ReplyDto> replyDtos;  // 특정 조건에 해당하면 미리 로드
     }
 
     @Builder
@@ -51,8 +50,8 @@ public class CommentResponseDto {
         Long authorId;
         Boolean canDeleteThis;
 
-        Long replyLikeId;
         Boolean isLiked;
+        Long replyLikeId;
         Integer likeCount;
 
         String nickname;

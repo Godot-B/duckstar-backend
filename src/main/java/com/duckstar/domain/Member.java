@@ -19,9 +19,9 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_member_kakao_id", columnNames = "kakao_id"),
-                @UniqueConstraint(name = "uk_member_naver_id", columnNames = "naver_id"),
-                @UniqueConstraint(name = "uk_member_google_id", columnNames = "google_id")
+                @UniqueConstraint(name = "uk_member_k", columnNames = "kakao_id"),
+                @UniqueConstraint(name = "uk_member_n", columnNames = "naver_id"),
+                @UniqueConstraint(name = "uk_member_g", columnNames = "google_id")
         }
 )
 public class Member extends BaseEntity {

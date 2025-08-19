@@ -4,23 +4,29 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.CommentHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
+import com.duckstar.domain.enums.CommentSortType;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.comment.AnimeComment;
-import com.duckstar.repository.AnimeCommentRepository;
+import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
-import com.duckstar.security.domain.enums.Role;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.CommentRequestDto;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
 import com.duckstar.web.dto.CommentResponseDto.ReplyDto;
+import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
+
+import static com.duckstar.web.dto.CommentResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +37,6 @@ public class CommentService {
     private final MemberRepository memberRepository;
     private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final AnimeCommentRepository animeCommentRepository;
-
-    private static final List<ReplyDto> EMPTY_REPLY_LIST = List.of();
 
     @Transactional
     public CommentDto leaveAnimeComment(
@@ -77,7 +81,44 @@ public class CommentService {
                 .body(saved.getBody())
 
                 .replyCount(0)
-                .replyDtos(EMPTY_REPLY_LIST)
+                .build();
+    }
+
+    public AnimeCommentSliceDto getAnimeCommentSliceDto(
+            Long animeId,
+            CommentSortType sortBy,
+            Pageable pageable,
+            MemberPrincipal principal
+    ) {
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+
+        Pageable overFetch = PageRequest.of(
+                page,
+                size + 1,
+                pageable.getSort()
+        );
+
+        List<CommentDto> rows = animeCommentRepository.getCommentDtos(
+                animeId,
+                sortBy,
+                overFetch,
+                principal
+        );
+
+        boolean commentsHasNext = rows.size() > size;
+
+        if (commentsHasNext) rows = rows.subList(0, size);
+
+        PageInfo pageInfo = PageInfo.builder()
+                .hasNext(commentsHasNext)
+                .page(page)
+                .size(size)
+                .build();
+
+        return AnimeCommentSliceDto.builder()
+                .commentDtos(rows)
+                .pageInfo(pageInfo)
                 .build();
     }
 
@@ -89,7 +130,7 @@ public class CommentService {
         AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
                 new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
 
-        boolean isAuthor = comment.getAuthor().getId().equals(principal.getId());
+        boolean isAuthor = Objects.equals(comment.getAuthor().getId(), principal.getId());
         boolean isAdmin = principal.isAdmin();
 
         if (isAuthor) {

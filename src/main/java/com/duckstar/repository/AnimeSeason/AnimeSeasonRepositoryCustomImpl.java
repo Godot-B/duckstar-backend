@@ -9,10 +9,12 @@ import com.duckstar.web.dto.AnimeResponseDto.SeasonDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -31,26 +33,36 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
     private final QAnimeOtt animeOtt = QAnimeOtt.animeOtt;
 
     @Override
-    public List<AnimePreviewDto> getSeasonAnimePreviewsByQuarterId(Long quarterId, Long currentWeekId) {
+    public List<AnimePreviewDto> getSeasonAnimePreviewsByQuarterAndWeek(
+            Long quarterId,
+            LocalDateTime weekStart,
+            LocalDateTime weekEnd
+    ) {
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
                         anime.status,
                         anime.mainThumbnailUrl,
-                        episode.isBreak,
                         anime.titleKor,
                         anime.dayOfWeek,
-                        anime.airTime,
-                        episode.rescheduledAt,
                         anime.genre,
-                        anime.medium
+                        anime.medium,
+                        episode.isBreak,
+                        episode.isRescheduled,
+                        episode.scheduledAt
                 )
                 .from(animeSeason)
                 .join(anime).on(anime.id.eq(animeSeason.anime.id))
                 // 현재 주차 한정: episode null 가능 = leftJoin
                 .leftJoin(episode).on(episode.anime.id.eq(anime.id)
-                        .and(episode.week.id.eq(currentWeekId)))
+                        .and(episode.scheduledAt.between(weekStart, weekEnd)))
                 .where(animeSeason.season.quarter.id.eq(quarterId))
-                .orderBy(anime.airTime.asc())
+                .orderBy(
+                        new CaseBuilder()
+                                .when(episode.scheduledAt.isNull()).then(1)
+                                .otherwise(0)
+                                .asc(),
+                        episode.scheduledAt.asc()
+                )
                 .fetch();
 
         List<Long> animeIds = tuples.stream()
@@ -86,8 +98,8 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                             .isBreak(t.get(episode.isBreak))
                             .titleKor(t.get(anime.titleKor))
                             .dayOfWeek(t.get(anime.dayOfWeek))
-                            .airTime(t.get(anime.airTime))
-                            .rescheduledAt(t.get(episode.rescheduledAt))
+                            .scheduledAt(t.get(episode.scheduledAt))
+                            .isRescheduled(t.get(episode.isRescheduled))
                             .genre(t.get(anime.genre))
                             .medium(t.get(anime.medium))
                             .ottDtos(ottDtos)

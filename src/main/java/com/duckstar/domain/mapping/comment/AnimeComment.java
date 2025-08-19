@@ -2,7 +2,6 @@ package com.duckstar.domain.mapping.comment;
 
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
-import com.duckstar.domain.enums.CommentStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
