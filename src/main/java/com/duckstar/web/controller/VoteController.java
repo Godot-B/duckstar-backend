@@ -1,7 +1,7 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
-import com.duckstar.security.domain.Member;
+import com.duckstar.domain.Member;
 import com.duckstar.service.VoteService;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
 import com.duckstar.web.dto.VoteResponseDto.AnimeCandidateListDto;

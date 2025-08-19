@@ -1,5 +1,6 @@
 package com.duckstar.security.domain;
 
+import com.duckstar.domain.Member;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -1,6 +1,6 @@
 package com.duckstar.domain.mapping;
 
-import com.duckstar.security.domain.Member;
+import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.VoteCategory;

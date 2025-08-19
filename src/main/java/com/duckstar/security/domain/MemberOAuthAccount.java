@@ -1,5 +1,6 @@
 package com.duckstar.security.domain;
 
+import com.duckstar.domain.Member;
 import com.duckstar.security.domain.enums.OAuthProvider;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -1,6 +1,6 @@
 package com.duckstar.security.repository;
 
-import com.duckstar.security.domain.Member;
+import com.duckstar.domain.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

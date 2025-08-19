@@ -1,8 +1,7 @@
 package com.duckstar.security;
 
-import com.duckstar.security.domain.Member;
+import com.duckstar.domain.Member;
 import com.duckstar.security.repository.MemberRepository;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

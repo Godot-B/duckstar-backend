@@ -4,7 +4,7 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.domain.enums.Gender;
 import com.duckstar.security.JwtTokenProvider;
-import com.duckstar.security.domain.Member;
+import com.duckstar.domain.Member;
 import com.duckstar.security.domain.MemberOAuthAccount;
 import com.duckstar.security.domain.MemberToken;
 import com.duckstar.security.domain.enums.OAuthProvider;

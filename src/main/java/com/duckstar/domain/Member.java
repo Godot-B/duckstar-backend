@@ -1,4 +1,4 @@
-package com.duckstar.security.domain;
+package com.duckstar.domain;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AuthHandler;
