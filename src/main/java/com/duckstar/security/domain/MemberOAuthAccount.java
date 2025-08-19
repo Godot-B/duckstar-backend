@@ -68,12 +68,12 @@ public class MemberOAuthAccount {
         );
     }
 
-    public void updateAccessToken(String accessToken, LocalDateTime accessTokenExpiresAt) {
+    public void setAccessToken(String accessToken, LocalDateTime accessTokenExpiresAt) {
         this.accessToken = accessToken;
         this.accessTokenExpiresAt = accessTokenExpiresAt;
     }
 
-    public void updateRefreshToken(String refreshToken, LocalDateTime refreshTokenExpiresAt) {
+    public void setRefreshToken(String refreshToken, LocalDateTime refreshTokenExpiresAt) {
         this.refreshToken = refreshToken;
         this.refreshTokenExpiresAt = refreshTokenExpiresAt;
     }

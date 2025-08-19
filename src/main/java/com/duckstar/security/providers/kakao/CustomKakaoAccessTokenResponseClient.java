@@ -19,7 +19,7 @@ public class CustomKakaoAccessTokenResponseClient implements OAuth2AccessTokenRe
         ClientRegistration registration = request.getClientRegistration();
         String code = request.getAuthorizationExchange().getAuthorizationResponse().getCode();
 
-        KakaoTokenResponse tokenResponse = kakaoAuthClient.getToken(
+        KakaoTokenResponse tokenResponse = kakaoAuthClient.getTokenWhenLogIn(
                 "authorization_code",
                 registration.getClientId(),
                 registration.getRedirectUri(),

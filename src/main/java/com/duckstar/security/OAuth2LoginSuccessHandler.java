@@ -39,13 +39,13 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
 
         // access token을 꺼내려면 client에서 꺼내야 함
-        String authorizedClientRegistrationId = token.getAuthorizedClientRegistrationId();
+        String provider = token.getAuthorizedClientRegistrationId();
         OAuth2AuthorizedClient authorizedClient =
                 authorizedClientService.loadAuthorizedClient(
-                        authorizedClientRegistrationId, token.getName());
+                        provider, token.getName());
 
-        String accessToken = authorizedClient.getAccessToken().getTokenValue();
-        String refreshToken = authorizedClient.getRefreshToken() != null ?
+        String socialAccessToken = authorizedClient.getAccessToken().getTokenValue();
+        String socialRefreshToken = authorizedClient.getRefreshToken() != null ?
                 authorizedClient.getRefreshToken().getTokenValue() :
                 null;
 
@@ -53,14 +53,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // JWT 토큰 생성 및 쿠키 설정
         String jwtAccessToken = authService.loginOrRegister(
-                authorizedClientRegistrationId,
-                accessToken,
-                refreshToken,
+                provider,
+                socialAccessToken,
+                socialRefreshToken,
                 jwtRefreshTokenFromCookie,
                 res
         );
 
-        // 프론트엔드로 리다이렉트 시 access token을 쿼리 파라미터로 전달
+        // 프론트엔드로 리다이렉트 시 JWT access token을 쿼리 파라미터로 전달
         String redirectUrl = frontendRedirectUri +
                 "?accessToken=" +
                 URLEncoder.encode(jwtAccessToken, StandardCharsets.UTF_8);

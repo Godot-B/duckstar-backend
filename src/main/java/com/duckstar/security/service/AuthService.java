@@ -9,6 +9,7 @@ import com.duckstar.security.domain.MemberOAuthAccount;
 import com.duckstar.security.domain.MemberToken;
 import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.domain.enums.Role;
+import com.duckstar.security.providers.kakao.KakaoAuthClient;
 import com.duckstar.security.providers.kakao.KakaoUserResponse;
 import com.duckstar.security.repository.MemberOAuthAccountRepository;
 import com.duckstar.security.providers.kakao.KakaoApiClient;
@@ -41,25 +42,35 @@ public class AuthService {
     private final KakaoApiClient kakaoApiClient;
     private final MemberTokenRepository memberTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final KakaoAuthClient kakaoAuthClient;
 
     @Value("${app.jwt.secure-cookie}")
     private boolean secureCookie;
+
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
+    private String clientId;
+
+    @Value("${spring.security.oauth2.client.registration.kakao.client-secret}")
+    private String clientSecret;
+
+    @Value("${app.kakao.admin-key}")
+    private String adminKey;
 
     private final String sameSite = secureCookie ? "None" : "Lax";
 
     @Transactional
     public String loginOrRegister(
-            String registrationId,
-            String accessToken,
-            String refreshToken,
+            String provider,
+            String socialAccessToken,
+            String socialRefreshToken,
             String jwtRefreshTokenFromCookie,
             HttpServletResponse response
     ) {
-        if (!"kakao".equals(registrationId)) {
+        if (!"kakao".equals(provider)) {
             throw new AuthHandler(ErrorStatus.UNSUPPORTED_OAUTH_TYPE);
         }
 
-        KakaoUserResponse userInfo = kakaoApiClient.getUserInfo("Bearer " + accessToken);
+        KakaoUserResponse userInfo = kakaoApiClient.getUserInfo("Bearer " + socialAccessToken);
         String providerUserId = String.valueOf(userInfo.getId());
         String nickname = (String) userInfo.getProperties().get("nickname");
         String profileImageUrl = (String) userInfo.getProperties().get("profile_image");
@@ -89,14 +100,15 @@ public class AuthService {
                     return memberOAuthAccountRepository.save(newAccount);
                 });
 
-        account.updateAccessToken(accessToken, LocalDateTime.now().plusHours(1));
-        account.updateRefreshToken(refreshToken, LocalDateTime.now().plusDays(7));
+        account.setAccessToken(socialAccessToken, LocalDateTime.now().plusHours(6));
+        account.setRefreshToken(socialRefreshToken, LocalDateTime.now().plusDays(7));
 
         Optional<MemberToken> memberTokenOpt = Optional.empty();
-        // 기존 refreshToken 재사용 가능한지 확인
+        // 기존 JWT refresh token 재사용 가능한지 확인
         if (jwtRefreshTokenFromCookie != null) {
             memberTokenOpt = memberTokenRepository
-                    .findByRefreshTokenAndIsValidFalseAndRefreshTokenExpiresAtAfter(jwtRefreshTokenFromCookie, LocalDateTime.now());
+                    .findByRefreshTokenAndIsValidFalseAndRefreshTokenExpiresAtAfter(
+                            jwtRefreshTokenFromCookie, LocalDateTime.now());
         }
 
         String jwtAccessToken = jwtTokenProvider.createAccessToken(member.getId(), member.getRole());
@@ -252,19 +264,38 @@ public class AuthService {
                 memberOAuthAccountRepository.findByProviderAndMemberId(OAuthProvider.KAKAO, memberId)
                         .orElseThrow(() -> new AuthHandler(ErrorStatus.OAUTH_ACCOUNT_NOT_FOUND));
 
-        try {
-            kakaoApiClient.unlink("Bearer " + account.getAccessToken());
-        } catch (FeignException e) {
-            log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
+        boolean accessTokenHasExpired = account.getAccessTokenExpiresAt().isBefore(LocalDateTime.now());
+        boolean refreshTokenHasExpired = account.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now());
+
+        String accessToken = account.getAccessToken();
+
+        if (accessTokenHasExpired && refreshTokenHasExpired) {
+            try {
+                kakaoApiClient.unlink("KakaoAK " + adminKey);
+            } catch (FeignException e) {
+                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
+            }
+        } else {
+            if (!refreshTokenHasExpired) {
+                accessToken = kakaoAuthClient.getTokenWithRefreshToken(
+                        "refresh_token",
+                        clientId,
+                        account.getRefreshToken(),
+                        clientSecret
+                ).getAccessToken();
+            }
+
+            try {
+                kakaoApiClient.unlink("Bearer " + accessToken);
+            } catch (FeignException e) {
+                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
+            }
         }
 
         expireCookie(res, "ACCESS_TOKEN");
         expireCookie(res, "REFRESH_TOKEN");
-
         memberTokenRepository.deleteAllByMemberId(memberId);
-
         memberOAuthAccountRepository.deleteAllByMemberId(memberId);
-
         member.withdraw();
     }
 }
