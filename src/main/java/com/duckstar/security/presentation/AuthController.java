@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -42,7 +41,8 @@ public class AuthController {
             HttpServletResponse res
     ) {
         String refreshToken = jwtTokenProvider.resolveFromCookie(req, "REFRESH_TOKEN");
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
+        boolean tokenIsValid = jwtTokenProvider.validateToken(refreshToken);
+        if (!tokenIsValid) {
             throw new AuthHandler(ErrorStatus.INVALID_TOKEN);
         }
 

@@ -4,12 +4,15 @@ import com.duckstar.domain.Member;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.CommentStatus;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Comment extends BaseEntity {
 
     @Id
@@ -33,4 +36,16 @@ public abstract class Comment extends BaseEntity {
     private String body;
 
     private Integer likeCount;
+
+    protected Comment(
+            Member member,
+            Integer voteCount,
+            String attachedImageUrl,
+            String body
+    ) {
+        this.member = member;
+        this.voteCount = voteCount;
+        this.attachedImageUrl = attachedImageUrl;
+        this.body = body;
+    }
 }

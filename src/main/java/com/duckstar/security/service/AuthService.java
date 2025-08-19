@@ -172,7 +172,8 @@ public class AuthService {
     @Transactional
     public ResponseEntity<Map<String, String>> refresh(HttpServletRequest request) {
         String refreshToken = jwtTokenProvider.resolveFromCookie(request, "REFRESH_TOKEN");
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
+        boolean tokenIsValid = jwtTokenProvider.validateToken(refreshToken);
+        if (!tokenIsValid) {
             throw new AuthHandler(ErrorStatus.INVALID_TOKEN);
         }
 

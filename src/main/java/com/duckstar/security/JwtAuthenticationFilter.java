@@ -2,6 +2,7 @@ package com.duckstar.security;
 
 import com.duckstar.domain.Member;
 import com.duckstar.security.repository.MemberRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -29,18 +29,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
 
-        String token = resolveBearer(req);
-        if (token == null) {
-            token = resolveFromCookie(req, "ACCESS_TOKEN");
+        String jwtAccessToken = resolveBearer(req);
+        if (jwtAccessToken == null) {
+            jwtAccessToken = resolveFromCookie(req, "ACCESS_TOKEN");
         }
 
-        if (token != null && jwtTokenProvider.validateToken(token)
+        Claims accessClaims = jwtTokenProvider.parseClaims(jwtAccessToken);
+        if (jwtAccessToken != null && jwtTokenProvider.validateClaims(accessClaims)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                Long userId = jwtTokenProvider.getUserId(token);
-                Member member = memberRepository.findById(userId).orElse(null);
+                Long memberId = Long.valueOf(accessClaims.getSubject());
+                Member member = memberRepository.findById(memberId).orElse(null);
                 if (member != null) {
-                    MemberPrincipal principal = MemberPrincipal.of(member, Map.of());
+                    MemberPrincipal principal = MemberPrincipal.of(member);
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     principal,
@@ -52,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
             } catch (Exception e) {
-                log.warn("토큰에서 사용자 ID 추출 실패", e);
+                log.warn("{} - JWT 파싱 실패: {}", req.getRequestURI(), e.getMessage());
             }
         }
 

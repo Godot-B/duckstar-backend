@@ -1,13 +1,14 @@
 package com.duckstar.web.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotBlank;
+import com.duckstar.validation.annotation.CommentConstraint;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
+@CommentConstraint
 public class CommentRequestDto {
     String attachedImageUrl;
 
-    @NotBlank @Max(1000)
+    @Size(max = 1000)
     String body;
 }

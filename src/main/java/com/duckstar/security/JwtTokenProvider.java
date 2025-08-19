@@ -53,30 +53,25 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public Long getUserId(String token) {
-        try {
-            Claims claims = parseClaims(token);
-            return Long.valueOf(claims.getSubject());
-        } catch (Exception e) {
-            throw new JwtException("유저 ID 추출 실패", e);
-        }
+    public boolean validateClaims(Claims claims) {
+        return claims != null && !claims.getExpiration().before(new Date());
     }
 
     public boolean validateToken(String token) {
-        try {
-            parseClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+        Claims claims = parseClaims(token);
+        return validateClaims(claims);
     }
 
-    private Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public Claims parseClaims(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public String resolveFromCookie(HttpServletRequest request, String name) {

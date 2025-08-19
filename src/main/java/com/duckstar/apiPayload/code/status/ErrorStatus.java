@@ -22,6 +22,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 주 관련
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
 
+    // 순위 정보, 메달
+    MEDAL_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "MEDAL4001", "허용되지 않는 메달 타입입니다."),
+
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
 
@@ -49,6 +52,9 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 회원 관련
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "존재하지 않는 회원입니다."),
+
+    // 커뮤니티 관련
+    COMMENT_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "COMMENT4001", "댓글 작성 시 사진이나 글 중 하나는 있어야 합니다."),
     ;
 
     private final HttpStatus httpStatus;

@@ -8,6 +8,7 @@ import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.CommentRequestDto;
 import com.duckstar.web.dto.MedalDto;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -36,9 +37,11 @@ public class AnimeController {
 
     @Operation(summary = "애니메이션 댓글 작성 API")
     @PostMapping("/{animeId}")
-    public ApiResponse<Void> leaveComment(@PathVariable Long animeId,
-                                          @RequestBody CommentRequestDto request,
-                                          @AuthenticationPrincipal MemberPrincipal principal) {
+    public ApiResponse<Void> leaveComment(
+            @PathVariable Long animeId,
+            @RequestBody CommentRequestDto request,
+            @AuthenticationPrincipal MemberPrincipal principal
+    ) {
 
         return ApiResponse.onSuccess(null);
     }
