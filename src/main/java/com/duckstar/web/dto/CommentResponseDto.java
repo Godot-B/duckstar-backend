@@ -28,6 +28,7 @@ public class CommentResponseDto {
 
         Long commentLikeId;
         Boolean isLiked;
+        Integer likeCount;
 
         String nickname;
         String profileImageUrl;
@@ -52,6 +53,7 @@ public class CommentResponseDto {
 
         Long replyLikeId;
         Boolean isLiked;
+        Integer likeCount;
 
         String nickname;
         String profileImageUrl;
@@ -61,5 +63,14 @@ public class CommentResponseDto {
         Long listenerId;
         String attachedImageUrl;
         String body;
+    }
+
+    @Builder
+    @Getter
+    public static class DeleteResultDto {
+        CommentStatus status;
+
+        LocalDateTime createdAt;
+        LocalDateTime deletedAt;
     }
 }

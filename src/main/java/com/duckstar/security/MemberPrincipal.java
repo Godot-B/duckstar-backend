@@ -54,4 +54,10 @@ public class MemberPrincipal implements OAuth2User {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
+
+    public boolean isAdmin() {
+        return authorities.stream()
+                .anyMatch(auth ->
+                        auth.getAuthority().equals(Role.ADMIN.name()));
+    }
 }

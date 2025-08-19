@@ -21,7 +21,7 @@ public abstract class Comment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    private Member author;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 15, nullable = false)
@@ -38,14 +38,22 @@ public abstract class Comment extends BaseEntity {
     private Integer likeCount;
 
     protected Comment(
-            Member member,
+            Member author,
             Integer voteCount,
             String attachedImageUrl,
             String body
     ) {
-        this.member = member;
+        this.author = author;
         this.voteCount = voteCount;
         this.attachedImageUrl = attachedImageUrl;
         this.body = body;
+    }
+
+    public void setStatus(CommentStatus status) {
+        this.status = status;
+    }
+
+    public boolean isDeleted() {
+        return status == CommentStatus.DELETED || status == CommentStatus.ADMIN_DELETED;
     }
 }

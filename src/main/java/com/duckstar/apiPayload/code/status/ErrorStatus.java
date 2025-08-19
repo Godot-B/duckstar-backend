@@ -53,8 +53,11 @@ public enum ErrorStatus implements BaseErrorCode {
     // 회원 관련
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "존재하지 않는 회원입니다."),
 
-    // 커뮤니티 관련
+    // 댓글 관련
     COMMENT_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "COMMENT4001", "댓글 작성 시 사진이나 글 중 하나는 있어야 합니다."),
+    COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "COMMENT4002", "댓글이 존재하지 않습니다."),
+
+    DELETE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4010", "삭제 권한이 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

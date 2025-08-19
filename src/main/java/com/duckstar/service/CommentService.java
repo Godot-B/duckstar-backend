@@ -9,10 +9,12 @@ import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeCommentRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
+import com.duckstar.security.MemberPrincipal;
+import com.duckstar.security.domain.enums.Role;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.CommentRequestDto;
-import com.duckstar.web.dto.CommentResponseDto;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
+import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
 import com.duckstar.web.dto.CommentResponseDto.ReplyDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -76,6 +78,34 @@ public class CommentService {
 
                 .replyCount(0)
                 .replyDtos(EMPTY_REPLY_LIST)
+                .build();
+    }
+
+    @Transactional
+    public DeleteResultDto deleteAnimeComment(
+            Long commentId,
+            MemberPrincipal principal
+    ) {
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
+
+        boolean isAuthor = comment.getAuthor().getId().equals(principal.getId());
+        boolean isAdmin = principal.isAdmin();
+
+        if (isAuthor) {
+            comment.setStatus(CommentStatus.DELETED);
+
+        } else if (isAdmin) {
+            comment.setStatus(CommentStatus.ADMIN_DELETED);
+
+        } else {
+            throw new CommentHandler(ErrorStatus.DELETE_UNAUTHORIZED);
+        }
+
+        return DeleteResultDto.builder()
+                .status(comment.getStatus())
+                .createdAt(comment.getCreatedAt())
+                .deletedAt(comment.getUpdatedAt())
                 .build();
     }
 }
