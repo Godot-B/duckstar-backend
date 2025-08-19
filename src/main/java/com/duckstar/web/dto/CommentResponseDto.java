@@ -20,44 +20,46 @@ public class CommentResponseDto {
     @Builder
     @Getter
     public static class CommentDto {
+        CommentStatus status;
+        Long commentId;
+
+        Long authorId;
+        Boolean canDeleteThis;
+
+        Long commentLikeId;
         Boolean isLiked;
 
-        CommentStatus status;
-
         String nickname;
-
         String profileImageUrl;
-
         Integer voteCount;
-
         LocalDateTime createdAt;
 
         String attachedImageUrl;
-
         String body;
 
         Integer replyCount;
-
         List<ReplyDto> replyDtos;  // 특정 조건에 해당하면 미리 로드
     }
 
     @Builder
     @Getter
     public static class ReplyDto {
+        CommentStatus status;
+        Long replyId;
+
+        Long authorId;
+        Boolean canDeleteThis;
+
+        Long replyLikeId;
         Boolean isLiked;
 
-        CommentStatus status;
-
         String nickname;
-
         String profileImageUrl;
-
         Integer voteCount;
-
         LocalDateTime createdAt;
 
+        Long listenerId;
         String attachedImageUrl;
-
         String body;
     }
 }

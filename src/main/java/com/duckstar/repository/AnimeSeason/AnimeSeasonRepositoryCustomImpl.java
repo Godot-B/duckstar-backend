@@ -1,7 +1,6 @@
 package com.duckstar.repository.AnimeSeason;
 
 import com.duckstar.domain.*;
-import com.duckstar.domain.mapping.QAnimeCandidate;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QAnimeSeason;
 import com.duckstar.domain.mapping.QEpisode;

@@ -31,8 +31,8 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getCurrentUser(
-            @AuthenticationPrincipal MemberPrincipal principal) {
-        return authService.getCurrentUser(principal.getId());
+            @AuthenticationPrincipal(expression = "id") Long memberId) {
+        return authService.getCurrentUser(memberId);
     }
 
     @PostMapping("/logout")
@@ -53,9 +53,9 @@ public class AuthController {
     @PostMapping("/withdraw/kakao")
     public ResponseEntity<Void> withdrawKakao(
             HttpServletResponse res,
-            @AuthenticationPrincipal MemberPrincipal principal
+            @AuthenticationPrincipal(expression = "id") Long memberId
     ) {
-        authService.withdrawKakao(res, principal.getId());
+        authService.withdrawKakao(res, memberId);
         return ResponseEntity.ok().build();
     }
 }

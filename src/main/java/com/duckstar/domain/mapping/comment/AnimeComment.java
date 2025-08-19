@@ -19,29 +19,29 @@ public class AnimeComment extends Comment {
     private Anime anime;
 
     protected AnimeComment(
+            Anime anime,
             Member member,
             Integer voteCount,
             String attachedImageUrl,
-            String body,
-            Anime anime
+            String body
     ) {
         super(member, voteCount, attachedImageUrl, body);
         this.anime = anime;
     }
 
     public static AnimeComment create(
+            Anime anime,
             Member member,
             Integer voteCount,
             String attachedImageUrl,
-            String body,
-            Anime anime
+            String body
     ) {
         return new AnimeComment(
+                anime,
                 member,
                 voteCount,
                 attachedImageUrl,
-                body,
-                anime
+                body
         );
     }
 }

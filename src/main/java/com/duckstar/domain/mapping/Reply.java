@@ -27,8 +27,8 @@ public class Reply extends BaseEntity {
     private Member author;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_member_id")
-    private Member replyTo;
+    @JoinColumn(name = "listener_id")
+    private Member listenerId;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 15, nullable = false)
