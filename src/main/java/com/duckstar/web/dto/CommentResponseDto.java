@@ -19,6 +19,13 @@ public class CommentResponseDto {
 
         PageInfo pageInfo;
     }
+    @Builder
+    @Getter
+    public static class ReplySliceDto {
+        List<ReplyDto> replyDtos;
+
+        PageInfo pageInfo;
+    }
 
     @Builder
     @Getter
@@ -26,22 +33,49 @@ public class CommentResponseDto {
         CommentStatus status;
         Long commentId;
 
-        Long authorId;
         Boolean canDeleteThis;
 
         Boolean isLiked;
         Long commentLikeId;
         Integer likeCount;
 
+        Long authorId;
         String nickname;
         String profileImageUrl;
         Integer voteCount;
-        LocalDateTime createdAt;
 
+        LocalDateTime createdAt;
         String attachedImageUrl;
         String body;
 
         Integer replyCount;
+
+        public static CommentDto ofCreated(
+                Comment comment,
+                Member author,
+                int voteCount
+        ) {
+            return CommentDto.builder()
+                    .status(comment.getStatus())
+                    .commentId(comment.getId())
+                    .canDeleteThis(true)
+
+                    .isLiked(false)
+                    .commentLikeId(null)
+                    .likeCount(0)
+
+                    .authorId(author.getId())
+                    .nickname(author.getNickname())
+                    .profileImageUrl(author.getProfileImageUrl())
+                    .voteCount(voteCount)
+
+                    .createdAt(comment.getCreatedAt())
+                    .attachedImageUrl(comment.getAttachedImageUrl())
+                    .body(comment.getBody())
+
+                    .replyCount(0)
+                    .build();
+        }
     }
 
     @Builder
@@ -50,35 +84,39 @@ public class CommentResponseDto {
         CommentStatus status;
         Long replyId;
 
-        Long authorId;
         Boolean canDeleteThis;
 
         Boolean isLiked;
         Long replyLikeId;
         Integer likeCount;
 
+        Long authorId;
         String nickname;
         String profileImageUrl;
         Integer voteCount;
-        LocalDateTime createdAt;
 
+        LocalDateTime createdAt;
         Long listenerId;
         String attachedImageUrl;
         String body;
 
-        public static ReplyDto ofCreated(Reply reply, Member author, int voteCount) {
+        public static ReplyDto ofCreated(
+                Reply reply,
+                Member author,
+                int voteCount
+        ) {
             Member listener = reply.getListener();
 
             return ReplyDto.builder()
                     .status(reply.getStatus())
                     .replyId(reply.getId())
-                    .authorId(author.getId())
                     .canDeleteThis(true)
 
                     .isLiked(false)
                     .replyLikeId(null)
                     .likeCount(0)
 
+                    .authorId(author.getId())
                     .nickname(author.getNickname())
                     .profileImageUrl(author.getProfileImageUrl())
                     .voteCount(voteCount)

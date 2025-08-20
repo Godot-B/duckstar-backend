@@ -11,6 +11,14 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_comment_like_cm",
+                        columnList = "comment_id, created_at"),
+                @Index(name = "idx_comment_like_c",
+                        columnList = "comment_id"),
+        }
+)
 public class CommentLike extends BaseEntity {
 
     @Id

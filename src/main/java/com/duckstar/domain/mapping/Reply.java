@@ -14,6 +14,12 @@ import java.util.Optional;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_reply_p",
+                        columnList = "parent_id"),
+        }
+)
 public class Reply extends BaseEntity {
 
     @Id

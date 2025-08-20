@@ -10,6 +10,14 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_reply_like_rm",
+                        columnList = "reply_id, created_at"),
+                @Index(name = "idx_reply_like_r",
+                        columnList = "reply_id"),
+        }
+)
 public class ReplyLike extends BaseEntity {
 
     @Id

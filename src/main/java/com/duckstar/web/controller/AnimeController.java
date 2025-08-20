@@ -16,7 +16,6 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public class AnimeController {
 
     @Operation(summary = "애니메이션 댓글 조회 API")
     @GetMapping("/{animeId}/comments")
-    public ApiResponse<AnimeCommentSliceDto> getAnimeCommentsById(
+    public ApiResponse<AnimeCommentSliceDto> getAnimeComments(
             @PathVariable Long animeId,
             @RequestParam(required = false) List<Long> episodeIds,
             @RequestParam(defaultValue = "RECENT") CommentSortType sortBy,
@@ -63,13 +62,13 @@ public class AnimeController {
     public ApiResponse<CommentDto> leaveComment(
             @PathVariable Long animeId,
             @Valid @RequestBody CommentRequestDto request,
-            @AuthenticationPrincipal(expression = "id") Long authorId
+            @AuthenticationPrincipal(expression = "id") Long principalId
     ) {
         return ApiResponse.onSuccess(
                 commentService.leaveAnimeComment(
                         animeId,
                         request,
-                        authorId
+                        principalId
                 )
         );
     }

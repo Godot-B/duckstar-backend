@@ -3,7 +3,6 @@ package com.duckstar.service;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.CommentHandler;
-import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentSortType;
@@ -12,10 +11,9 @@ import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeRepository;
-import com.duckstar.repository.ReplyRepository;
+import com.duckstar.repository.Reply.ReplyRepository;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
-import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
 import com.duckstar.web.dto.PageInfo;
@@ -50,13 +48,13 @@ public class CommentService {
         Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
-        Member member = memberService.findByIdOrThrow(principalId);
+        Member author = memberService.findByIdOrThrow(principalId);
 
         int voteCount = weekVoteSubmissionRepository.countByMemberId(principalId);
 
         AnimeComment animeComment = AnimeComment.create(
                 anime,
-                member,
+                author,
                 voteCount,
                 request.getAttachedImageUrl(),   // S3
                 request.getBody()
@@ -64,25 +62,7 @@ public class CommentService {
 
         AnimeComment saved = animeCommentRepository.save(animeComment);
 
-        return CommentDto.builder()
-                .status(saved.getStatus())
-                .commentId(saved.getId())
-                .authorId(principalId)
-                .canDeleteThis(true)
-
-                .isLiked(false)
-                .commentLikeId(null)
-                .likeCount(0)
-
-                .nickname(member.getNickname())
-                .profileImageUrl(member.getProfileImageUrl())
-                .voteCount(voteCount)
-
-                .createdAt(saved.getCreatedAt())
-                .attachedImageUrl(saved.getAttachedImageUrl())
-                .body(saved.getBody())
-                .replyCount(0)
-                .build();
+        return CommentDto.ofCreated(saved, author, voteCount);
     }
 
     public AnimeCommentSliceDto getAnimeCommentSliceDto(
@@ -156,11 +136,11 @@ public class CommentService {
     public ReplyDto leaveReply(
             Long commentId,
             ReplyRequestDto request,
-            Long authorId
+            Long principalId
     ) {
         AnimeComment comment = findByIdOrThrow(commentId);
 
-        Member author = memberService.findByIdOrThrow(authorId);
+        Member author = memberService.findByIdOrThrow(principalId);
         int voteCount = weekVoteSubmissionRepository.countByMemberId(author.getId());
 
         Long listenerId = request.getListenerId();
@@ -175,7 +155,7 @@ public class CommentService {
                 author,
                 Optional.ofNullable(listener),
                 voteCount,
-                content.getAttachedImageUrl(),
+                content.getAttachedImageUrl(),  // S3
                 content.getBody()
         );
 
@@ -191,5 +171,41 @@ public class CommentService {
     public AnimeComment findByIdOrThrow(Long commentId) {
         return animeCommentRepository.findById(commentId).orElseThrow(() ->
                 new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
+    }
+
+    public ReplySliceDto getReplySliceDto(
+            Long commentId,
+            Pageable pageable,
+            MemberPrincipal principal
+    ) {
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+
+        Pageable overFetch = PageRequest.of(
+                page,
+                size + 1,
+                pageable.getSort()
+        );
+
+        List<ReplyDto> rows = replyRepository.getReplyDtos(
+                commentId,
+                overFetch,
+                principal
+        );
+
+        boolean commentsHasNext = rows.size() > size;
+
+        if (commentsHasNext) rows = rows.subList(0, size);
+
+        PageInfo pageInfo = PageInfo.builder()
+                .hasNext(commentsHasNext)
+                .page(page)
+                .size(size)
+                .build();
+
+        return ReplySliceDto.builder()
+                .replyDtos(rows)
+                .pageInfo(pageInfo)
+                .build();
     }
 }
