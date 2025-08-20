@@ -18,6 +18,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/animes")
 @RequiredArgsConstructor
@@ -41,12 +43,19 @@ public class AnimeController {
     @GetMapping("/{animeId}/comments")
     public ApiResponse<AnimeCommentSliceDto> getAnimeCommentsById(
             @PathVariable Long animeId,
+            @RequestParam(required = false) List<Long> episodeIds,
             @RequestParam(defaultValue = "RECENT") CommentSortType sortBy,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable,
             @AuthenticationPrincipal MemberPrincipal principal
     ) {
         return ApiResponse.onSuccess(
-                commentService.getAnimeCommentSliceDto(animeId, sortBy, pageable, principal));
+                commentService.getAnimeCommentSliceDto(
+                        animeId,
+                        episodeIds,
+                        sortBy,
+                        pageable,
+                        principal
+                ));
     }
 
     @Operation(summary = "애니메이션 댓글 작성 API")

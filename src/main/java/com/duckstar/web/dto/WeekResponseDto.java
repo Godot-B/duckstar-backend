@@ -12,24 +12,6 @@ public class WeekResponseDto {
 
     @Builder
     @Getter
-    public static class EpisodeDto {
-        Integer episodeNumber;
-
-        Boolean isBreak;
-
-        Integer quarter;
-
-        Integer week;
-
-        LocalDateTime scheduledAt;
-
-        Boolean isRescheduled;
-
-        LocalDateTime nextEpScheduledAt;
-    }
-
-    @Builder
-    @Getter
     public static class WeekDto {
         Integer year;
 

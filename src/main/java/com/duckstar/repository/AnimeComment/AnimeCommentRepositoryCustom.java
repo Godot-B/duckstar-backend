@@ -10,6 +10,7 @@ import java.util.List;
 public interface AnimeCommentRepositoryCustom {
     List<CommentDto> getCommentDtos(
             Long animeId,
+            List<Long> episodeIds,
             CommentSortType sortBy,
             Pageable pageable,
             MemberPrincipal principal

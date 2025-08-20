@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import static com.duckstar.web.dto.CommentResponseDto.*;
+
 @RestController
 @RequestMapping("/api/v1/comments")
 @RequiredArgsConstructor
@@ -18,11 +20,21 @@ public class CommentController {
 
     @Operation(summary = "애니메이션 댓글 삭제 API")
     @PatchMapping("/{commentId}")
-    public ApiResponse<CommentResponseDto.DeleteResultDto> deleteComment(
+    public ApiResponse<DeleteResultDto> deleteComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal MemberPrincipal principal
     ) {
         return ApiResponse.onSuccess(
                 commentService.deleteAnimeComment(commentId, principal));
+    }
+
+    @Operation(summary = "답글 달기 API")
+    @PostMapping("/{commentId}")
+    public ApiResponse<ReplyDto> leaveReply(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal MemberPrincipal principal
+    ) {
+        return ApiResponse.onSuccess(
+                commentService.leaveReply(commentId, principal));
     }
 }

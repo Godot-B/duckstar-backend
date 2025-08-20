@@ -38,4 +38,6 @@ public class Episode extends BaseEntity {
     private Boolean isRescheduled;
 
     private LocalDateTime scheduledAt;
+
+    private LocalDateTime nextEpScheduledAt;
 }

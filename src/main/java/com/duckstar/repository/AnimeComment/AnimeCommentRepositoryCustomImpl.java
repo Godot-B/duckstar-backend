@@ -4,13 +4,15 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.CommentHandler;
 import com.duckstar.domain.QMember;
 import com.duckstar.domain.enums.CommentSortType;
+import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.QCommentLike;
+import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.domain.mapping.QReply;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
 import com.duckstar.security.MemberPrincipal;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -32,10 +34,12 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
     private final QAnimeComment comment = QAnimeComment.animeComment;
     private final QCommentLike commentLike = QCommentLike.commentLike;
     private final QReply reply = QReply.reply;
+    private final QEpisode episode = QEpisode.episode;
 
     @Override
     public List<CommentDto> getCommentDtos(
             Long animeId,
+            List<Long> episodeIds,
             CommentSortType sortBy,
             Pageable pageable,
             MemberPrincipal principal
@@ -55,11 +59,15 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                         comment.body
                 )
                 .from(comment)
+                .join(episode).on(
+                        comment.createdAt.between(episode.scheduledAt, episode.nextEpScheduledAt)
+                )
                 .leftJoin(commentLike).on(
                         commentLike.comment.id.eq(comment.id)
                         .and(commentLike.member.id.eq(principal.getId()))
                 )
-                .where(comment.anime.id.eq(animeId))
+                .where(comment.anime.id.eq(animeId)
+                        .and(episode.id.in(episodeIds)))
                 .orderBy(getOrder(sortBy))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

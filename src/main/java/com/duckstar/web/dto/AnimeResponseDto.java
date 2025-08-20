@@ -6,7 +6,6 @@ import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.MedalDto.RackUnitDto;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
-import com.duckstar.web.dto.WeekResponseDto.EpisodeDto;
 import lombok.Builder;
 import lombok.Getter;
 

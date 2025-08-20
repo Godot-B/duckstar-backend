@@ -38,10 +38,12 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
                     
                     -클라이언트 역할
                     1. 그룹별 탭 전환
-                    2. 기본 상태 표시 <- NOW_SHOWING 경우만 방영까지 남은 시간 표시
-                    3. 검색 - 애니메이션 제목 쿼리, 애니메이션 OTT 태그 필터 (메모리 상에서)""")
+                    2. 기본 AnimeStatus 표시
+                    3. 오늘과 같은 요일이고 && NOW_SHOWING && 아직 방영안한 애니들만: 방영까지 남은 시간 표시
+                    4. 검색 - 애니메이션 제목 쿼리, 애니메이션 OTT 태그 필터 (프론트 메모리 상에서)""")
     @GetMapping("/{year}/{quarter}")
-    public ApiResponse<AnimePreviewListDto> getSchedule(@PathVariable Integer year, @PathVariable Integer quarter) {
+    public ApiResponse<AnimePreviewListDto> getSchedule(
+            @PathVariable Integer year, @PathVariable Integer quarter) {
         Long quarterId = weekService.getQuarterIdByYQ(year, quarter);
 
         return ApiResponse.onSuccess(

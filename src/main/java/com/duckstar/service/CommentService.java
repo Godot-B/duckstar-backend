@@ -6,16 +6,17 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentSortType;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeRepository;
+import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.CommentRequestDto;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
-import com.duckstar.web.dto.CommentResponseDto.ReplyDto;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -23,8 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.duckstar.web.dto.CommentResponseDto.*;
 
@@ -86,6 +86,7 @@ public class CommentService {
 
     public AnimeCommentSliceDto getAnimeCommentSliceDto(
             Long animeId,
+            List<Long> episodeIds,
             CommentSortType sortBy,
             Pageable pageable,
             MemberPrincipal principal
@@ -101,6 +102,7 @@ public class CommentService {
 
         List<CommentDto> rows = animeCommentRepository.getCommentDtos(
                 animeId,
+                episodeIds,
                 sortBy,
                 overFetch,
                 principal
@@ -148,5 +150,9 @@ public class CommentService {
                 .createdAt(comment.getCreatedAt())
                 .deletedAt(comment.getUpdatedAt())
                 .build();
+    }
+
+    public ReplyDto leaveReply(Long commentId, MemberPrincipal principal) {
+        return null;
     }
 }
