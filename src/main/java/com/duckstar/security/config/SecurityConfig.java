@@ -36,16 +36,6 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public CommandLineRunner verifyFilterChains(ApplicationContext ctx) {
-        return args -> {
-            Map<String, SecurityFilterChain> chains = ctx.getBeansOfType(SecurityFilterChain.class);
-            chains.forEach((name, chain) ->
-                    log.info("🔍 등록된 SecurityFilterChain: {}", name)
-            );
-        };
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http,
             CustomKakaoAccessTokenResponseClient customKakaoAccessTokenResponseClient

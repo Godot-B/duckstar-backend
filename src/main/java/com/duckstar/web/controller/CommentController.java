@@ -12,8 +12,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 import static com.duckstar.web.dto.CommentResponseDto.*;
 import static com.duckstar.web.dto.WriteRequestDto.*;
 
@@ -72,6 +70,8 @@ public class CommentController {
             @PathVariable Long replyId,
             @AuthenticationPrincipal MemberPrincipal principal
     ) {
-        return ApiResponse.onSuccess(null);
+
+        return ApiResponse.onSuccess(
+                commentService.deleteReply(replyId, principal));
     }
 }

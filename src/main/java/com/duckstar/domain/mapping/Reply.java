@@ -27,11 +27,11 @@ public class Reply extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comment_id")
+    @JoinColumn(name = "parent_id")
     private Comment parent;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "author_id", nullable = false)
     private Member author;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -82,5 +82,9 @@ public class Reply extends BaseEntity {
                 attachedImageUrl,
                 body
         );
+    }
+
+    public void setStatus(CommentStatus status) {
+        this.status = status;
     }
 }

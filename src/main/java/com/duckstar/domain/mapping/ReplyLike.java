@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Table(
         indexes = {
                 @Index(name = "idx_reply_like_rm",
-                        columnList = "reply_id, created_at"),
+                        columnList = "reply_id, member_id"),
                 @Index(name = "idx_reply_like_r",
                         columnList = "reply_id"),
         }

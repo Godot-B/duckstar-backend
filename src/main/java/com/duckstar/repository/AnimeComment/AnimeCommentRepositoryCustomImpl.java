@@ -1,6 +1,7 @@
 package com.duckstar.repository.AnimeComment;
 
 import com.duckstar.domain.enums.CommentSortType;
+import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.QCommentLike;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.domain.mapping.QReply;
@@ -63,7 +64,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .leftJoin(commentLike).on(
                         commentLike.comment.id.eq(comment.id)
                                 .and(commentLike.member.id.eq(principal.getId())))
-                .where(comment.anime.id.eq(animeId)
+                .where(comment.contentIdForIdx.eq(animeId)
                         .and(episode.id.in(episodeIds)))
                 .groupBy(comment.id)  // 안전용 명시
                 .orderBy(getOrder(likeCountAlias, sortBy))
@@ -94,12 +95,18 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
         return tuples.stream()
                 .map(t -> {
                     Long commentId = t.get(comment.id);
+
+                    CommentStatus status = t.get(comment.status);
+                    Integer replyCount = replyCountMap.getOrDefault(commentId, 0);
+                    if (status != CommentStatus.NORMAL && replyCount == 0) {
+                        return null;
+                    }
+
                     Long authorId = t.get(comment.author.id);
                     boolean isAuthor = Objects.equals(authorId, principal.getId());
                     boolean isAdmin = principal.isAdmin();
-
                     return CommentDto.builder()
-                            .status(t.get(comment.status))
+                            .status(status)
                             .commentId(commentId)
 
                             .canDeleteThis(isAuthor || isAdmin)
@@ -120,9 +127,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                             .attachedImageUrl(t.get(comment.attachedImageUrl))
                             .body(t.get(comment.body))
 
-                            .replyCount(
-                                    replyCountMap.getOrDefault(commentId, 0)
-                            )
+                            .replyCount(replyCount)
                             .build();
                 })
                 .toList();

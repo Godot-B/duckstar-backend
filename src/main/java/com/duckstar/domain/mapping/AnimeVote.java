@@ -12,12 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         indexes = {
-                @Index(name = "idx_anime_candidate_wac",
-                        columnList = "submission_id, anime_candidate_id"),
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_anime_candidate_ap",
-                        columnNames = {"submission_id", "anime_candidate_id"})
+                @Index(name = "idx_anime_vote_a",
+                        columnList = "anime_candidate_id"),
+                @Index(name = "idx_anime_vote_s",
+                        columnList = "submission_id"),
         }
 )
 @SequenceGenerator(

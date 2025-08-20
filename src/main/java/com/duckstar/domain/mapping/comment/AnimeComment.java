@@ -11,12 +11,6 @@ import lombok.NoArgsConstructor;
 @DiscriminatorValue("A")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(
-        indexes = {
-                @Index(name = "idx_anime_comment_ac",
-                        columnList = "anime_id, created_at")
-        }
-)
 public class AnimeComment extends Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,7 +24,7 @@ public class AnimeComment extends Comment {
             String attachedImageUrl,
             String body
     ) {
-        super(member, voteCount, attachedImageUrl, body);
+        super(anime.getId(), member, voteCount, attachedImageUrl, body);
         this.anime = anime;
     }
 

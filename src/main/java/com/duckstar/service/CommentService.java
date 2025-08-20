@@ -3,6 +3,7 @@ package com.duckstar.service;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.CommentHandler;
+import com.duckstar.apiPayload.exception.handler.ReplyHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentSortType;
@@ -11,6 +12,7 @@ import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeRepository;
+import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
@@ -34,10 +36,10 @@ import static com.duckstar.web.dto.WriteRequestDto.*;
 public class CommentService {
 
     private final AnimeRepository animeRepository;
-    private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final AnimeCommentRepository animeCommentRepository;
     private final ReplyRepository replyRepository;
     private final MemberService memberService;
+    private final AnimeVoteRepository animeVoteRepository;
 
     @Transactional
     public CommentDto leaveAnimeComment(
@@ -50,7 +52,12 @@ public class CommentService {
 
         Member author = memberService.findByIdOrThrow(principalId);
 
-        int voteCount = weekVoteSubmissionRepository.countByMemberId(principalId);
+        int voteCount = animeVoteRepository
+                .countAllByAnimeCandidate_Anime_IdAndWeekVoteSubmission_Member_Id(
+                        animeId,
+                        principalId
+                );
+
 
         AnimeComment animeComment = AnimeComment.create(
                 anime,
@@ -141,7 +148,12 @@ public class CommentService {
         AnimeComment comment = findByIdOrThrow(commentId);
 
         Member author = memberService.findByIdOrThrow(principalId);
-        int voteCount = weekVoteSubmissionRepository.countByMemberId(author.getId());
+
+        int voteCount = animeVoteRepository
+                .countAllByAnimeCandidate_Anime_IdAndWeekVoteSubmission_Member_Id(
+                        comment.getAnime().getId(),
+                        principalId
+                );
 
         Long listenerId = request.getListenerId();
         Member listener = listenerId != null ?
@@ -206,6 +218,31 @@ public class CommentService {
         return ReplySliceDto.builder()
                 .replyDtos(rows)
                 .pageInfo(pageInfo)
+                .build();
+    }
+
+    @Transactional
+    public DeleteResultDto deleteReply(Long replyId, MemberPrincipal principal) {
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
+                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
+
+        boolean isAuthor = Objects.equals(reply.getAuthor().getId(), principal.getId());
+        boolean isAdmin = principal.isAdmin();
+
+        if (isAuthor) {
+            reply.setStatus(CommentStatus.DELETED);
+
+        } else if (isAdmin) {
+            reply.setStatus(CommentStatus.ADMIN_DELETED);
+
+        } else {
+            throw new CommentHandler(ErrorStatus.DELETE_UNAUTHORIZED);
+        }
+
+        return DeleteResultDto.builder()
+                .status(reply.getStatus())
+                .createdAt(reply.getCreatedAt())
+                .deletedAt(reply.getUpdatedAt())
                 .build();
     }
 }

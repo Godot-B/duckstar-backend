@@ -7,6 +7,4 @@ import java.util.Optional;
 
 public interface WeekVoteSubmissionRepository extends JpaRepository<WeekVoteSubmission, Long> {
     Optional<WeekVoteSubmission> findByWeekIdAndPrincipalKey(Long weekId, String principalKey);
-
-    Integer countByMemberId(Long memberId);
 }

@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 @Table(
         indexes = {
                 @Index(name = "idx_comment_like_cm",
-                        columnList = "comment_id, created_at"),
+                        columnList = "comment_id, member_id"),
                 @Index(name = "idx_comment_like_c",
-                        columnList = "comment_id"),
+                        columnList = "comment_id")
         }
 )
 public class CommentLike extends BaseEntity {

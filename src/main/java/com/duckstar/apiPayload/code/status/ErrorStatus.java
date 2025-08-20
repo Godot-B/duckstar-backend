@@ -59,6 +59,9 @@ public enum ErrorStatus implements BaseErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "COMMENT4002", "댓글이 존재하지 않습니다."),
 
     DELETE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4010", "삭제 권한이 없습니다."),
+
+    // 답글 관련
+    REPLY_NOT_FOUND(HttpStatus.BAD_REQUEST, "REPLY4001", "답글이 존재하지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;
