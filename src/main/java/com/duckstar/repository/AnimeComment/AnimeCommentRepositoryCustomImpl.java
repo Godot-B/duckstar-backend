@@ -1,16 +1,11 @@
 package com.duckstar.repository.AnimeComment;
 
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.CommentHandler;
-import com.duckstar.domain.QMember;
 import com.duckstar.domain.enums.CommentSortType;
-import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.QCommentLike;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.domain.mapping.QReply;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
 import com.duckstar.security.MemberPrincipal;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -50,7 +45,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                         comment.author.id,
                         commentLike.isLiked,
                         commentLike.id,
-                        comment.likeCount,
+                        commentLike.count(),
                         comment.author.nickname,
                         comment.author.profileImageUrl,
                         comment.voteCount,
@@ -108,7 +103,10 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                             .canDeleteThis(isAuthor || isAdmin)
                             .commentLikeId(t.get(commentLike.id))
                             .isLiked(t.get(commentLike.isLiked))
-                            .likeCount(t.get(comment.likeCount))
+                            .likeCount(
+                                    Optional.ofNullable(t.get(commentLike.count()))
+                                            .map(Long::intValue).orElse(0)
+                            )
                             .nickname(t.get(comment.author.nickname))
                             .profileImageUrl(t.get(comment.author.profileImageUrl))
                             .voteCount(t.get(comment.voteCount))

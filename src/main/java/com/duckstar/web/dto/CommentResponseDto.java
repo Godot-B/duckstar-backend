@@ -1,6 +1,9 @@
 package com.duckstar.web.dto;
 
+import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.mapping.Reply;
+import com.duckstar.domain.mapping.comment.Comment;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -62,6 +65,30 @@ public class CommentResponseDto {
         Long listenerId;
         String attachedImageUrl;
         String body;
+
+        public static ReplyDto ofCreated(Reply reply, Member author, int voteCount) {
+            Member listener = reply.getListener();
+
+            return ReplyDto.builder()
+                    .status(reply.getStatus())
+                    .replyId(reply.getId())
+                    .authorId(author.getId())
+                    .canDeleteThis(true)
+
+                    .isLiked(false)
+                    .replyLikeId(null)
+                    .likeCount(0)
+
+                    .nickname(author.getNickname())
+                    .profileImageUrl(author.getProfileImageUrl())
+                    .voteCount(voteCount)
+
+                    .createdAt(reply.getCreatedAt())
+                    .listenerId(listener == null ? null : listener.getId())
+                    .attachedImageUrl(reply.getAttachedImageUrl())
+                    .body(reply.getBody())
+                    .build();
+        }
     }
 
     @Builder

@@ -10,6 +10,7 @@ import com.duckstar.web.support.VoteCookieManager;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class VoteController {
     @Operation(summary = "애니메이션 투표 API")
     @PostMapping("/anime")
     public ApiResponse<VoteReceiptDto> voteAnime(
-            @RequestBody AnimeVoteRequest request,
+            @Valid @RequestBody AnimeVoteRequest request,
             Member member,
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw

@@ -9,6 +9,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Optional;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,11 +30,7 @@ public class Reply extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "listener_id")
-    private Member listenerId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 15, nullable = false)
-    private CommentStatus status = CommentStatus.NORMAL;
+    private Member listener;
 
     private Integer voteCount;
 
@@ -42,5 +40,41 @@ public class Reply extends BaseEntity {
     @Lob
     private String body;
 
-    private Integer likeCount;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 15, nullable = false)
+    private CommentStatus status = CommentStatus.NORMAL;
+
+    protected Reply(
+            Comment parent,
+            Member author,
+            Member listener,
+            Integer voteCount,
+            String attachedImageUrl,
+            String body
+    ) {
+        this.parent = parent;
+        this.author = author;
+        this.listener = listener;
+        this.voteCount = voteCount;
+        this.attachedImageUrl = attachedImageUrl;
+        this.body = body;
+    }
+
+    public static Reply create(
+            Comment parent,
+            Member author,
+            Optional<Member> listener,
+            Integer voteCount,
+            String attachedImageUrl,
+            String body
+    ) {
+        return new Reply(
+                parent,
+                author,
+                listener.orElse(null),
+                voteCount,
+                attachedImageUrl,
+                body
+        );
+    }
 }

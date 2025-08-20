@@ -6,10 +6,11 @@ import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.AnimeService;
 import com.duckstar.service.CommentService;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
-import com.duckstar.web.dto.CommentRequestDto;
+import com.duckstar.web.dto.WriteRequestDto.CommentRequestDto;
 import com.duckstar.web.dto.CommentResponseDto.AnimeCommentSliceDto;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +24,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/animes")
 @RequiredArgsConstructor
-@Validated
 public class AnimeController {
 
     private final AnimeService animeService;
@@ -62,14 +62,14 @@ public class AnimeController {
     @PostMapping("/{animeId}")
     public ApiResponse<CommentDto> leaveComment(
             @PathVariable Long animeId,
-            @RequestBody CommentRequestDto request,
-            @AuthenticationPrincipal(expression = "id") Long memberId
+            @Valid @RequestBody CommentRequestDto request,
+            @AuthenticationPrincipal(expression = "id") Long authorId
     ) {
         return ApiResponse.onSuccess(
                 commentService.leaveAnimeComment(
                         animeId,
                         request,
-                        memberId
+                        authorId
                 )
         );
     }

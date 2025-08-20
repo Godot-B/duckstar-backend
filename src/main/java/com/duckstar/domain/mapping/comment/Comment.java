@@ -23,10 +23,6 @@ public abstract class Comment extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member author;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 15, nullable = false)
-    private CommentStatus status = CommentStatus.NORMAL;
-
     private Integer voteCount;
 
     @Column(length = 512)
@@ -35,7 +31,9 @@ public abstract class Comment extends BaseEntity {
     @Lob
     private String body;
 
-    private Integer likeCount;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 15, nullable = false)
+    private CommentStatus status = CommentStatus.NORMAL;
 
     protected Comment(
             Member author,

@@ -2,7 +2,7 @@ package com.duckstar.validation.validator;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.validation.annotation.CommentConstraint;
-import com.duckstar.web.dto.CommentRequestDto;
+import com.duckstar.web.dto.WriteRequestDto.CommentRequestDto;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

@@ -15,6 +15,7 @@ import com.duckstar.security.repository.MemberOAuthAccountRepository;
 import com.duckstar.security.providers.kakao.KakaoApiClient;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.repository.MemberTokenRepository;
+import com.duckstar.service.MemberService;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,6 +44,7 @@ public class AuthService {
     private final MemberTokenRepository memberTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoAuthClient kakaoAuthClient;
+    private final MemberService memberService;
 
     @Value("${app.jwt.secure-cookie}")
     private boolean secureCookie;
@@ -155,9 +157,9 @@ public class AuthService {
         return jwtAccessToken;
     }
 
-    public ResponseEntity<Map<String, Object>> getCurrentUser(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new AuthHandler(ErrorStatus.MEMBER_NOT_FOUND));
+    public ResponseEntity<Map<String, Object>> getCurrentUser(Long principalId) {
+        Member member = memberRepository.findById(principalId)
+                .orElseThrow(() -> new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND));
 
         Map<String, Object> userInfo = Map.of(
                 "id", member.getId(),
@@ -189,8 +191,7 @@ public class AuthService {
         }
 
         Long memberId = memberToken.getMember().getId();
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new AuthHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        Member member = memberService.findByIdOrThrow(memberId);
 
         String jwtAccessToken = jwtTokenProvider.createAccessToken(memberId, member.getRole());
         String jwtRefreshToken = jwtTokenProvider.createRefreshToken(memberId, member.getRole());
@@ -257,12 +258,12 @@ public class AuthService {
     }
 
     @Transactional
-    public void withdrawKakao(HttpServletResponse res, Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new AuthHandler(ErrorStatus.MEMBER_NOT_FOUND));
+    public void withdrawKakao(HttpServletResponse res, Long principalId) {
+        Member member = memberRepository.findById(principalId)
+                .orElseThrow(() -> new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND));
 
         MemberOAuthAccount account =
-                memberOAuthAccountRepository.findByProviderAndMemberId(OAuthProvider.KAKAO, memberId)
+                memberOAuthAccountRepository.findByProviderAndMemberId(OAuthProvider.KAKAO, principalId)
                         .orElseThrow(() -> new AuthHandler(ErrorStatus.OAUTH_ACCOUNT_NOT_FOUND));
 
         boolean accessTokenHasExpired = account.getAccessTokenExpiresAt().isBefore(LocalDateTime.now());
@@ -274,7 +275,7 @@ public class AuthService {
             try {
                 kakaoApiClient.unlink("KakaoAK " + adminKey);
             } catch (FeignException e) {
-                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
+                log.warn("카카오 unlink 실패 - principalId={}, 이유={}", principalId, e.getMessage());
             }
         } else {
             if (!refreshTokenHasExpired) {
@@ -289,14 +290,14 @@ public class AuthService {
             try {
                 kakaoApiClient.unlink("Bearer " + accessToken);
             } catch (FeignException e) {
-                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
+                log.warn("카카오 unlink 실패 - principalId={}, 이유={}", principalId, e.getMessage());
             }
         }
 
         expireCookie(res, "ACCESS_TOKEN");
         expireCookie(res, "REFRESH_TOKEN");
-        memberTokenRepository.deleteAllByMemberId(memberId);
-        memberOAuthAccountRepository.deleteAllByMemberId(memberId);
+        memberTokenRepository.deleteAllByMemberId(principalId);
+        memberOAuthAccountRepository.deleteAllByMemberId(principalId);
         member.withdraw();
     }
 }

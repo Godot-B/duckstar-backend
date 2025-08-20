@@ -4,12 +4,15 @@ import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.CommentService;
 import com.duckstar.web.dto.CommentResponseDto;
+import com.duckstar.web.dto.WriteRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import static com.duckstar.web.dto.CommentResponseDto.*;
+import static com.duckstar.web.dto.WriteRequestDto.*;
 
 @RestController
 @RequestMapping("/api/v1/comments")
@@ -28,13 +31,14 @@ public class CommentController {
                 commentService.deleteAnimeComment(commentId, principal));
     }
 
-    @Operation(summary = "답글 달기 API")
-    @PostMapping("/{commentId}")
+    @Operation(summary = "답글 작성 API")
+    @PostMapping("/{commentId}/replies")
     public ApiResponse<ReplyDto> leaveReply(
             @PathVariable Long commentId,
-            @AuthenticationPrincipal MemberPrincipal principal
+            @Valid @RequestBody ReplyRequestDto request,
+            @AuthenticationPrincipal(expression = "id") Long authorId
     ) {
         return ApiResponse.onSuccess(
-                commentService.leaveReply(commentId, principal));
+                commentService.leaveReply(commentId, request, authorId));
     }
 }

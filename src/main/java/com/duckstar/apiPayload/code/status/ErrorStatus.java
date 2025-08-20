@@ -52,6 +52,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 회원 관련
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "존재하지 않는 회원입니다."),
+    PRINCIPAL_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4002", "로그인 중인 id로 회원을 찾을 수 없습니다."),
 
     // 댓글 관련
     COMMENT_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "COMMENT4001", "댓글 작성 시 사진이나 글 중 하나는 있어야 합니다."),

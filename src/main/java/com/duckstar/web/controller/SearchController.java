@@ -21,7 +21,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/search")
 @RequiredArgsConstructor
-@Validated
 public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이션 및 캐릭터 전체 검색 API 개발
 
     private final WeekService weekService;
