@@ -86,7 +86,7 @@ public class VoteService {
             String cookieId,
             String principalKey
     ) {
-        // 투표 주차 유효성 검사
+        //=== 투표 주차 유효성 검사 ===//
         Long ballotWeekId = request.getWeekId();
         Week ballotWeek = weekRepository.findWeekById(ballotWeekId).orElseThrow(() ->
                 new VoteHandler(ErrorStatus.WEEK_NOT_FOUND));
@@ -102,7 +102,7 @@ public class VoteService {
 
         Member member = memberService.findByIdOrThrow(memberId);
 
-        // 중복 투표 방지
+        //=== 중복 투표 방지 ===//
         WeekVoteSubmission submission = WeekVoteSubmission.create(
                 currentWeek,
                 member,
@@ -117,11 +117,8 @@ public class VoteService {
             throw new VoteHandler(ErrorStatus.ALREADY_VOTED);
         }
 
-        // 실제 투표지 검사: 후보 유효성(중복 포함됨, 이번 주 후보 아님)
+        //=== 실제 투표지 검사: 후보 유효성(중복 포함됨, 이번 주 후보 아님) ===//
         List<AnimeBallotDto> ballotDtos = request.getBallotDtos();
-        if (ballotDtos == null || ballotDtos.isEmpty()) {
-            throw new VoteHandler(ErrorStatus.EMPTY_BALLOTS);
-        }
 
         List<Long> candidateIds = ballotDtos.stream()
                 .map(AnimeBallotDto::getAnimeCandidateId)
@@ -139,15 +136,11 @@ public class VoteService {
             throw new VoteHandler(ErrorStatus.INVALID_CANDIDATE_INCLUDED);
         }
 
-        // 투표 제한 초과 여부 검사
         int normalCount = (int) ballotDtos.stream()
                 .filter(dto -> dto.getBallotType() == BallotType.NORMAL)
                 .count();
-        if (normalCount > 30) {
-            throw new VoteHandler(ErrorStatus.VOTE_LIMIT_SURPASSED);
-        }
 
-        // 저장
+        //=== 저장 ===//
         List<AnimeVote> rows = new ArrayList<>();
         for (AnimeBallotDto dto : ballotDtos) {
             AnimeCandidate candidate =

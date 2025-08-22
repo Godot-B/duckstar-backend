@@ -66,8 +66,7 @@ public class VoteController {
         );
     }
 
-    @Operation(summary = "애니메이션 투표 내역 조회 API", description =
-            "GET /api/v1/vote/anime/check-voted 의 반환 id를 통해 투표 내역을 조회합니다.")
+    @Operation(summary = "애니메이션 투표 내역 조회 API", description = "submissionId를 통해 투표 내역을 조회합니다.")
     @GetMapping("/anime/history")
     public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteHistory(Long submissionId) {
         return ApiResponse.onSuccess(

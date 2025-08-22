@@ -8,8 +8,8 @@ import lombok.Getter;
 
 public class WriteRequestDto {
 
-    @Getter
     @CommentConstraint
+    @Getter
     public static class CommentRequestDto {
         String attachedImageUrl;
 

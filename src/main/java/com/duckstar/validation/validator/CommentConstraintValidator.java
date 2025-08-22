@@ -22,7 +22,7 @@ public class CommentConstraintValidator implements ConstraintValidator<CommentCo
 
         if (!hasBody && !hasImage) {
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(ErrorStatus.COMMENT_CONTENT_REQUIRED.name())
+            context.buildConstraintViolationWithTemplate(ErrorStatus.COMMENT_CONTENT_REQUIRED.getCode())
                     .addConstraintViolation();
             return false;
         }

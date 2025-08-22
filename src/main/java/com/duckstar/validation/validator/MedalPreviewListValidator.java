@@ -30,7 +30,7 @@ public class MedalPreviewListValidator implements ConstraintValidator<MedalTypeS
 
         if (!isValid) {
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(ErrorStatus.MEDAL_TYPE_NOT_VALID.name())
+            context.buildConstraintViolationWithTemplate(ErrorStatus.MEDAL_TYPE_NOT_VALID.getCode())
                     .addConstraintViolation();
         }
 
