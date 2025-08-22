@@ -36,6 +36,7 @@ public class VoteService {
     private final WeekRepository weekRepository;
     private final AnimeVoteRepository animeVoteRepository;
     private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
+    private final MemberService memberService;
 
     public AnimeCandidateListDto getAnimeCandidateList() {
         Week currentWeek = weekService.getCurrentWeek();
@@ -49,14 +50,23 @@ public class VoteService {
                 .build();
     }
 
-    public AnimeVoteHistoryDto getAnimeVoteHistory(String principalKey) {
+    public VoteCheckDto checkVoted(String principalKey) {
         Week currentWeek = weekService.getCurrentWeek();
 
-        WeekVoteSubmission submission =
-                weekVoteSubmissionRepository.findByWeekIdAndPrincipalKey(currentWeek.getId(), principalKey)
-                        .orElseThrow(() -> new VoteHandler(ErrorStatus.NOT_VOTED_YET));
+        Optional<WeekVoteSubmission> submissionOpt =
+                weekVoteSubmissionRepository.findByWeekIdAndPrincipalKey(currentWeek.getId(), principalKey);
 
-        Long submissionId = submission.getId();
+        Long submissionId = submissionOpt.map(WeekVoteSubmission::getId)
+                .orElse(null);
+
+        return VoteCheckDto.of(submissionId);
+    }
+
+    public AnimeVoteHistoryDto getAnimeVoteHistory(Long submissionId) {
+        Week currentWeek = weekService.getCurrentWeek();
+
+        WeekVoteSubmission submission = weekVoteSubmissionRepository.findById(submissionId)
+                .orElseThrow(() -> new VoteHandler(ErrorStatus.NOT_VOTED_YET));
 
         return AnimeVoteHistoryDto.builder()
                 .submissionId(submissionId)
@@ -72,7 +82,7 @@ public class VoteService {
     @Transactional
     public VoteReceiptDto voteAnime(
             AnimeVoteRequest request,
-            Member member,
+            Long memberId,
             String cookieId,
             String principalKey
     ) {
@@ -89,6 +99,8 @@ public class VoteService {
         if (!isValidWeek) {
             throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
         }
+
+        Member member = memberService.findByIdOrThrow(memberId);
 
         // 중복 투표 방지
         WeekVoteSubmission submission = WeekVoteSubmission.create(

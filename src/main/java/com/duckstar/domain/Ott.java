@@ -16,10 +16,7 @@ public class Ott extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "anime_id", nullable = false)
-    private Anime anime;
-
+    @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)
     private OttType type;
 

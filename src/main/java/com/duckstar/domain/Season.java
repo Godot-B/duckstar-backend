@@ -41,6 +41,7 @@ public class Season extends BaseEntity {
     @Column(nullable = false)
     private Integer yearValue;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)
     private SeasonType type;
 

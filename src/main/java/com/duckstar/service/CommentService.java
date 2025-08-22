@@ -45,17 +45,17 @@ public class CommentService {
     public CommentDto leaveAnimeComment(
             Long animeId,
             CommentRequestDto request,
-            Long principalId
+            Long memberId
     ) {
         Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
-        Member author = memberService.findByIdOrThrow(principalId);
+        Member author = memberService.findByIdOrThrow(memberId);
 
         int voteCount = animeVoteRepository
                 .countAllByAnimeCandidate_Anime_IdAndWeekVoteSubmission_Member_Id(
                         animeId,
-                        principalId
+                        memberId
                 );
 
 
@@ -143,16 +143,16 @@ public class CommentService {
     public ReplyDto leaveReply(
             Long commentId,
             ReplyRequestDto request,
-            Long principalId
+            Long memberId
     ) {
         AnimeComment comment = findByIdOrThrow(commentId);
 
-        Member author = memberService.findByIdOrThrow(principalId);
+        Member author = memberService.findByIdOrThrow(memberId);
 
         int voteCount = animeVoteRepository
                 .countAllByAnimeCandidate_Anime_IdAndWeekVoteSubmission_Member_Id(
                         comment.getAnime().getId(),
-                        principalId
+                        memberId
                 );
 
         Long listenerId = request.getListenerId();

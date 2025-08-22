@@ -84,7 +84,6 @@ public class AuthService {
                             providerUserId,
                             nickname,
                             profileImageUrl,
-                            null,
                             Gender.NONE,
                             Role.USER
                     );
@@ -157,8 +156,8 @@ public class AuthService {
         return jwtAccessToken;
     }
 
-    public ResponseEntity<Map<String, Object>> getCurrentUser(Long principalId) {
-        Member member = memberRepository.findById(principalId)
+    public ResponseEntity<Map<String, Object>> getCurrentUser(Long memberId) {
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND));
 
         Map<String, Object> userInfo = Map.of(
@@ -258,12 +257,12 @@ public class AuthService {
     }
 
     @Transactional
-    public void withdrawKakao(HttpServletResponse res, Long principalId) {
-        Member member = memberRepository.findById(principalId)
+    public void withdrawKakao(HttpServletResponse res, Long memberId) {
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND));
 
         MemberOAuthAccount account =
-                memberOAuthAccountRepository.findByProviderAndMemberId(OAuthProvider.KAKAO, principalId)
+                memberOAuthAccountRepository.findByProviderAndMemberId(OAuthProvider.KAKAO, memberId)
                         .orElseThrow(() -> new AuthHandler(ErrorStatus.OAUTH_ACCOUNT_NOT_FOUND));
 
         boolean accessTokenHasExpired = account.getAccessTokenExpiresAt().isBefore(LocalDateTime.now());
@@ -275,7 +274,7 @@ public class AuthService {
             try {
                 kakaoApiClient.unlink("KakaoAK " + adminKey);
             } catch (FeignException e) {
-                log.warn("카카오 unlink 실패 - principalId={}, 이유={}", principalId, e.getMessage());
+                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
             }
         } else {
             if (!refreshTokenHasExpired) {
@@ -290,14 +289,14 @@ public class AuthService {
             try {
                 kakaoApiClient.unlink("Bearer " + accessToken);
             } catch (FeignException e) {
-                log.warn("카카오 unlink 실패 - principalId={}, 이유={}", principalId, e.getMessage());
+                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
             }
         }
 
         expireCookie(res, "ACCESS_TOKEN");
         expireCookie(res, "REFRESH_TOKEN");
-        memberTokenRepository.deleteAllByMemberId(principalId);
-        memberOAuthAccountRepository.deleteAllByMemberId(principalId);
+        memberTokenRepository.deleteAllByMemberId(memberId);
+        memberOAuthAccountRepository.deleteAllByMemberId(memberId);
         member.withdraw();
     }
 }

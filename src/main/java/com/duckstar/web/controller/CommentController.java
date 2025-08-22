@@ -37,13 +37,13 @@ public class CommentController {
     public ApiResponse<ReplyDto> leaveReply(
             @PathVariable Long commentId,
             @Valid @RequestBody ReplyRequestDto request,
-            @AuthenticationPrincipal(expression = "id") Long principalId
+            @AuthenticationPrincipal(expression = "id") Long memberId
     ) {
         return ApiResponse.onSuccess(
                 commentService.leaveReply(
                         commentId,
                         request,
-                        principalId
+                        memberId
                 )
         );
     }

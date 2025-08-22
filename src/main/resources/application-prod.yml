@@ -1,0 +1,67 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:mysql://duckstar-prod-db.chmcecui04ju.ap-northeast-2.rds.amazonaws.com/duckstar
+    username: admin
+    password: LmUqEdJ29iTfUx5
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        show_sql: true
+        use_sql_comments: true
+        highlight_sql: true
+        order_inserts: true
+        order_updates: true
+        id.optimizer.pooled.preferred: pooled-lo
+        jdbc:
+          batch_size: 200
+
+  jackson:
+    serialization:
+      indent_output: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: 5a660ddfcbbc0c7c4431a518c5d282b3
+            client-secret: wAFq8htUGH8r0Tg2mEbpCs9ySNbu8VXl
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: https://{baseUrl}/login/oauth2/code/kakao
+            scope: profile_nickname, profile_image
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+app:
+  frontend:
+    redirect-uri: "https://{baseUrl}/oauth/callback"
+  kakao:
+    admin-key: 8E2F565519054C2A90A9D9A15B6A426B
+  jwt:
+    secure-cookie: true
+
+jwt:
+  secret: fsFt1sUM8HrmpwvVtTktLJgFunDpeZOMHSrdIknBmcc79INSaF54m2zHcitEFz/o
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.SQL: debug
+    org.hibernate.type: trace

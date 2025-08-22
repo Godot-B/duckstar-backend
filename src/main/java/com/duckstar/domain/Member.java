@@ -40,8 +40,6 @@ public class Member extends BaseEntity {
 
     private String profileImageUrl;
 
-    private String cookieId;
-
     @Enumerated(EnumType.STRING)
     @Column(length = 15, nullable = false)
     private Gender gender;
@@ -64,7 +62,6 @@ public class Member extends BaseEntity {
             String googleId,
             String nickname,
             String profileImageUrl,
-            String cookieId,
             Gender gender,
             Role role
     ) {
@@ -73,7 +70,6 @@ public class Member extends BaseEntity {
         this.googleId = googleId;
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
-        this.cookieId = cookieId;
         this.gender = gender;
         this.role = role;
     }
@@ -83,7 +79,6 @@ public class Member extends BaseEntity {
             String socialId,
             String nickname,
             String profileImageUrl,
-            String cookieId,
             Gender gender,
             Role role
     ) {
@@ -94,7 +89,6 @@ public class Member extends BaseEntity {
                     null,
                     nickname,
                     profileImageUrl,
-                    cookieId,
                     gender,
                     role
             );

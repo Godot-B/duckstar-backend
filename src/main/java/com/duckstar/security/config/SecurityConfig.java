@@ -1,22 +1,18 @@
 package com.duckstar.security.config;
 
 import com.duckstar.security.JwtAuthenticationFilter;
-import com.duckstar.security.JwtTokenProvider;
 import com.duckstar.security.OAuth2LoginSuccessHandler;
 import com.duckstar.security.providers.kakao.CustomKakaoAccessTokenResponseClient;
-import com.duckstar.security.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -24,7 +20,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-import java.util.Map;
 
 @EnableWebSecurity
 @Configuration
@@ -56,7 +51,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/home",
-                                "/signup", "/css/**"
+                                "/signup", "/css/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
 
                         .requestMatchers(
@@ -64,6 +63,16 @@ public class SecurityConfig {
                                 "/api/v1/auth/withdraw/kakao",
                                 "/api/v1/auth/me"
                         ).authenticated()
+//                        .requestMatchers(HttpMethod.POST, "/api/v1/vote/anime/history")
+//                        .authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/animes/{animeId}")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/comments/{commentId}")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/comments/{commentId}/replies")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/comments/{commentId}/replies/{replyId}")
+                        .authenticated()
 
                         .requestMatchers(
                                 "/api/v1/**"

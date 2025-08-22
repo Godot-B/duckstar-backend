@@ -62,13 +62,13 @@ public class AnimeController {
     public ApiResponse<CommentDto> leaveComment(
             @PathVariable Long animeId,
             @Valid @RequestBody CommentRequestDto request,
-            @AuthenticationPrincipal(expression = "id") Long principalId
+            @AuthenticationPrincipal(expression = "id") Long memberId
     ) {
         return ApiResponse.onSuccess(
                 commentService.leaveAnimeComment(
                         animeId,
                         request,
-                        principalId
+                        memberId
                 )
         );
     }
