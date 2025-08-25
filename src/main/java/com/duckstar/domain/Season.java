@@ -17,11 +17,11 @@ import java.util.List;
 @Table(
         indexes = {
                 @Index(name = "idx_season_yt",
-                        columnList = "year_value, type")
+                        columnList = "year_value, type_order")
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_season_yt",
-                        columnNames = {"year_value", "type"})
+                        columnNames = {"year_value", "type_order"})
         }
 )
 public class Season extends BaseEntity {

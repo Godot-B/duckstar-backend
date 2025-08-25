@@ -6,9 +6,7 @@ import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.enums.SiteType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -26,6 +24,8 @@ import java.util.Map;
                         columnList = "titleKor")
         }
 )
+@Builder
+@AllArgsConstructor
 public class Anime extends BaseEntity {
 
     @Id

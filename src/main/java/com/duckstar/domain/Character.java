@@ -3,9 +3,7 @@ package com.duckstar.domain;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.Gender;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -19,6 +17,8 @@ import java.time.LocalDate;
                         columnList = "nameKor")
         }
 )
+@Builder
+@AllArgsConstructor
 public class Character extends BaseEntity {
 
     @Id

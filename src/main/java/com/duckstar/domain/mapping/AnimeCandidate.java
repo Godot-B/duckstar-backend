@@ -34,12 +34,21 @@ public class AnimeCandidate extends BaseEntity {
     @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
-    private Integer totalVoteCount;
+    private Integer totalVoteCount = 0;
 
-    private Integer maleCount;
+    private Integer maleCount = 0;
 
-    private Integer femaleCount;
+    private Integer femaleCount = 0;
 
     @Embedded
     private RankInfo rankInfo;
+
+    protected AnimeCandidate(Week week, Anime anime) {
+        this.week = week;
+        this.anime = anime;
+    }
+
+    public static AnimeCandidate create(Week week, Anime anime) {
+        return new AnimeCandidate(week, anime);
+    }
 }

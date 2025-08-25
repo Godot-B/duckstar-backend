@@ -1,6 +1,7 @@
 package com.duckstar.web.dto;
 
 import com.duckstar.domain.enums.BallotType;
+import com.duckstar.domain.enums.Gender;
 import com.duckstar.validation.annotation.AnimeVoteConstraint;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -17,6 +18,9 @@ public class VoteRequestDto {
     public static class AnimeVoteRequest {
         @NotNull
         Long weekId;
+
+        @NotNull
+        Gender gender;
 
         @Valid
         @NotEmpty

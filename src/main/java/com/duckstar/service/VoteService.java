@@ -5,6 +5,7 @@ import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.BallotType;
+import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.enums.VoteCategory;
 import com.duckstar.domain.enums.VoteStatus;
 import com.duckstar.domain.mapping.AnimeCandidate;
@@ -41,12 +42,16 @@ public class VoteService {
     public AnimeCandidateListDto getAnimeCandidateList() {
         Week currentWeek = weekService.getCurrentWeek();
 
+        List<AnimeCandidateDto> animeCandidates =
+                animeCandidateRepository.getAnimeCandidateDtosByWeekId(currentWeek.getId());
+
         return AnimeCandidateListDto.builder()
                 .weekId(currentWeek.getId())
                 .weekDto(WeekDto.from(currentWeek))
                 .animeCandidates(
-                        animeCandidateRepository.getAnimeCandidateDtosByWeekId(currentWeek.getId())
+                        animeCandidates
                 )
+                .candidatesCount(animeCandidates.size())
                 .build();
     }
 
@@ -141,6 +146,8 @@ public class VoteService {
                 .count();
 
         //=== 저장 ===//
+        Gender gender = request.getGender();
+
         List<AnimeVote> rows = new ArrayList<>();
         for (AnimeBallotDto dto : ballotDtos) {
             AnimeCandidate candidate =
@@ -149,7 +156,8 @@ public class VoteService {
             AnimeVote animeVote = AnimeVote.create(
                     submission,
                     candidate,
-                    dto.getBallotType()
+                    dto.getBallotType(),
+                    gender
             );
             rows.add(animeVote);
         }

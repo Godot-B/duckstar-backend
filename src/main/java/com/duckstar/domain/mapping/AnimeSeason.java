@@ -4,13 +4,13 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 public class AnimeSeason extends BaseEntity {
 
     @Id

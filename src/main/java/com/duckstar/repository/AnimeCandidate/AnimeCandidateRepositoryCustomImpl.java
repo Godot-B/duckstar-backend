@@ -48,6 +48,12 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                 .fetch();
     }
 
+
+    /**
+     * 이전 분기에서 넘어오고 회차가 얼마 안남은 애니메이션의 경우,
+     * - 후보 목록에서 시즌 정보 달라야.
+     * AnimeSeason 리스트를, Anime 단위로 캐싱 (OneToMany 리스트 관리) 필요
+     */
     @Override
     public List<AnimeCandidateDto> getAnimeCandidateDtosByWeekId(Long weekId) {
         return queryFactory.select(
@@ -55,7 +61,8 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                                 AnimeCandidateDto.class,
                                 animeCandidate.id,
                                 anime.mainThumbnailUrl,
-                                anime.titleKor
+                                anime.titleKor,
+                                anime.medium
                         )
                 )
                 .from(animeCandidate)

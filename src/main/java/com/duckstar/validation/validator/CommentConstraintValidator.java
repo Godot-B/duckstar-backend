@@ -6,6 +6,8 @@ import com.duckstar.web.dto.WriteRequestDto.CommentRequestDto;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import static com.duckstar.util.UtilClass.*;
+
 public class CommentConstraintValidator implements ConstraintValidator<CommentConstraint, CommentRequestDto> {
 
     @Override
@@ -21,10 +23,7 @@ public class CommentConstraintValidator implements ConstraintValidator<CommentCo
         boolean hasBody = body != null && !body.isBlank();
 
         if (!hasBody && !hasImage) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(ErrorStatus.COMMENT_CONTENT_REQUIRED.getCode())
-                    .addConstraintViolation();
-            return false;
+            return addViolationAndFalse(context, ErrorStatus.COMMENT_CONTENT_REQUIRED);
         }
 
         return true;

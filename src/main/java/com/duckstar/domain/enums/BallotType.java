@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum BallotType {
-    NORMAL(1), BONUS(2);
+    NORMAL(100), BONUS(50);
 
-    private final int order;
+    private final int score;
 }

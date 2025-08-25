@@ -2,6 +2,7 @@ package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.BallotType;
+import com.duckstar.domain.enums.Gender;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -42,32 +43,39 @@ public class AnimeVote extends BaseEntity {
     private BallotType ballotType;    // 보너스 2개 = 1표
 
     @Column(nullable = false)
-    private Integer typeOrder;
+    private Integer score;
+
+    @Column(nullable = false)
+    private Gender gender;
 
     protected AnimeVote(
             WeekVoteSubmission weekVoteSubmission,
             AnimeCandidate animeCandidate,
             BallotType ballotType,
-            Integer typeOrder
+            Integer score,
+            Gender gender
     ) {
         this.weekVoteSubmission = weekVoteSubmission;
         this.animeCandidate = animeCandidate;
         this.ballotType = ballotType;
-        this.typeOrder = typeOrder;
+        this.score = score;
+        this.gender = gender;
     }
 
     public static AnimeVote create(
             WeekVoteSubmission weekVoteSubmission,
             AnimeCandidate animeCandidate,
-            BallotType ballotType
+            BallotType ballotType,
+            Gender gender
     ) {
-        int typeOrder = ballotType.getOrder();
+        int typeOrder = ballotType.getScore();
 
         return new AnimeVote(
                 weekVoteSubmission,
                 animeCandidate,
                 ballotType,
-                typeOrder
+                typeOrder,
+                gender
         );
     }
 }

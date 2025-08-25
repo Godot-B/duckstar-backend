@@ -14,28 +14,23 @@ import java.time.LocalDate;
 public class RankInfo {
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(length = 10)
     private MedalType type;
 
-    @Column(name = "`rank`", nullable = false)
+    @Column(name = "`rank`")
     private Integer rank;
 
     private Integer rankDiff;
 
     private Integer consecutiveWeeksAtSameRank;
 
-    @Column(nullable = false)
     private Double votePercent;
 
-    @Column(nullable = false)
     private Double malePercent;
 
-    @Column(nullable = false)
     private Integer peakRank;
 
-    @Column(nullable = false)
     private LocalDate peakDate;
 
-    @Column(nullable = false)
     private Integer weeksOnTop10;
 }
