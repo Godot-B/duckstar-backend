@@ -3,6 +3,7 @@ package com.duckstar.domain.mapping;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.enums.VoteCategory;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -43,6 +44,10 @@ public class WeekVoteSubmission extends BaseEntity {
     private String principalKey;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender;
+
+    @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)
     private VoteCategory category;
 
@@ -51,12 +56,14 @@ public class WeekVoteSubmission extends BaseEntity {
             Member member,
             String cookieId,
             String principalKey,
+            Gender gender,
             VoteCategory category
     ) {
         this.week = week;
         this.member = member;
         this.cookieId = cookieId;
         this.principalKey = principalKey;
+        this.gender = gender;
         this.category = category;
     }
 
@@ -65,6 +72,7 @@ public class WeekVoteSubmission extends BaseEntity {
             Member member,
             String cookieId,
             String principalKey,
+            Gender gender,
             VoteCategory category
     ) {
         return new WeekVoteSubmission(
@@ -72,6 +80,7 @@ public class WeekVoteSubmission extends BaseEntity {
                 member,
                 cookieId,
                 principalKey,
+                gender,
                 category
         );
     }

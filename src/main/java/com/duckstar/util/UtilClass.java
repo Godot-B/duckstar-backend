@@ -10,7 +10,9 @@ public class UtilClass {
             ErrorStatus errorStatus
     ) {
         context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(errorStatus.getCode())
+        context.buildConstraintViolationWithTemplate(
+                        errorStatus.getCode() + ":" + errorStatus.getMessage()
+                )
                 .addConstraintViolation();
         return false;
     }
@@ -21,7 +23,9 @@ public class UtilClass {
             String fieldName
     ) {
         context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(errorStatus.getCode())
+        context.buildConstraintViolationWithTemplate(
+                        errorStatus.getCode() + ":" + errorStatus.getMessage()
+                )
                 .addPropertyNode(fieldName)
                 .addConstraintViolation();
         return false;

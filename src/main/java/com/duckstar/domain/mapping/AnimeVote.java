@@ -45,6 +45,7 @@ public class AnimeVote extends BaseEntity {
     @Column(nullable = false)
     private Integer score;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
 

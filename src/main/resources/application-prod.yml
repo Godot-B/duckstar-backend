@@ -4,25 +4,24 @@ spring:
       on-profile: prod
 
   datasource:
-    url: jdbc:mysql://duckstar-prod-db.chmcecui04ju.ap-northeast-2.rds.amazonaws.com/duckstar
-    username: admin
-    password: LmUqEdJ29iTfUx5
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
   jpa:
     hibernate:
       ddl-auto: none
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
-        show_sql: true
-        use_sql_comments: true
-        highlight_sql: true
+        format_sql: false
+        show_sql: false
+        jdbc:
+          batch_size: 200
         order_inserts: true
         order_updates: true
         id.optimizer.pooled.preferred: pooled-lo
-        jdbc:
-          batch_size: 200
 
   jackson:
     serialization:
@@ -33,11 +32,11 @@ spring:
       client:
         registration:
           kakao:
-            client-id: 5a660ddfcbbc0c7c4431a518c5d282b3
-            client-secret: wAFq8htUGH8r0Tg2mEbpCs9ySNbu8VXl
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
-            redirect-uri: https://{baseUrl}/login/oauth2/code/kakao
+            redirect-uri: https://duckstar.kr/login/oauth2/code/kakao
             scope: profile_nickname, profile_image
             client-name: Kakao
         provider:
@@ -47,21 +46,34 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+server:
+  port: 8080
+  forward-headers-strategy: native        # Nginx 뒤에서 X-Forwarded-* 신뢰
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/json,application/javascript,text/css,text/html,text/xml,text/plain
+  servlet:
+    session:
+      cookie:
+        secure: true                      # HTTPS 전용
+        http-only: true
+        same-site: Lax
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type: WARN
+
 app:
   frontend:
-    redirect-uri: "https://{baseUrl}/oauth/callback"
+    redirect-uri: "https://duckstar.kr/oauth/callback"  # 로그인 성공 후 프론트로 최종 리다이렉트
   kakao:
-    admin-key: 8E2F565519054C2A90A9D9A15B6A426B
+    admin-key: ${KAKAO_ADMIN_KEY} #
   jwt:
     secure-cookie: true
 
 jwt:
-  secret: fsFt1sUM8HrmpwvVtTktLJgFunDpeZOMHSrdIknBmcc79INSaF54m2zHcitEFz/o
-
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.security.oauth2.client: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
-    org.hibernate.SQL: debug
-    org.hibernate.type: trace
+  secret: ${JWT_SECRET} #

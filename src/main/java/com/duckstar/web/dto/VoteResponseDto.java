@@ -53,6 +53,10 @@ public class VoteResponseDto {
 
         VoteCategory category;
 
+        Integer normalCount;
+
+        Integer bonusCount;
+
         LocalDateTime submittedAt;
 
         List<AnimeBallotDto> animeBallotDtos;
@@ -60,12 +64,17 @@ public class VoteResponseDto {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class AnimeBallotDto {
         BallotType ballotType;
 
         Long animeId;
 
         String mainThumbnailUrl;
+
+        String titleKor;
+
+        Medium medium;
     }
 
     @Builder

@@ -1,6 +1,7 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
+import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.VoteService;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
 import com.duckstar.web.dto.VoteResponseDto.AnimeCandidateListDto;
@@ -35,23 +36,31 @@ public class VoteController {
             "true면 dto의 필드 submissionId를 통해 애니메이션 투표 내역 조회 API를 호출해주세요.")
     @GetMapping("/anime/check-voted")
     public ApiResponse<VoteCheckDto> checkVoted(
-            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @AuthenticationPrincipal MemberPrincipal principal,
             @CookieValue(name = "vote_cookie_id", required = false) String cookieId
     ) {
+        Long memberId = principal == null ? null : principal.getId();
+
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
 
-        return ApiResponse.onSuccess(
-                voteService.checkVoted(principalKey));
+        if (principalKey == null) {
+            return ApiResponse.onSuccess(VoteCheckDto.of(null));
+        } else {
+            return ApiResponse.onSuccess(
+                    voteService.checkVoted(principalKey));
+        }
     }
 
     @Operation(summary = "애니메이션 투표 API")
     @PostMapping("/anime")
     public ApiResponse<VoteReceiptDto> voteAnime(
             @Valid @RequestBody AnimeVoteRequest request,
-            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
+        Long memberId = principal == null ? null : principal.getId();
+
         String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
 
@@ -66,9 +75,17 @@ public class VoteController {
     }
 
     @Operation(summary = "애니메이션 투표 내역 조회 API", description = "submissionId를 통해 투표 내역을 조회합니다.")
-    @GetMapping("/anime/history")
-    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteHistory(Long submissionId) {
+    @GetMapping("/anime/history/{submissionId}")
+    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteHistory(
+            @PathVariable Long submissionId,
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @CookieValue(name = "vote_cookie_id", required = false) String cookieId
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+
+        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+
         return ApiResponse.onSuccess(
-                voteService.getAnimeVoteHistory(submissionId));
+                voteService.getAnimeVoteHistory(submissionId, principalKey));
     }
 }
