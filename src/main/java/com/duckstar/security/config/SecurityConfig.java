@@ -24,7 +24,6 @@ import java.util.List;
 
 @EnableWebSecurity
 @Configuration
-@Profile("prod")
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
