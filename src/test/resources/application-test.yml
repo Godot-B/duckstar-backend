@@ -1,10 +1,4 @@
 spring:
-  config:
-    # 운영 yml 완전히 무시
-    import: "optional:classpath:/non-existent.yml"
-    activate:
-      on-profile: test
-
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
