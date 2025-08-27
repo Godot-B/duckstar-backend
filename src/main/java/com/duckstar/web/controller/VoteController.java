@@ -1,6 +1,7 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
+import com.duckstar.apiPayload.exception.GeneralException;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.VoteService;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
@@ -41,14 +42,15 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-
-        if (principalKey == null) {
+        String principalKey = null;
+        try {
+            principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+        } catch (GeneralException e) {
             return ApiResponse.onSuccess(VoteCheckDto.of(null));
-        } else {
-            return ApiResponse.onSuccess(
-                    voteService.checkVoted(principalKey));
         }
+
+        return ApiResponse.onSuccess(
+                voteService.checkVoted(principalKey));
     }
 
     @Operation(summary = "애니메이션 투표 API")

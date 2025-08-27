@@ -37,8 +37,9 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_CANDIDATE_INCLUDED(HttpStatus.BAD_REQUEST, "VOTE4006", "이번 주 후보가 아닌 대상이 포함되어 있습니다."),
     NORMAL_VOTE_LIMIT_SURPASSED(HttpStatus.BAD_REQUEST, "VOTE4007", "기본 투표 제한 수를 넘어섰습니다."),
     NORMAL_VOTE_REQUIRED(HttpStatus.BAD_REQUEST, "VOTE4008", "기본 투표는 1표 이상이어야 합니다."),
-    NOT_VOTED_YET(HttpStatus.BAD_REQUEST, "VOTE4009", "아직 투표에 참여하지 않았습니다."),
-    VOTER_GENDER_REQUIRED(HttpStatus.BAD_REQUEST, "VOTE40010", "투표에서 성별 정보는 필수입니다."),
+    NOT_ENOUGH_NORMAL_VOTE(HttpStatus.BAD_REQUEST, "VOTE4009", "보너스 투표 사용을 위해선 기본 투표가 10개 있어야 합니다."),
+    NOT_VOTED_YET(HttpStatus.BAD_REQUEST, "VOTE4010", "아직 투표에 참여하지 않았습니다."),
+    VOTER_GENDER_REQUIRED(HttpStatus.BAD_REQUEST, "VOTE40011", "투표에서 성별 정보는 필수입니다."),
 
     VOTE_HISTORY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "VOTE4030", "다른 사람의 투표 내역은 확인할 수 없습니다."),
 

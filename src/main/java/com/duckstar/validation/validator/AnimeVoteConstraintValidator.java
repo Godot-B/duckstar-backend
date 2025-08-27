@@ -45,9 +45,12 @@ public class AnimeVoteConstraintValidator implements ConstraintValidator<AnimeVo
                 .filter(dto -> dto.getBallotType() == BallotType.NORMAL)
                 .count();
 
+        int bonusCount = ballotDtos.size() - normalCount;
+
         ErrorStatus errorStatus = null;
         if (normalCount == 0) errorStatus = ErrorStatus.NORMAL_VOTE_REQUIRED;
         else if (normalCount > 10) errorStatus = ErrorStatus.NORMAL_VOTE_LIMIT_SURPASSED;
+        else if (normalCount < 10 && bonusCount >= 1) errorStatus = ErrorStatus.NOT_ENOUGH_NORMAL_VOTE;
 
         if (errorStatus != null) {
             return addViolationAndFalse(
