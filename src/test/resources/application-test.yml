@@ -1,6 +1,8 @@
 spring:
   config:
-    import: "" # 운영 application.yml 무시
+    # 운영 yml 완전히 무시
+    import: "optional:classpath:/non-existent.yml"
+
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
