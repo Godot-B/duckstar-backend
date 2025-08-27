@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: "" # 운영 application.yml 무시
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
