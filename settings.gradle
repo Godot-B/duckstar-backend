@@ -1,1 +1,3 @@
 rootProject.name = 'duckstar'
+include("backend")
+include("frontend")
