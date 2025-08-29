@@ -6,7 +6,6 @@ import com.duckstar.validation.annotation.AnimeVoteConstraint;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -24,13 +23,13 @@ public class VoteRequestDto {
 
         @Valid
         @NotEmpty
-        List<AnimeBallotDto> ballotDtos;
+        List<BallotRequestDto> ballotRequests;
     }
     
     @Getter
-    public static class AnimeBallotDto {
+    public static class BallotRequestDto {
         @NotNull
-        Long animeCandidateId;
+        Long candidateId;
 
         @NotNull
         BallotType ballotType;

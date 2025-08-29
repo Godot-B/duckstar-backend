@@ -21,7 +21,7 @@ public class AnimeVoteConstraintValidator implements ConstraintValidator<AnimeVo
 
     @Override
     public boolean isValid(AnimeVoteRequest animeVoteRequest, ConstraintValidatorContext context) {
-        List<AnimeBallotDto> ballotDtos = animeVoteRequest.getBallotDtos();
+        List<BallotRequestDto> ballotDtos = animeVoteRequest.getBallotRequests();
 
         boolean isEmptyBallots = ballotDtos == null || ballotDtos.isEmpty();
         if (isEmptyBallots) {

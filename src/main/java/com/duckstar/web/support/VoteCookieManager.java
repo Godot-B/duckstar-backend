@@ -50,7 +50,7 @@ public class VoteCookieManager {
 
     public String toPrincipalKey(Long memberId, String cookieId) {
         if (memberId != null) return "m:" + memberId;
-        if (cookieId != null && !cookieId.isBlank()) return "c:" + cookieId;
-        throw new VoteHandler(ErrorStatus.VOTE_AUTH_REQUIRED);
+        else if (cookieId != null && !cookieId.isBlank()) return "c:" + cookieId;
+        else return null;
     }
 }

@@ -33,24 +33,17 @@ public class VoteController {
                 voteService.getAnimeCandidateList());
     }
 
-    @Operation(summary = "애니메이션 투표 참여 여부 확인 API", description = "dto의 필드 hasVoted가 false면 애니메이션 투표 API를, " +
-            "true면 dto의 필드 submissionId를 통해 애니메이션 투표 내역 조회 API를 호출해주세요.")
-    @GetMapping("/anime/check-voted")
-    public ApiResponse<VoteCheckDto> checkVoted(
+    @Operation(summary = "애니 투표 참여 여부에 따른 투표 기록 조회 API")
+    @GetMapping("/anime/status")
+    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteStatus(
             @AuthenticationPrincipal MemberPrincipal principal,
             @CookieValue(name = "vote_cookie_id", required = false) String cookieId
     ) {
         Long memberId = principal == null ? null : principal.getId();
-
-        String principalKey = null;
-        try {
-            principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-        } catch (GeneralException e) {
-            return ApiResponse.onSuccess(VoteCheckDto.of(null));
-        }
+        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
 
         return ApiResponse.onSuccess(
-                voteService.checkVoted(principalKey));
+                voteService.getAnimeVoteHistory(principalKey));
     }
 
     @Operation(summary = "애니메이션 투표 API")
@@ -74,20 +67,5 @@ public class VoteController {
                         principalKey
                 )
         );
-    }
-
-    @Operation(summary = "애니메이션 투표 내역 조회 API", description = "submissionId를 통해 투표 내역을 조회합니다.")
-    @GetMapping("/anime/history/{submissionId}")
-    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteHistory(
-            @PathVariable Long submissionId,
-            @AuthenticationPrincipal MemberPrincipal principal,
-            @CookieValue(name = "vote_cookie_id", required = false) String cookieId
-    ) {
-        Long memberId = principal == null ? null : principal.getId();
-
-        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-
-        return ApiResponse.onSuccess(
-                voteService.getAnimeVoteHistory(submissionId, principalKey));
     }
 }

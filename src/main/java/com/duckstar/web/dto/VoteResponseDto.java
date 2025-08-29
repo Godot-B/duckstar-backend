@@ -30,23 +30,9 @@ public class VoteResponseDto {
 
     @Builder
     @Getter
-    public static class VoteCheckDto {
+    public static class AnimeVoteHistoryDto {
         Boolean hasVoted;
 
-        Long submissionId;
-
-        public static VoteCheckDto of(Long submissionId) {
-            boolean hasVoted = submissionId != null;
-            return VoteCheckDto.builder()
-                    .hasVoted(hasVoted)
-                    .submissionId(submissionId)
-                    .build();
-        }
-    }
-
-    @Builder
-    @Getter
-    public static class AnimeVoteHistoryDto {
         Long submissionId;
 
         WeekDto weekDto;
@@ -60,6 +46,12 @@ public class VoteResponseDto {
         LocalDateTime submittedAt;
 
         List<AnimeBallotDto> animeBallotDtos;
+
+        public static AnimeVoteHistoryDto ofEmpty() {
+            return AnimeVoteHistoryDto.builder()
+                    .hasVoted(false)
+                    .build();
+        }
     }
 
     @Builder
