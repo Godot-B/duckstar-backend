@@ -6,6 +6,7 @@ import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.MedalDto.RackUnitDto;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -82,6 +83,8 @@ public class AnimeResponseDto {
 
         String airTime;
 
+        String synopsis;
+
         String corp;
 
         String director;
@@ -96,6 +99,8 @@ public class AnimeResponseDto {
 
         String mainImageUrl;
 
+        String mainThumbnailUrl;
+
         List<SeasonDto> seasonDtos;
 
         List<OttDto> ottDtos;
@@ -103,6 +108,7 @@ public class AnimeResponseDto {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class SeasonDto {
         Integer year;
         SeasonType seasonType;
@@ -110,6 +116,7 @@ public class AnimeResponseDto {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class OttDto {
         OttType ottType;
         String watchUrl;
@@ -117,6 +124,7 @@ public class AnimeResponseDto {
     
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class CastPreviewDto {
         String mainThumbnailUrl;
 

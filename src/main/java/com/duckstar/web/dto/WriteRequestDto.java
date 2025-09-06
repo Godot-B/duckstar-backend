@@ -11,6 +11,8 @@ public class WriteRequestDto {
     @CommentConstraint
     @Getter
     public static class CommentRequestDto {
+        Long episodeId;
+
         String attachedImageUrl;
 
         @Size(max = 1000)

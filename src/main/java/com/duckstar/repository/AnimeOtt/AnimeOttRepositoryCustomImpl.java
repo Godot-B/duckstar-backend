@@ -28,7 +28,7 @@ public class AnimeOttRepositoryCustomImpl implements AnimeOttRepositoryCustom {
                         )
                 )
                 .from(animeOtt)
-                .join(ott).on(ott.id.eq(animeOtt.ott.id))
+                .join(animeOtt.ott, ott)
                 .where(animeOtt.anime.id.eq(animeId))
                 .orderBy(ott.typeOrder.asc())
                 .fetch();

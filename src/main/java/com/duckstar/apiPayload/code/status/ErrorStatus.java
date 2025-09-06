@@ -28,6 +28,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
 
+    // 에피소드
+    EPISODE_NOT_FOUND(HttpStatus.BAD_REQUEST, "EPISODE4001", "존재하지 않는 에피소드입니다."),
+
     // 투표
     VOTE_CLOSED(HttpStatus.BAD_REQUEST, "VOTE4001", "현재 닫힌 투표입니다."),
     ANIME_CANDIDATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE4002", "존재하지 않는 애니메이션 후보입니다."),
@@ -62,8 +65,10 @@ public enum ErrorStatus implements BaseErrorCode {
     // 댓글 관련
     COMMENT_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "COMMENT4001", "댓글 작성 시 사진이나 글 중 하나는 있어야 합니다."),
     COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "COMMENT4002", "댓글이 존재하지 않습니다."),
+    CANNOT_POST_BEFORE_EPISODE_START(HttpStatus.BAD_REQUEST, "COMMENT4003", "아직 방영하지 않은 에피소드에는 댓글을 달 수 없습니다."),
 
-    DELETE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4010", "삭제 권한이 없습니다."),
+    POST_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4010", "작성 권한이 없습니다."),
+    DELETE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4011", "삭제 권한이 없습니다."),
 
     // 답글 관련
     REPLY_NOT_FOUND(HttpStatus.BAD_REQUEST, "REPLY4001", "답글이 존재하지 않습니다."),

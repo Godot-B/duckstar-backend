@@ -12,10 +12,6 @@ public class EpisodeDto {
 
     Boolean isBreak;
 
-    Integer quarter;
-
-    Integer week;
-
     LocalDateTime scheduledAt;
 
     Boolean isRescheduled;

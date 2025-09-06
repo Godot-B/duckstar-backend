@@ -29,6 +29,7 @@ public class AuthController {
         return authService.refresh(request);
     }
 
+    // optional
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getCurrentUser(
             @AuthenticationPrincipal(expression = "id") Long principalId) {

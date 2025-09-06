@@ -89,4 +89,7 @@ public class Anime extends BaseEntity {
     private LocalDate peakDate;
 
     private Integer weeksOnTop10;
+
+    @Lob
+    private String synopsis;
 }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.duckstar.web.dto.SearchResponseDto.*;
 
@@ -51,7 +52,7 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                         episode.scheduledAt
                 )
                 .from(animeSeason)
-                .join(anime).on(anime.id.eq(animeSeason.anime.id))
+                .join(animeSeason.anime, anime)
                 // 현재 주차 한정: episode null 가능 = leftJoin
                 .leftJoin(episode).on(episode.anime.id.eq(anime.id)
                         .and(episode.scheduledAt.between(weekStart, weekEnd)))
@@ -72,19 +73,26 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
             return List.of();
         }
 
-        // transform, GroupBy 이해 필요
-        Map<Long, List<OttDto>> ottDtosMap = queryFactory.from(animeOtt)
-                .join(ott).on(animeOtt.ott.id.eq(ott.id))
+        List<Tuple> animeOttTuples = queryFactory
+                .select(
+                        animeOtt.anime.id,
+                        ott.type,
+                        animeOtt.watchUrl
+                )
+                .from(animeOtt)
+                .join(animeOtt.ott, ott)
                 .where(animeOtt.anime.id.in(animeIds))
                 .orderBy(ott.typeOrder.asc())
-                .transform(GroupBy.groupBy(animeOtt.anime.id).as(
-                        GroupBy.list(
-                                Projections.constructor(
-                                        OttDto.class,
-                                        ott.type,
-                                        animeOtt.watchUrl
-                                )
-                        )));
+                .fetch();
+
+        Map<Long, List<OttDto>> ottDtosMap = animeOttTuples.stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.get(animeOtt.anime.id),
+                        Collectors.mapping(
+                                t -> new OttDto(t.get(ott.type), t.get(animeOtt.watchUrl)),
+                                Collectors.toList()
+                        )
+                ));
 
         return tuples.stream()
                 .map(t -> {
@@ -118,7 +126,7 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                         )
                 )
                 .from(animeSeason)
-                .join(season).on(season.id.eq(animeSeason.season.id))
+                .join(animeSeason.season, season)
                 .where(animeSeason.anime.id.eq(animeId))
                 .orderBy(season.yearValue.asc(), season.typeOrder.asc())
                 .fetch();

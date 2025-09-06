@@ -115,21 +115,21 @@ public class AuthService {
         String jwtAccessToken = jwtTokenProvider.createAccessToken(member.getId(), member.getRole());
 
         String jwtRefreshToken;
-        MemberToken token;
+        MemberToken memberToken;
         if (memberTokenOpt.isPresent()) {
-            token = memberTokenOpt.get();
-            jwtRefreshToken = token.getRefreshToken();
-            token.validate();
+            memberToken = memberTokenOpt.get();
+            jwtRefreshToken = memberToken.getRefreshToken();
+            memberToken.validate();
         } else {
             jwtRefreshToken = jwtTokenProvider.createRefreshToken(member.getId(), member.getRole());
 
             // MemberToken 저장
-            token = MemberToken.create(
+            memberToken = MemberToken.create(
                     member,
                     jwtRefreshToken,
                     LocalDateTime.now().plusDays(7)
             );
-            memberTokenRepository.save(token);
+            memberTokenRepository.save(memberToken);
         }
 
         // 쿠키 내려주기

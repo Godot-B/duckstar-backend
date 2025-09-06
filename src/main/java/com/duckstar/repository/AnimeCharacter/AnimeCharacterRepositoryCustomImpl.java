@@ -27,7 +27,7 @@ public class AnimeCharacterRepositoryCustomImpl implements AnimeCharacterReposit
                                 character.cv
                         )
                 ).from(animeCharacter)
-                .join(character).on(character.id.eq(animeCharacter.character.id))
+                .join(animeCharacter.character, character)
                 .where(animeCharacter.anime.id.eq(animeId))
                 .orderBy(character.id.asc())
                 .fetch();

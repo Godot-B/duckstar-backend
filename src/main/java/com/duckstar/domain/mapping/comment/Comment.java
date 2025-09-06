@@ -68,8 +68,4 @@ public abstract class Comment extends BaseEntity {
     public void setStatus(CommentStatus status) {
         this.status = status;
     }
-
-    public boolean isDeleted() {
-        return status == CommentStatus.DELETED || status == CommentStatus.ADMIN_DELETED;
-    }
 }

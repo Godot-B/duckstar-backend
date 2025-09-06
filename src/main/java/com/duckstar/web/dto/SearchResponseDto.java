@@ -4,6 +4,7 @@ import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.web.dto.WeekResponseDto.WeekDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,6 +26,7 @@ public class SearchResponseDto {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class AnimePreviewDto {
         Long animeId;
 
@@ -38,9 +40,9 @@ public class SearchResponseDto {
 
         DayOfWeekShort dayOfWeek;
 
-        LocalDateTime scheduledAt;
-
         Boolean isRescheduled;
+
+        LocalDateTime scheduledAt;
 
         String genre;
 

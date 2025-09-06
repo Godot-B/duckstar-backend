@@ -4,6 +4,7 @@ import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.comment.Comment;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,10 +16,16 @@ public class CommentResponseDto {
     @Builder
     @Getter
     public static class AnimeCommentSliceDto {
+
+        // 첫 슬라이스에서만 댓,답글 개수 보내기
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        Integer totalCount;
+
         List<CommentDto> commentDtos;
 
         PageInfo pageInfo;
     }
+
     @Builder
     @Getter
     public static class ReplySliceDto {
@@ -43,6 +50,8 @@ public class CommentResponseDto {
         String nickname;
         String profileImageUrl;
         Integer voteCount;
+
+        Integer episodeNumber;
 
         LocalDateTime createdAt;
         String attachedImageUrl;

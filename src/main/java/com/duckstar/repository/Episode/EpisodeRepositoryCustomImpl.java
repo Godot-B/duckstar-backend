@@ -32,14 +32,11 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
         List<Tuple> tuples = queryFactory.select(
                         episode.episodeNumber,
                         episode.isBreak,
-                        week.quarter.quarterValue,
-                        week.weekValue,
                         episode.scheduledAt,
                         episode.isRescheduled,
                         episode.nextEpScheduledAt
                 )
                 .from(episode)
-                .join(week).on(episode.scheduledAt.between(week.startDateTime, week.endDateTime))
                 .where(episode.anime.id.eq(animeId))
                 .orderBy(episode.scheduledAt.asc())
                 .fetch();
@@ -48,8 +45,6 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         EpisodeDto.builder()
                                 .episodeNumber(t.get(episode.episodeNumber))
                                 .isBreak(t.get(episode.isBreak))
-                                .quarter(t.get(week.quarter.quarterValue))
-                                .week(t.get(week.weekValue))
                                 .scheduledAt(t.get(episode.scheduledAt))
                                 .isRescheduled(t.get(episode.isRescheduled))
                                 .nextEpScheduledAt(t.get(episode.nextEpScheduledAt))

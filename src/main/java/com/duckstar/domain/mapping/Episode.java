@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_episode_e",
-                        columnNames = "episode_number"),
+                @UniqueConstraint(name = "uk_episode_ae",
+                        columnNames = {"anime_id", "episode_number"}),
         }
 )
 public class Episode extends BaseEntity {

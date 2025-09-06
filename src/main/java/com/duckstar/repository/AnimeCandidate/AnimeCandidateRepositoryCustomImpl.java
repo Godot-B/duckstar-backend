@@ -21,9 +21,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.duckstar.web.dto.VoteResponseDto.*;
 
@@ -66,7 +68,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                         )
                 )
                 .from(animeCandidate)
-                .join(anime).on(anime.id.eq(animeCandidate.anime.id))
+                .join(animeCandidate.anime, anime)
                 .where(animeCandidate.week.id.eq(weekId))
                 .orderBy(anime.titleKor.asc())
                 .fetch();
@@ -90,7 +92,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                         animeCandidate.rankInfo.votePercent,
                         animeCandidate.rankInfo.malePercent
                 ).from(animeCandidate)
-                .join(anime).on(anime.id.eq(animeCandidate.anime.id))
+                .join(animeCandidate.anime, anime)
                 .where(animeCandidate.week.id.eq(weekId))
                 // 추후에 메달 개수 정렬 기준 2순위로 삽입
                 .orderBy(animeCandidate.rankInfo.rank.asc(), anime.titleKor.asc())
@@ -107,7 +109,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
 
         // transform, GroupBy 이해 필요
         Map<Long, List<MedalPreviewDto>> medalDtosMap = queryFactory.from(animeCandidate)
-                .join(week).on(week.id.eq(animeCandidate.week.id))
+                .join(animeCandidate.week, week)
                 .where(animeCandidate.anime.id.in(animeIds))
                 .orderBy(week.startDateTime.asc())
                 .transform(GroupBy.groupBy(animeCandidate.anime.id).as(
@@ -168,16 +170,13 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
     @Override
     public List<RackUnitDto> getRackUnitDtosByAnimeId(Long animeId) {
 
-        DateTemplate<LocalDate> startDateTemplate = Expressions.dateTemplate(
-                LocalDate.class, "DATE({0})", week.startDateTime);
+        DateTemplate<Date> startDateTemplate = Expressions.dateTemplate(
+                Date.class, "DATE({0})", week.startDateTime);
 
-        DateTemplate<LocalDate> endDateTemplate = Expressions.dateTemplate(
-                LocalDate.class, "DATE({0})", week.endDateTime);
+        DateTemplate<Date> endDateTemplate = Expressions.dateTemplate(
+                Date.class, "DATE({0})", week.endDateTime);
 
         List<Tuple> tuples = queryFactory.select(
-                        episode.episodeNumber,
-                        episode.isBreak,
-                        episode.scheduledAt,
                         week.quarter.quarterValue,
                         week.weekValue,
                         startDateTemplate,
@@ -189,7 +188,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                         animeCandidate.rankInfo.malePercent
                 )
                 .from(animeCandidate)
-                .join(week).on(week.id.eq(animeCandidate.week.id))
+                .join(animeCandidate.week, week)
                 .where(animeCandidate.anime.id.eq(animeId))
                 .orderBy(week.startDateTime.asc())
                 .fetch();
@@ -214,9 +213,12 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                             .femalePercent(100.0 - malePercent)
                             .build();
 
+                    Date startDateRaw = t.get(startDateTemplate);
+                    Date endDateRaw = t.get(endDateTemplate);
+
                     return RackUnitDto.builder()
-                            .startDate(t.get(startDateTemplate))
-                            .endDate(t.get(endDateTemplate))
+                            .startDate(startDateRaw != null ? startDateRaw.toLocalDate() : null)
+                            .endDate(endDateRaw != null ? endDateRaw.toLocalDate() : null)
                             .medalPreviewDto(medalPreviewDto)
                             .voteRatioDto(voteRatioDto)
                             .build();

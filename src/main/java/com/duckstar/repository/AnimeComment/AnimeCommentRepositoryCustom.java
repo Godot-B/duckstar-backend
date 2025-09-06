@@ -15,4 +15,6 @@ public interface AnimeCommentRepositoryCustom {
             Pageable pageable,
             MemberPrincipal principal
     );
+
+    Integer countTotalElements(Long animeId, List<Long> episodeIds);
 }
