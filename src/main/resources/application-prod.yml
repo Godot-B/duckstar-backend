@@ -77,3 +77,12 @@ app:
 
 jwt:
   secret: ${JWT_SECRET} #
+
+cloud:
+  aws:
+    s3:
+      bucket: img.duckstar.kr
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

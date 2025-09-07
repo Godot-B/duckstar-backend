@@ -10,11 +10,10 @@ import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
-import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
-import com.duckstar.repository.WeekVoteSubmissionRepository;
+import com.duckstar.s3.S3Uploader;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
@@ -24,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -42,6 +42,7 @@ public class CommentService {
     private final AnimeVoteRepository animeVoteRepository;
     private final EpisodeRepository episodeRepository;
     private final AnimeService animeService;
+    private final S3Uploader s3Uploader;
 
     @Transactional
     public CommentDto leaveAnimeComment(
@@ -75,12 +76,18 @@ public class CommentService {
             }
         }
 
+        String imageUrl = null;
+        MultipartFile image = request.getAttachedImage();
+        if (image != null && !image.isEmpty()) {
+            imageUrl = s3Uploader.uploadWithUUID(image, "comments");
+        }
+
         AnimeComment animeComment = AnimeComment.create(
                 anime,
                 episode,
                 author,
                 voteCount,
-                request.getAttachedImageUrl(),   // S3
+                imageUrl,
                 request.getBody()
         );
 
@@ -96,6 +103,10 @@ public class CommentService {
             Pageable pageable,
             MemberPrincipal principal
     ) {
+        if (episodeIds == null) {
+            episodeIds = List.of();
+        }
+
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
 
@@ -194,12 +205,18 @@ public class CommentService {
 
         CommentRequestDto content = request.getCommentRequestDto();
 
+        String imageUrl = null;
+        MultipartFile image = content.getAttachedImage();
+        if (image != null && !image.isEmpty()) {
+            imageUrl = s3Uploader.uploadWithUUID(image, "comments");
+        }
+
         Reply reply = Reply.create(
                 comment,
                 author,
                 Optional.ofNullable(listener),
                 voteCount,
-                content.getAttachedImageUrl(),  // S3
+                imageUrl,  // S3
                 content.getBody()
         );
 

@@ -62,7 +62,7 @@ public class AnimeController {
     @PostMapping("/{animeId}")
     public ApiResponse<CommentDto> leaveComment(
             @PathVariable Long animeId,
-            @Valid @RequestBody CommentRequestDto request,
+            @Valid @ModelAttribute CommentRequestDto request,
             @AuthenticationPrincipal MemberPrincipal principal
     ) {
         return ApiResponse.onSuccess(

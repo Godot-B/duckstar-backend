@@ -5,6 +5,7 @@ import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.domain.enums.Gender;
 import com.duckstar.security.JwtTokenProvider;
 import com.duckstar.domain.Member;
+import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.domain.MemberOAuthAccount;
 import com.duckstar.security.domain.MemberToken;
 import com.duckstar.security.domain.enums.OAuthProvider;
@@ -16,6 +17,7 @@ import com.duckstar.security.providers.kakao.KakaoApiClient;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.repository.MemberTokenRepository;
 import com.duckstar.service.MemberService;
+import com.duckstar.web.dto.MemberResponseDto;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +34,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.duckstar.web.dto.MemberResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -156,20 +160,6 @@ public class AuthService {
         return jwtAccessToken;
     }
 
-    public ResponseEntity<Map<String, Object>> getCurrentUser(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND));
-
-        Map<String, Object> userInfo = Map.of(
-                "id", member.getId(),
-                "nickname", member.getNickname(),
-                "profileImageUrl", member.getProfileImageUrl(),
-                "role", member.getRole().name()
-        );
-
-        return ResponseEntity.ok(userInfo);
-    }
-
     @Transactional
     public ResponseEntity<Map<String, String>> refresh(HttpServletRequest request) {
         String refreshToken = jwtTokenProvider.resolveFromCookie(request, "REFRESH_TOKEN");
@@ -257,12 +247,16 @@ public class AuthService {
     }
 
     @Transactional
-    public void withdrawKakao(HttpServletResponse res, Long memberId) {
-        Member member = memberRepository.findById(memberId)
+    public void withdrawKakao(HttpServletResponse res, MemberPrincipal principal) {
+        if (principal == null) {
+            throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
+        }
+        Long principalId = principal.getId();
+        Member member = memberRepository.findById(principalId)
                 .orElseThrow(() -> new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND));
 
         MemberOAuthAccount account =
-                memberOAuthAccountRepository.findByProviderAndMemberId(OAuthProvider.KAKAO, memberId)
+                memberOAuthAccountRepository.findByProviderAndMemberId(OAuthProvider.KAKAO, principalId)
                         .orElseThrow(() -> new AuthHandler(ErrorStatus.OAUTH_ACCOUNT_NOT_FOUND));
 
         boolean accessTokenHasExpired = account.getAccessTokenExpiresAt().isBefore(LocalDateTime.now());
@@ -274,7 +268,7 @@ public class AuthService {
             try {
                 kakaoApiClient.unlink("KakaoAK " + adminKey);
             } catch (FeignException e) {
-                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
+                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", principalId, e.getMessage());
             }
         } else {
             if (!refreshTokenHasExpired) {
@@ -289,14 +283,14 @@ public class AuthService {
             try {
                 kakaoApiClient.unlink("Bearer " + accessToken);
             } catch (FeignException e) {
-                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
+                log.warn("카카오 unlink 실패 - memberId={}, 이유={}", principalId, e.getMessage());
             }
         }
 
         expireCookie(res, "ACCESS_TOKEN");
         expireCookie(res, "REFRESH_TOKEN");
-        memberTokenRepository.deleteAllByMemberId(memberId);
-        memberOAuthAccountRepository.deleteAllByMemberId(memberId);
+        memberTokenRepository.deleteAllByMemberId(principalId);
+        memberOAuthAccountRepository.deleteAllByMemberId(principalId);
         member.withdraw();
     }
 }

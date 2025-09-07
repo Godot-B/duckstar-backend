@@ -5,6 +5,7 @@ import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.security.JwtTokenProvider;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.service.AuthService;
+import com.duckstar.web.dto.MemberResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+
+import static com.duckstar.web.dto.MemberResponseDto.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -27,13 +30,6 @@ public class AuthController {
     @PostMapping("/token/refresh")
     public ResponseEntity<Map<String, String>> refresh(HttpServletRequest request) {
         return authService.refresh(request);
-    }
-
-    // optional
-    @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> getCurrentUser(
-            @AuthenticationPrincipal(expression = "id") Long principalId) {
-        return authService.getCurrentUser(principalId);
     }
 
     @PostMapping("/logout")
@@ -54,9 +50,9 @@ public class AuthController {
     @PostMapping("/withdraw/kakao")
     public ResponseEntity<Void> withdrawKakao(
             HttpServletResponse res,
-            @AuthenticationPrincipal(expression = "id") Long principalId
+            @AuthenticationPrincipal MemberPrincipal principal
     ) {
-        authService.withdrawKakao(res, principalId);
+        authService.withdrawKakao(res, principal);
         return ResponseEntity.ok().build();
     }
 }

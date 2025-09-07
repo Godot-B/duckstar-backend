@@ -97,6 +97,11 @@ public class Member extends BaseEntity {
         }
     }
 
+    public void updateProfile(String nickname, String profileImageUrl) {
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+    }
+
     public void withdraw() {
         this.status = MemberStatus.INACTIVE;
         if (kakaoId != null) {

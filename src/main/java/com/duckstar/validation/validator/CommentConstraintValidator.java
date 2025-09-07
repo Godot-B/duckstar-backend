@@ -5,6 +5,7 @@ import com.duckstar.validation.annotation.CommentConstraint;
 import com.duckstar.web.dto.WriteRequestDto.CommentRequestDto;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.duckstar.util.UtilClass.*;
 
@@ -17,9 +18,9 @@ public class CommentConstraintValidator implements ConstraintValidator<CommentCo
 
     @Override
     public boolean isValid(CommentRequestDto commentRequestDto, ConstraintValidatorContext context) {
-        String image = commentRequestDto.getAttachedImageUrl();
+        MultipartFile file = commentRequestDto.getAttachedImage();
         String body = commentRequestDto.getBody();
-        boolean hasImage = image != null && !image.isBlank();
+        boolean hasImage = file != null && !file.isEmpty();
         boolean hasBody = body != null && !body.isBlank();
 
         if (!hasBody && !hasImage) {

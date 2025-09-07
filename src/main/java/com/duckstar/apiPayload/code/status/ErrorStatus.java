@@ -44,9 +44,9 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_VOTED_YET(HttpStatus.BAD_REQUEST, "VOTE4010", "아직 투표에 참여하지 않았습니다."),
     VOTER_GENDER_REQUIRED(HttpStatus.BAD_REQUEST, "VOTE40011", "투표에서 성별 정보는 필수입니다."),
 
-    VOTE_HISTORY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "VOTE4030", "다른 사람의 투표 내역은 확인할 수 없습니다."),
+    VOTE_HISTORY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "VOTE4031", "다른 사람의 투표 내역은 확인할 수 없습니다."),
 
-    VOTE_AUTH_REQUIRED(HttpStatus.CONFLICT, "VOTE4090", "투표 인증 정보가 존재하지 않습니다."),
+    VOTE_AUTH_REQUIRED(HttpStatus.CONFLICT, "VOTE4091", "투표 인증 정보가 존재하지 않습니다."),
 
     // 인증 관련
     UNSUPPORTED_OAUTH_TYPE(HttpStatus.BAD_REQUEST, "AUTH4001", "지원하지 않는 소셜 로그인 제공자입니다."),
@@ -54,9 +54,9 @@ public enum ErrorStatus implements BaseErrorCode {
     REFRESH_TOKEN_MISSING(HttpStatus.BAD_REQUEST, "AUTH4003", "리프레시 토큰이 요청에 포함되어 있지 않습니다.."),
     OAUTH_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4004", "소셜 로그인 계정이 존재하지 않습니다."),
 
-    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "AUTH4010", "이미 사용된 리프레시 토큰입니다. 다시 로그인해 주세요."),
-    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4011", "리프레시 토큰이 만료되었습니다. 다시 로그인해 주세요."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "유효하지 않은 토큰입니다."),
+    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "AUTH4011", "이미 사용된 리프레시 토큰입니다. 다시 로그인해 주세요."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4012", "리프레시 토큰이 만료되었습니다. 다시 로그인해 주세요."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "유효하지 않은 토큰입니다."),
 
     // 회원 관련
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "존재하지 않는 회원입니다."),
@@ -67,11 +67,19 @@ public enum ErrorStatus implements BaseErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "COMMENT4002", "댓글이 존재하지 않습니다."),
     CANNOT_POST_BEFORE_EPISODE_START(HttpStatus.BAD_REQUEST, "COMMENT4003", "아직 방영하지 않은 에피소드에는 댓글을 달 수 없습니다."),
 
-    POST_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4010", "작성 권한이 없습니다."),
-    DELETE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4011", "삭제 권한이 없습니다."),
+    POST_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4011", "댓글/답글 작성 권한이 없습니다."),
+    DELETE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMENT4012", "댓글/답글 삭제 권한이 없습니다."),
 
     // 답글 관련
     REPLY_NOT_FOUND(HttpStatus.BAD_REQUEST, "REPLY4001", "답글이 존재하지 않습니다."),
+
+    // 이미지 관련
+    INVALID_IMAGE_FILE(HttpStatus.BAD_REQUEST, "IMAGE4001", "유효하지 않은 이미지 파일입니다."),
+    INVALID_S3_IMAGE_URL(HttpStatus.BAD_REQUEST, "IMAGE4002", "유효하지 않은 S3 URL 형식입니다."),
+
+    UNSUPPORTED_IMAGE_EXTENSION(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "IMAGE4151", "지원하지 않는 이미지 확장자입니다."),
+
+    S3_FILE_UPLOAD_FAILURE(HttpStatus.BAD_GATEWAY, "IMAGE5021", "S3 업로드에 실패했습니다"),
     ;
 
     private final HttpStatus httpStatus;

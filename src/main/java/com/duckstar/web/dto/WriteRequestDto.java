@@ -4,6 +4,7 @@ import com.duckstar.validation.annotation.CommentConstraint;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 
 public class WriteRequestDto {
@@ -13,7 +14,7 @@ public class WriteRequestDto {
     public static class CommentRequestDto {
         Long episodeId;
 
-        String attachedImageUrl;
+        MultipartFile attachedImage;
 
         @Size(max = 1000)
         String body;
