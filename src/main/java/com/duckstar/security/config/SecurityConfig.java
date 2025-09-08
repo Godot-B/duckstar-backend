@@ -63,7 +63,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/logout",
                                 "/api/v1/auth/withdraw/kakao",
-                                "/api/v1/auth/me"
+                                "/api/v1/members/me"
                         ).authenticated()
 //                        .requestMatchers(HttpMethod.POST, "/api/v1/vote/anime/history")
 //                        .authenticated()
@@ -103,7 +103,7 @@ public class SecurityConfig {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(List.of("http://localhost:3000", "https://duckstar.kr"));
         cfg.setAllowCredentials(true);
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setMaxAge(3600L);
 

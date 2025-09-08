@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 
-public class WriteRequestDto {
+public class BoardRequestDto {
 
     @CommentConstraint
     @Getter
@@ -20,6 +20,11 @@ public class WriteRequestDto {
 
         @Size(max = 1000)
         String body;
+    }
+
+    @Getter
+    public static class LikeRequestDto {
+        Long likeId;
     }
 
     @Getter

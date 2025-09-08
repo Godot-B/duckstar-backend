@@ -76,6 +76,8 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
 
     @Override
     public List<AnimeRankDto> getAnimeRankDtosByWeekId(Long weekId, Pageable pageable) {
+        int pageSize = pageable.getPageSize();
+
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
                         animeCandidate.rankInfo.rank,
@@ -96,8 +98,8 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                 .where(animeCandidate.week.id.eq(weekId))
                 // 추후에 메달 개수 정렬 기준 2순위로 삽입
                 .orderBy(animeCandidate.rankInfo.rank.asc(), anime.titleKor.asc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .offset((long) pageable.getPageNumber() * (pageSize - 1))
+                .limit(pageSize)
                 .fetch();
 
         List<Long> animeIds = tuples.stream()

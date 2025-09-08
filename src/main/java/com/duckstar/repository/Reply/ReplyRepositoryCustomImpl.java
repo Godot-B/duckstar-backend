@@ -1,13 +1,19 @@
 package com.duckstar.repository.Reply;
 
+import com.duckstar.domain.Member;
+import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.domain.mapping.QReply;
 import com.duckstar.domain.mapping.QReplyLike;
 import com.duckstar.security.MemberPrincipal;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -31,33 +37,66 @@ public class ReplyRepositoryCustomImpl implements ReplyRepositoryCustom {
             Pageable pageable,
             MemberPrincipal principal
     ) {
-        QReplyLike replyLikeCountAlias = new QReplyLike("replyLikeCountAlias");
+        Long principalId;
+        boolean isAdmin;
 
+        Expression<Long> likeIdSubquery;
+        Expression<Boolean> isLikedExpression;
+
+        if (principal != null) {
+            principalId = principal.getId();
+            isAdmin = principal.isAdmin();
+
+            likeIdSubquery = JPAExpressions
+                    .select(replyLike.id)
+                    .from(replyLike)
+                    .where(
+                            replyLike.reply.id.eq(reply.id),
+                            replyLike.member.id.eq(principalId)
+                    )
+                    .limit(1);
+
+            isLikedExpression = JPAExpressions
+                    .select(replyLike.isLiked)
+                    .from(replyLike)
+                    .where(
+                            replyLike.reply.id.eq(reply.id),
+                            replyLike.member.id.eq(principalId)
+                    )
+                    .limit(1);
+        } else {
+            principalId = null;
+            isAdmin = false;
+
+            likeIdSubquery = Expressions.nullExpression(Long.class);
+            isLikedExpression = Expressions.constant(false);
+        }
+
+        int pageSize = pageable.getPageSize();
         List<Tuple> tuples = queryFactory.select(
+                        likeIdSubquery,
+                        isLikedExpression,
                         reply.status,
                         reply.id,
-                        replyLike.isLiked,
-                        replyLike.id,
-                        replyLikeCountAlias.count(),
+                        reply.likeCount,
                         reply.author.id,
                         reply.author.nickname,
                         reply.author.profileImageUrl,
                         reply.voteCount,
                         reply.createdAt,
-                        reply.listener.id,
+                        reply.listener,
                         reply.attachedImageUrl,
                         reply.body
                 )
                 .from(reply)
-                .leftJoin(replyLikeCountAlias).on(replyLikeCountAlias.reply.id.eq(reply.id))
-                .leftJoin(replyLike).on(
-                        replyLike.reply.id.eq(reply.id)
-                                .and(replyLike.reply.id.eq(principal.getId())))
-                .where(reply.parent.id.eq(commentId))
-                .groupBy(reply.id)  // 안전용 명시
+                .leftJoin(reply.listener) // 명시적으로 leftJoin
+                .where(
+                        reply.parent.id.eq(commentId),
+                        reply.status.eq(CommentStatus.NORMAL)
+                )
                 .orderBy(reply.createdAt.asc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .offset((long) pageable.getPageNumber() * (pageSize - 1))
+                .limit(pageSize)
                 .fetch();
 
         List<Long> replyIds = tuples.stream()
@@ -69,23 +108,22 @@ public class ReplyRepositoryCustomImpl implements ReplyRepositoryCustom {
 
         return tuples.stream()
                 .map(t -> {
-                    Long replyId = t.get(reply.id);
                     Long authorId = t.get(reply.author.id);
-                    boolean isAuthor = Objects.equals(authorId, principal.getId());
-                    boolean isAdmin = principal.isAdmin();
+                    boolean canDelete = Objects.equals(authorId, principalId) || isAdmin;
+
+                    System.out.println("replyId: " + t.get(reply.id));
+                    Member listener = t.get(reply.listener);
+                    System.out.println("========================");
 
                     return ReplyDto.builder()
                             .status(t.get(reply.status))
-                            .replyId(replyId)
+                            .replyId(t.get(reply.id))
 
-                            .canDeleteThis(isAuthor || isAdmin)
+                            .canDeleteThis(canDelete)
 
-                            .isLiked(t.get(replyLike.isLiked))
-                            .replyLikeId(t.get(replyLike.id))
-                            .likeCount(
-                                    Optional.ofNullable(t.get(replyLikeCountAlias.count()))
-                                            .map(Long::intValue).orElse(0)
-                            )
+                            .isLiked(t.get(isLikedExpression))
+                            .replyLikeId(t.get(likeIdSubquery))
+                            .likeCount(t.get(reply.likeCount))
 
                             .authorId(authorId)
                             .nickname(t.get(reply.author.nickname))
@@ -93,7 +131,7 @@ public class ReplyRepositoryCustomImpl implements ReplyRepositoryCustom {
                             .voteCount(t.get(reply.voteCount))
 
                             .createdAt(t.get(reply.createdAt))
-                            .listenerId(t.get(reply.listener.id))
+                            .listenerNickname(listener == null ? "" : listener.getNickname())
                             .attachedImageUrl(t.get(reply.attachedImageUrl))
                             .body(t.get(reply.body))
                             .build();

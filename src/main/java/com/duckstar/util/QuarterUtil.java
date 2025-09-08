@@ -1,6 +1,8 @@
 package com.duckstar.util;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public class QuarterUtil {
@@ -54,15 +56,23 @@ public class QuarterUtil {
     }
 
     // 비즈니스 규칙에 따른 분기 주차 계산
-    public static int calculateBusinessWeekNumber(LocalDate date) {
-        int quarter = getBusinessQuarter(date);
+    public static int calculateBusinessWeekNumber(LocalDateTime dateTime) {
+
+        // 일요일이고 22시 이전이면 하루 전 토요일로 간주
+        if (dateTime.getDayOfWeek() == DayOfWeek.SUNDAY && dateTime.getHour() < 22) {
+            dateTime = dateTime.minusDays(1);
+        }
+
+        LocalDate adjustedDate = dateTime.toLocalDate();
+
+        int quarter = getBusinessQuarter(adjustedDate);
 
         // 분기 시작일 및 첫 번째 일요일 계산
-        LocalDate quarterStart = LocalDate.of(date.getYear(), (quarter - 1) * 3 + 1, 1);
+        LocalDate quarterStart = LocalDate.of(adjustedDate.getYear(), (quarter - 1) * 3 + 1, 1);
         LocalDate firstSunday = quarterStart.minusDays(quarterStart.getDayOfWeek().getValue() % 7);
 
         // 주 시작일
-        LocalDate weekStart = date.minusDays(date.getDayOfWeek().getValue() % 7);
+        LocalDate weekStart = adjustedDate.minusDays(adjustedDate.getDayOfWeek().getValue() % 7);
 
         // 주차 계산
         long weeks = ChronoUnit.WEEKS.between(firstSunday, weekStart) + 1;

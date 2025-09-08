@@ -2,6 +2,7 @@ package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.Member;
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.domain.mapping.comment.Comment;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,5 +33,25 @@ public class ReplyLike extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    private Boolean isLiked;
+    private Boolean isLiked = true;
+
+    protected ReplyLike(Reply reply, Member member) {
+        this.reply = reply;
+        this.member = member;
+    }
+
+    public static ReplyLike create(Reply reply, Member member) {
+        reply.addLikeCount();
+        return new ReplyLike(reply, member);
+    }
+
+    public void restoreLike() {
+        isLiked = true;
+        reply.addLikeCount();
+    }
+
+    public void discardLike() {
+        isLiked = false;
+        reply.removeLikeCount();
+    }
 }

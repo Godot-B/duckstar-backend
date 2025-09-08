@@ -3,6 +3,7 @@ package com.duckstar.domain.mapping.comment;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.mapping.Episode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,10 +16,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         indexes = {
+                @Index(name = "idx_comment_cec",
+                        columnList = "contentIdForIdx, episode_id, created_at"),
                 @Index(name = "idx_comment_cc",
                         columnList = "contentIdForIdx, created_at"),
-                @Index(name = "idx_comment_c",
-                        columnList = "created_at"),
         }
 )
 public abstract class Comment extends BaseEntity {
@@ -36,8 +37,17 @@ public abstract class Comment extends BaseEntity {
     private Long contentIdForIdx;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "episode_id")
+    private Episode episode;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private Member author;
+
+    @Column(insertable = false, updatable = false)
+    private String dtype;  // 읽기 전용 필드
+
+    private Boolean isUserTaggedEp;
 
     private Integer voteCount;
 
@@ -51,15 +61,23 @@ public abstract class Comment extends BaseEntity {
     @Column(length = 15, nullable = false)
     private CommentStatus status = CommentStatus.NORMAL;
 
+    private Integer likeCount = 0;
+
+    private Integer replyCount = 0;
+
     protected Comment(
             Long contentIdForIdx,
+            Episode episode,
             Member author,
+            Boolean isUserTaggedEp,
             Integer voteCount,
             String attachedImageUrl,
             String body
     ) {
         this.contentIdForIdx = contentIdForIdx;
+        this.episode = episode;
         this.author = author;
+        this.isUserTaggedEp = isUserTaggedEp;
         this.voteCount = voteCount;
         this.attachedImageUrl = attachedImageUrl;
         this.body = body;
@@ -67,5 +85,21 @@ public abstract class Comment extends BaseEntity {
 
     public void setStatus(CommentStatus status) {
         this.status = status;
+    }
+
+    public void addLikeCount() {
+        likeCount += 1;
+    }
+
+    public void removeLikeCount() {
+        if (likeCount > 0) likeCount -= 1;
+    }
+
+    public void addReply() {
+        replyCount += 1;
+    }
+
+    public void removeReply() {
+        if (replyCount > 0) replyCount -= 1;
     }
 }

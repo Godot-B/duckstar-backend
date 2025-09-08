@@ -1,7 +1,10 @@
 package com.duckstar.apiPayload.exception.handler;
 
-public class LikeHandler extends RuntimeException {
-  public LikeHandler(String message) {
-    super(message);
-  }
+import com.duckstar.apiPayload.code.BaseErrorCode;
+import com.duckstar.apiPayload.exception.GeneralException;
+
+public class LikeHandler extends GeneralException {
+    public LikeHandler(BaseErrorCode code) {
+        super(code);
+    }
 }

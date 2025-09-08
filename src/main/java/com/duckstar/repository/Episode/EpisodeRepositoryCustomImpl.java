@@ -30,6 +30,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
         // 분기, 주차 util 계산으로 복잡도 낮추기 가능
 
         List<Tuple> tuples = queryFactory.select(
+                        episode.id,
                         episode.episodeNumber,
                         episode.isBreak,
                         episode.scheduledAt,
@@ -43,6 +44,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
 
         return tuples.stream().map(t ->
                         EpisodeDto.builder()
+                                .episodeId(t.get(episode.id))
                                 .episodeNumber(t.get(episode.episodeNumber))
                                 .isBreak(t.get(episode.isBreak))
                                 .scheduledAt(t.get(episode.scheduledAt))

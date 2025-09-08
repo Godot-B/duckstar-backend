@@ -50,6 +50,8 @@ public class Reply extends BaseEntity {
     @Column(length = 15, nullable = false)
     private CommentStatus status = CommentStatus.NORMAL;
 
+    private Integer likeCount = 0;
+
     protected Reply(
             Comment parent,
             Member author,
@@ -69,15 +71,16 @@ public class Reply extends BaseEntity {
     public static Reply create(
             Comment parent,
             Member author,
-            Optional<Member> listener,
+            Member listener,
             Integer voteCount,
             String attachedImageUrl,
             String body
     ) {
+        parent.addReply();
         return new Reply(
                 parent,
                 author,
-                listener.orElse(null),
+                listener,
                 voteCount,
                 attachedImageUrl,
                 body
@@ -86,5 +89,13 @@ public class Reply extends BaseEntity {
 
     public void setStatus(CommentStatus status) {
         this.status = status;
+    }
+
+    public void addLikeCount() {
+        likeCount += 1;
+    }
+
+    public void removeLikeCount() {
+        if (likeCount > 0) likeCount -= 1;
     }
 }

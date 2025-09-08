@@ -33,5 +33,29 @@ public class CommentLike extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    private Boolean isLiked;
+    private Boolean isLiked = true;
+
+    protected CommentLike(Comment comment, Member member) {
+        this.comment = comment;
+        this.member = member;
+    }
+
+    public static CommentLike create(Comment comment, Member member) {
+        comment.addLikeCount();
+        return new CommentLike(comment, member);
+    }
+
+    public void restoreLike() {
+        if (!isLiked) {
+            isLiked = true;
+            comment.addLikeCount();
+        }
+    }
+
+    public void discardLike() {
+        if (isLiked) {
+            isLiked = false;
+            comment.removeLikeCount();
+        }
+    }
 }

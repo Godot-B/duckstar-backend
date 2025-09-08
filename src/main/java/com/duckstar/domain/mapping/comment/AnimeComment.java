@@ -18,27 +18,32 @@ public class AnimeComment extends Comment {
     @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "episode_id")
-    private Episode episode;
-
     protected AnimeComment(
             Anime anime,
             Episode episode,
             Member member,
+            Boolean isUserTaggedEp,
             Integer voteCount,
             String attachedImageUrl,
             String body
     ) {
-        super(anime.getId(), member, voteCount, attachedImageUrl, body);
+        super(
+                anime.getId(),
+                episode,
+                member,
+                isUserTaggedEp,
+                voteCount,
+                attachedImageUrl,
+                body
+        );
         this.anime = anime;
-        this.episode = episode;
     }
 
     public static AnimeComment create(
             Anime anime,
             Episode episode,
             Member member,
+            Boolean isUserTaggedEp,
             Integer voteCount,
             String attachedImageUrl,
             String body
@@ -47,6 +52,7 @@ public class AnimeComment extends Comment {
                 anime,
                 episode,
                 member,
+                isUserTaggedEp,
                 voteCount,
                 attachedImageUrl,
                 body

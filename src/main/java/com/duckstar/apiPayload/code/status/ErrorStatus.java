@@ -73,6 +73,12 @@ public enum ErrorStatus implements BaseErrorCode {
     // 답글 관련
     REPLY_NOT_FOUND(HttpStatus.BAD_REQUEST, "REPLY4001", "답글이 존재하지 않습니다."),
 
+    // 좋아요 관련
+    LIKE_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "요청받은 좋아요가 존재하지 않습니다."),
+
+    LIKE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "LIKE4011", "댓글/답글 좋아요 권한이 없습니다."),
+    DISLIKE_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "LIKE4012", "댓글/답글 좋아요 취소 권한이 없습니다."),
+
     // 이미지 관련
     INVALID_IMAGE_FILE(HttpStatus.BAD_REQUEST, "IMAGE4001", "유효하지 않은 이미지 파일입니다."),
     INVALID_S3_IMAGE_URL(HttpStatus.BAD_REQUEST, "IMAGE4002", "유효하지 않은 S3 URL 형식입니다."),

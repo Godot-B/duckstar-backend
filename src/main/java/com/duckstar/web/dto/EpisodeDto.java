@@ -8,13 +8,15 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 public class EpisodeDto {
+    Long episodeId;
+
     Integer episodeNumber;
 
     Boolean isBreak;
 
-    LocalDateTime scheduledAt;
-
     Boolean isRescheduled;
+
+    LocalDateTime scheduledAt;
 
     LocalDateTime nextEpScheduledAt;
 }

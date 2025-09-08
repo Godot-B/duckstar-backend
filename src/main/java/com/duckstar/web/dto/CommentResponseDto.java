@@ -2,7 +2,10 @@ package com.duckstar.web.dto;
 
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.mapping.CommentLike;
+import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.Reply;
+import com.duckstar.domain.mapping.ReplyLike;
 import com.duckstar.domain.mapping.comment.Comment;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -29,6 +32,10 @@ public class CommentResponseDto {
     @Builder
     @Getter
     public static class ReplySliceDto {
+        // 첫 슬라이스에서만 답글 개수 보내기
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        Integer totalCount;
+
         List<ReplyDto> replyDtos;
 
         PageInfo pageInfo;
@@ -78,11 +85,47 @@ public class CommentResponseDto {
                     .profileImageUrl(author.getProfileImageUrl())
                     .voteCount(voteCount)
 
+                    .episodeNumber(
+                            Boolean.TRUE.equals(comment.getIsUserTaggedEp()) ?
+                            comment.getEpisode().getEpisodeNumber() :
+                            null
+                    )
+
                     .createdAt(comment.getCreatedAt())
                     .attachedImageUrl(comment.getAttachedImageUrl())
                     .body(comment.getBody())
 
                     .replyCount(0)
+                    .build();
+        }
+
+        public static CommentDto ofDeleted(
+                CommentStatus status,
+                Long commentId,
+                LocalDateTime createdAt,
+                Integer episodeNumber,
+                Integer replyCount
+        ) {
+            return CommentDto.builder()
+                    .status(status)
+                    .commentId(commentId)
+
+                    .canDeleteThis(null)
+                    .isLiked(null)
+                    .commentLikeId(null)
+                    .likeCount(null)
+                    .authorId(null)
+                    .nickname(null)
+                    .profileImageUrl(null)
+                    .voteCount(null)
+
+                    .episodeNumber(episodeNumber)
+                    .createdAt(createdAt)
+
+                    .attachedImageUrl(null)
+                    .body(null)
+
+                    .replyCount(replyCount)
                     .build();
         }
     }
@@ -105,7 +148,7 @@ public class CommentResponseDto {
         Integer voteCount;
 
         LocalDateTime createdAt;
-        Long listenerId;
+        String listenerNickname;
         String attachedImageUrl;
         String body;
 
@@ -131,11 +174,50 @@ public class CommentResponseDto {
                     .voteCount(voteCount)
 
                     .createdAt(reply.getCreatedAt())
-                    .listenerId(listener == null ? null : listener.getId())
+                    .listenerNickname(listener == null ? null : listener.getNickname())
                     .attachedImageUrl(reply.getAttachedImageUrl())
                     .body(reply.getBody())
                     .build();
         }
+    }
+
+    @Builder
+    @Getter
+    public static class LikeResultDto {
+        Long likeId;
+        Integer likeCount;
+        LocalDateTime likedAt;
+
+        public static LikeResultDto ofComment(CommentLike commentLike) {
+            if (commentLike == null) {
+                return LikeResultDto.builder().build();
+            }
+
+            return LikeResultDto.builder()
+                    .likeId(commentLike.getId())
+                    .likeCount(commentLike.getComment().getLikeCount())
+                    .likedAt(LocalDateTime.now())
+                    .build();
+        }
+
+        public static LikeResultDto ofReply(ReplyLike replyLike) {
+            if (replyLike == null) {
+                return LikeResultDto.builder().build();
+            }
+
+            return LikeResultDto.builder()
+                    .likeId(replyLike.getId())
+                    .likeCount(replyLike.getReply().getLikeCount())
+                    .likedAt(LocalDateTime.now())
+                    .build();
+        }
+    }
+
+    @Builder
+    @Getter
+    public static class DiscardLikeResultDto {
+        Integer likeCount;
+        LocalDateTime discardedAt;
     }
 
     @Builder
