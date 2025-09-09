@@ -45,3 +45,12 @@ app:
 
 jwt:
   secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+
+cloud:
+  aws:
+    s3:
+      bucket: img.duckstar.kr
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
