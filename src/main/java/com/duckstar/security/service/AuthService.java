@@ -8,6 +8,7 @@ import com.duckstar.domain.Member;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.domain.MemberOAuthAccount;
 import com.duckstar.security.domain.MemberToken;
+import com.duckstar.security.domain.enums.MemberStatus;
 import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.domain.enums.Role;
 import com.duckstar.security.providers.kakao.KakaoAuthClient;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,8 +66,13 @@ public class AuthService {
 
     private final String sameSite = secureCookie ? "None" : "Lax";
 
+    public record LoginResponseDto(
+            String jwtAccessToken,
+            boolean isNewUser
+    ) {}
+
     @Transactional
-    public String loginOrRegister(
+    public LoginResponseDto loginOrRegister(
             String provider,
             String socialAccessToken,
             String socialRefreshToken,
@@ -81,29 +88,52 @@ public class AuthService {
         String nickname = (String) userInfo.getProperties().get("nickname");
         String profileImageUrl = (String) userInfo.getProperties().get("profile_image");
 
-        Member member = memberRepository.findByKakaoId(providerUserId)
-                .orElseGet(() -> {
-                    Member newMember = Member.createKakao(
-                            OAuthProvider.KAKAO,
-                            providerUserId,
-                            nickname,
-                            profileImageUrl,
-                            Gender.NONE,
-                            Role.USER
-                    );
-                    return memberRepository.save(newMember);
-                });
+        boolean isNewUser = false;
+
+        Member member = memberRepository.findByKakaoIdOrRetired(providerUserId)
+                .orElse(null);
+
+        if (member == null) {
+            isNewUser = true;
+
+            Member newMember = Member.createKakao(
+                    OAuthProvider.KAKAO,
+                    providerUserId,
+                    nickname,
+                    profileImageUrl,
+                    Gender.NONE,
+                    Role.USER
+            );
+            member = memberRepository.save(newMember);
+
+            // INACTIVE 회원 복원
+        } else if (member.getStatus().equals(MemberStatus.INACTIVE)) {
+            isNewUser = true;
+
+            member.restoreKakao(
+                    OAuthProvider.KAKAO,
+                    providerUserId,
+                    nickname,
+                    profileImageUrl,
+                    Gender.NONE,
+                    Role.USER
+            );
+        }
 
         MemberOAuthAccount account = memberOAuthAccountRepository
                 .findByProviderAndProviderUserId(OAuthProvider.KAKAO, providerUserId)
-                .orElseGet(() -> {
-                    MemberOAuthAccount newAccount = MemberOAuthAccount.link(
-                            member,
-                            OAuthProvider.KAKAO,
-                            providerUserId
-                    );
-                    return memberOAuthAccountRepository.save(newAccount);
-                });
+                .orElse(null);
+
+        if (account == null) {
+            isNewUser = true;
+
+            MemberOAuthAccount newAccount = MemberOAuthAccount.link(
+                    member,
+                    OAuthProvider.KAKAO,
+                    providerUserId
+            );
+            account = memberOAuthAccountRepository.save(newAccount);
+        }
 
         account.setAccessToken(socialAccessToken, LocalDateTime.now().plusHours(6));
         account.setRefreshToken(socialRefreshToken, LocalDateTime.now().plusDays(7));
@@ -155,9 +185,9 @@ public class AuthService {
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-        
-        // JWT access token 반환
-        return jwtAccessToken;
+
+        // JWT access token 및 플래그 반환
+        return new LoginResponseDto(jwtAccessToken, isNewUser);
     }
 
     @Transactional

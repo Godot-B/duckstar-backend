@@ -23,6 +23,12 @@ spring:
         order_updates: true
         id.optimizer.pooled.preferred: pooled-lo
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+      enabled: true
+
   jackson:
     serialization:
       indent_output: true

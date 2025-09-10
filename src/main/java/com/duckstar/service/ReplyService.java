@@ -228,9 +228,11 @@ public class ReplyService {
 
         if (isAuthor) {
             reply.setStatus(CommentStatus.DELETED);
+            reply.getParent().removeReply();
 
         } else if (isAdmin) {
             reply.setStatus(CommentStatus.ADMIN_DELETED);
+            reply.getParent().removeReply();
 
         } else {
             throw new CommentHandler(ErrorStatus.DELETE_UNAUTHORIZED);

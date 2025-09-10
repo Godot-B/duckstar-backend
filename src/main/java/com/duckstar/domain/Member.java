@@ -97,6 +97,26 @@ public class Member extends BaseEntity {
         }
     }
 
+    public void restoreKakao(
+            OAuthProvider provider,
+            String socialId,
+            String nickname,
+            String profileImageUrl,
+            Gender gender,
+            Role role
+    ) {
+        if (provider == OAuthProvider.KAKAO) {
+            this.status = MemberStatus.ACTIVE;
+            this.kakaoId = socialId;
+            this.nickname = nickname;
+            this.profileImageUrl = profileImageUrl;
+            this.gender = gender;
+            this.role = role;
+        } else {
+            throw new AuthHandler(ErrorStatus.UNSUPPORTED_OAUTH_TYPE);
+        }
+    }
+
     public void updateProfile(String nickname, String profileImageUrl) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;

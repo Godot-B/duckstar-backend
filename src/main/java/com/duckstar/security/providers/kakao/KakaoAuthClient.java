@@ -22,7 +22,7 @@ public interface KakaoAuthClient {
     KakaoTokenResponse getTokenWithRefreshToken(
             @RequestParam("grant_type") String grantType,
             @RequestParam("client_id") String clientId,
-            @RequestParam("code") String refreshToken,
-            @Value("${spring.security.oauth2.client.registration.kakao.client-secret}") String clientSecret
+            @RequestParam("refresh_token") String refreshToken,
+            @RequestParam("client_secret") String clientSecret
     );
 }

@@ -4,8 +4,10 @@ import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.MemberService;
 import com.duckstar.web.dto.MemberRequestDto;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,9 +31,10 @@ public class MemberController {
         }
     }
 
-    @PatchMapping("/me/profile")
+    @Operation(summary = "프로필 수정 API", description = "닉네임 또는 프로필 이미지를 수정합니다.")
+    @PatchMapping(value = "/me/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<UpdateReceiptDto> updateProfile(
-            @Valid @ModelAttribute ProfileRequestDto request,
+            @ModelAttribute ProfileRequestDto request,
             @AuthenticationPrincipal MemberPrincipal principal) {
         return ApiResponse.onSuccess(
                 memberService.updateProfile(request, principal));

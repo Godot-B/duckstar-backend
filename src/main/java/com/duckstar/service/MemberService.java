@@ -38,6 +38,7 @@ public class MemberService {
         return MePreviewDto.of(member);
     }
 
+    @Transactional
     public UpdateReceiptDto updateProfile(ProfileRequestDto request, MemberPrincipal principal) {
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);

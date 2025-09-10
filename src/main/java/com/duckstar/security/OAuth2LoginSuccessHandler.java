@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import static com.duckstar.security.service.AuthService.*;
+
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
@@ -52,18 +54,20 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String jwtRefreshTokenFromCookie = jwtTokenProvider.resolveFromCookie(req, "REFRESH_TOKEN");
 
         // JWT 토큰 생성 및 쿠키 설정
-        String jwtAccessToken = authService.loginOrRegister(
-                provider,
-                socialAccessToken,
-                socialRefreshToken,
-                jwtRefreshTokenFromCookie,
-                res
-        );
+        LoginResponseDto loginResponse = authService.loginOrRegister
+                (
+                        provider,
+                        socialAccessToken,
+                        socialRefreshToken,
+                        jwtRefreshTokenFromCookie,
+                        res
+                );
 
-        // 프론트엔드로 리다이렉트 시 JWT access token을 쿼리 파라미터로 전달
+        // 프론트엔드로 리다이렉트 시 JWT access token 및 플래그를 쿼리 파라미터로 전달
         String redirectUrl = frontendRedirectUri +
                 "?accessToken=" +
-                URLEncoder.encode(jwtAccessToken, StandardCharsets.UTF_8);
+                URLEncoder.encode(loginResponse.jwtAccessToken(), StandardCharsets.UTF_8) +
+                "&isNewUser=" + loginResponse.isNewUser();
 
         res.sendRedirect(redirectUrl);
     }
