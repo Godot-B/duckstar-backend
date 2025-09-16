@@ -2,11 +2,12 @@ package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
+import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.Week;
-import com.duckstar.domain.enums.DayOfWeekShort;
-import com.duckstar.domain.enums.SiteType;
+import com.duckstar.domain.Season;
+import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.mapping.AnimeCandidate;
+import com.duckstar.domain.mapping.Episode;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
@@ -14,9 +15,7 @@ import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
-import com.duckstar.web.dto.SearchResponseDto.AnimePreviewDto;
 import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
-import com.duckstar.web.dto.SearchResponseDto.AnimePreviewListDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -24,11 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
-import static com.duckstar.web.dto.WeekResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,44 +38,10 @@ public class AnimeService {
     private final AnimeOttRepository animeOttRepository;
     private final AnimeCharacterRepository animeCharacterRepository;
     private final EpisodeRepository episodeRepository;
-    private final WeekService weekService;
 
     public Anime findByIdOrThrow(Long animeId) {
         return animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
-    }
-
-    public AnimePreviewListDto getScheduleByQuarterId(Long quarterId) {
-        Week currentWeek = weekService.getCurrentWeek();
-        LocalDateTime weekStart = currentWeek.getStartDateTime();
-        LocalDateTime weekEnd = currentWeek.getEndDateTime();
-
-        List<AnimePreviewDto> animePreviews =
-                animeSeasonRepository.getSeasonAnimePreviewsByQuarterAndWeek(
-                        quarterId,
-                        weekStart,
-                        weekEnd
-                );
-
-        Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
-                .collect(
-                        Collectors.groupingBy(dto -> {
-                            DayOfWeekShort dayOfWeek = dto.getDayOfWeek();
-                            return (dto.getDayOfWeek() != null) ?
-                                    dayOfWeek :
-                                    DayOfWeekShort.NONE;
-                        })
-                );
-
-        DayOfWeekShort[] keys = DayOfWeekShort.values();
-        for (DayOfWeekShort key : keys) {
-            schedule.putIfAbsent(key, List.of());
-        }
-
-        return AnimePreviewListDto.builder()
-                .weekDto(WeekDto.from(currentWeek))
-                .schedule(schedule)
-                .build();
     }
 
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
@@ -146,5 +109,52 @@ public class AnimeService {
                         animeCharacterRepository.getAllCharacterHomePreviewsByAnimeId(animeId)
                 )
                 .build();
+    }
+
+    @Transactional
+    public List<Anime> updateAndGetAnimes(boolean isQuarterChanged, Season season) {
+        List<Anime> animes = animeRepository.findAllByStatusOrStatus(AnimeStatus.UPCOMING, AnimeStatus.NOW_SHOWING);
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime threshold = now.plusWeeks(1);
+
+        return animes.stream()
+                .peek(anime -> {
+                    if (anime.getStatus() == AnimeStatus.UPCOMING) {
+                        if (!threshold.isBefore(anime.getPremiereDateTime())) {
+                            anime.setStatus(AnimeStatus.NOW_SHOWING);
+                        }
+                    } else if (anime.getStatus() == AnimeStatus.NOW_SHOWING) {
+                        // 분기마다 수십 개 수준이라 가능,,
+                        // 수백~ 수천 등 더 많아지면 N+1 이슈 고려해야 함.
+                        LocalDateTime lastEpScheduledAt = findLastEpScheduledAt(anime).orElseThrow(() ->
+                                        new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND))
+                                .getScheduledAt();
+
+                        if (!now.isBefore(lastEpScheduledAt)) {
+                            anime.setStatus(AnimeStatus.ENDED);
+                        }
+                    }
+                })
+                .filter(anime -> isQuarterChanged ?
+                        anime.getStatus() == AnimeStatus.NOW_SHOWING :
+                        anime.getStatus() == AnimeStatus.NOW_SHOWING && isEligibleForNextSeason(anime, season)
+                )
+                .toList();
+    }
+
+    private boolean isEligibleForNextSeason(Anime anime, Season season) {
+        LocalDateTime cutOff = LocalDateTime.of(
+                season.getYearValue(),
+                season.getType().getStartDate().getMonth(),
+                season.getType().getStartDate().getDayOfMonth(),
+                22,
+                0
+        );
+        return !anime.getPremiereDateTime().isBefore(cutOff);
+    }
+
+    private Optional<Episode> findLastEpScheduledAt(Anime anime) {
+        return episodeRepository.findTopByAnimeOrderByEpisodeNumberDesc(anime);
     }
 }

@@ -92,4 +92,8 @@ public class Anime extends BaseEntity {
 
     @Lob
     private String synopsis;
+
+    public void setStatus(AnimeStatus status) {
+        this.status = status;
+    }
 }

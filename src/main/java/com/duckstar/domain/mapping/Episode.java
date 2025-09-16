@@ -33,7 +33,7 @@ public class Episode extends BaseEntity {
 
     //=== 결방, 변칙 편성 update API 마련 필요 ===//
 
-    private Boolean isBreak;
+    private Boolean isBreak;  // isBreak 면 episodeNumber = -1
 
     private Boolean isRescheduled;
 

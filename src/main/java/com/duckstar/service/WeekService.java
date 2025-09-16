@@ -3,21 +3,38 @@ package com.duckstar.service;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
+import com.duckstar.domain.Anime;
+import com.duckstar.domain.Quarter;
+import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
+import com.duckstar.domain.enums.DayOfWeekShort;
+import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
+import com.duckstar.repository.AnimeRepository;
+import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
+import com.duckstar.repository.QuarterRepository;
+import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.ChartDto.AnimeRankSliceDto;
 import com.duckstar.web.dto.PageInfo;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
+import com.duckstar.web.dto.WeekResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.duckstar.util.QuarterUtil.*;
+import static com.duckstar.web.dto.SearchResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +43,11 @@ public class WeekService {
 
     private final WeekRepository weekRepository;
     private final AnimeCandidateRepository animeCandidateRepository;
+    private final QuarterRepository quarterRepository;
+    private final AnimeSeasonRepository animeSeasonRepository;
+    private final SeasonRepository seasonRepository;
+    private final AnimeService animeService;
+    private final AnimeRepository animeRepository;
 
     public Week getCurrentWeek() {
         LocalDateTime now = LocalDateTime.now();
@@ -42,6 +64,39 @@ public class WeekService {
     public Long getWeekIdByYQW(Integer year, Integer quarter, Integer week) {
         return weekRepository.findWeekIdByYQW(year, quarter, week)
                 .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+    }
+
+    public AnimePreviewListDto getScheduleByQuarterId(Long quarterId) {
+        Week currentWeek = getCurrentWeek();
+        LocalDateTime weekStart = currentWeek.getStartDateTime();
+        LocalDateTime weekEnd = currentWeek.getEndDateTime();
+
+        List<AnimePreviewDto> animePreviews =
+                animeSeasonRepository.getSeasonAnimePreviewsByQuarterAndWeek(
+                        quarterId,
+                        weekStart,
+                        weekEnd
+                );
+
+        Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
+                .collect(
+                        Collectors.groupingBy(dto -> {
+                            DayOfWeekShort dayOfWeek = dto.getDayOfWeek();
+                            return (dto.getDayOfWeek() != null) ?
+                                    dayOfWeek :
+                                    DayOfWeekShort.NONE;
+                        })
+                );
+
+        DayOfWeekShort[] keys = DayOfWeekShort.values();
+        for (DayOfWeekShort key : keys) {
+            schedule.putIfAbsent(key, List.of());
+        }
+
+        return AnimePreviewListDto.builder()
+                .weekDto(WeekResponseDto.WeekDto.from(currentWeek))
+                .schedule(schedule)
+                .build();
     }
 
     public AnimeRankSliceDto getAnimeRankSliceDto(Long weekId, Pageable pageable) {
@@ -80,5 +135,98 @@ public class WeekService {
                 .aniLabRankDtos(null)
                 .pageInfo(pageInfo)
                 .build();
+    }
+
+    @Scheduled(cron = "0 0 22 * * SUN") // 매주 일요일 22시
+    public void handleWeeklySchedule() {
+        setupWeeklyVoting(); // 1. 실시간 주 생성
+        buildDuckstars(); // 2. 지난 주 덕스타 결과 분석 (병렬 X, 순차적으로 실행)
+    }
+
+    @Transactional
+    public void setupWeeklyVoting() {
+        Week lastWeek = getLastWeek();
+        int lastWeekQuarterValue = lastWeek.getQuarter().getQuarterValue();
+
+        //=== 지난 투표 주 마감 ===//
+        lastWeek.closeVote();
+
+        LocalDateTime now = LocalDateTime.now();
+        YQWRecord record = getThisWeekRecord(now);
+        int thisQuarterValue = record.quarterValue();
+
+        // 분기, 시즌 찾기(생성) & 주 생성
+        boolean isQuarterChanged = lastWeekQuarterValue != thisQuarterValue;
+
+        Quarter quarter = getOrCreateQuarter(isQuarterChanged, record);
+        Season season = getOrCreateSeason(isQuarterChanged, quarter);
+
+        Week newWeek = Week.create(
+                quarter,
+                record.weekValue(),
+                now
+        );
+        weekRepository.save(newWeek);
+
+        // 애니 후보군 생성
+        List<Anime> nowShowingAnimes = animeService.updateAndGetAnimes(isQuarterChanged, season);
+
+        List<AnimeCandidate> animeCandidates = nowShowingAnimes.stream()
+                .map(anime -> {
+                    return AnimeCandidate.create(newWeek, anime);
+                })
+                .toList();
+        animeCandidateRepository.saveAll(animeCandidates);
+
+        // TODO 캐릭터 후보군 생성
+
+        //=== 새로운 주의 투표 오픈 ===//
+        newWeek.openVote();
+    }
+
+
+    // CSV 리더 설계 이후 다시 돌아와 아래 로직들 검증
+
+    private Quarter getOrCreateQuarter(boolean isQuarterChanged, YQWRecord record) {
+        int thisYearValue = record.yearValue();
+        int thisQuarterValue = record.quarterValue();
+        int thisWeekValue = record.weekValue();
+
+        Optional<Quarter> quarterOpt =
+                quarterRepository.findByYearValueAndQuarterValue(thisYearValue, thisQuarterValue);
+
+        Quarter quarter;
+        // 분기 변경 주 && DB에 없을 때
+        if (isQuarterChanged && quarterOpt.isEmpty()) {
+            quarter = Quarter.create(thisQuarterValue, thisWeekValue);
+            quarterRepository.save(quarter);
+        }
+        quarter = quarterOpt.orElseThrow(() -> new QuarterHandler(ErrorStatus.QUARTER_NOT_FOUND));
+        return quarter;
+    }
+
+    private Week getLastWeek() {
+        return weekRepository.findFirstByOrderByStartDateTimeDesc();
+    }
+
+    private Season getOrCreateSeason(boolean isChangedQuarter, Quarter quarter) {
+        int thisYearValue = quarter.getYearValue();
+        int thisQuarterValue = quarter.getQuarterValue();
+
+        Optional<Season> seasonOpt =
+                seasonRepository.findByYearValueAndQuarter_QuarterValue(thisYearValue, thisQuarterValue);
+        Season season;
+        if (isChangedQuarter && seasonOpt.isEmpty()) {
+            season = Season.create(quarter, thisYearValue);
+            seasonRepository.save(season);
+        } else {
+            season = seasonOpt.get();
+        }
+        return season;
+    }
+
+    @Transactional
+    public void buildDuckstars() {
+        
     }
 }

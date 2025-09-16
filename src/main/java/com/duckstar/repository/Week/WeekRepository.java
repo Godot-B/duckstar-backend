@@ -14,4 +14,6 @@ public interface WeekRepository extends JpaRepository<Week, Long>, WeekRepositor
     Optional<Week> findWeekByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(LocalDateTime now1, LocalDateTime now2);
 
     Optional<Week> findWeekById(Long id);
+
+    Week findFirstByOrderByStartDateTimeDesc();
 }

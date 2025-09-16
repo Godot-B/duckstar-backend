@@ -24,7 +24,6 @@ import java.util.Map;
 public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이션 및 캐릭터 전체 검색 API 개발
 
     private final WeekService weekService;
-    private final AnimeService animeService;
 
     @Operation(summary = "분류된 편성표 조회 API", description =
             """
@@ -46,7 +45,7 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
         Long quarterId = weekService.getQuarterIdByYQ(year, quarter);
 
         return ApiResponse.onSuccess(
-                animeService.getScheduleByQuarterId(quarterId));
+                weekService.getScheduleByQuarterId(quarterId));
     }
 
     // 캐릭터 검색 결과 반환 API

@@ -18,6 +18,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 분기 관련
     QUARTER_NOT_FOUND(HttpStatus.BAD_REQUEST, "QUARTER4001", "존재하지 않는 분기입니다."),
+    QUARTER_VALUE_REQUIRED(HttpStatus.BAD_REQUEST, "QUARTER4002", "분기 값이 필요합니다."),
 
     // 주 관련
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),

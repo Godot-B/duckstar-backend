@@ -5,9 +5,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+import static java.time.DayOfWeek.*;
+
 public class QuarterUtil {
 
-    public static LocalDate getStartDateOfQuarter(LocalDate date) {
+    public record YQWRecord(
+            int yearValue,
+            int quarterValue,
+            int weekValue
+    )
+    {}
+
+    private static LocalDate getStartDateOfQuarter(LocalDate date) {
         int monthValue = date.getMonthValue();
         int month = 0;
         switch (monthValue) {
@@ -19,63 +28,55 @@ public class QuarterUtil {
         return LocalDate.of(date.getYear(), month, 1);
     }
 
-    public static LocalDate getEndDateOfQuarter(LocalDate date) {
-        LocalDate start = getStartDateOfQuarter(date);
-        return start.plusMonths(3).minusDays(1);
-    }
-
     // 특정 날짜의 분기 값 (1~4)
-    public static int getQuarterValue(LocalDate date) {
-        return ((getStartDateOfQuarter(date).getMonthValue() - 1) / 3) + 1;
+    private static int getQuarterValue(LocalDate date) {
+        LocalDate quarterStart = getStartDateOfQuarter(date);
+        return ((quarterStart.getMonthValue() - 1) / 3) + 1;
     }
 
+    // 비즈니스 규칙에 맞는 연도, 분기, 주차 계산
+    public static YQWRecord getThisWeekRecord(LocalDateTime time) {
+        LocalDate weekStartDate;
+        LocalDate weekEndDate;
 
-    // 비즈니스 규칙에 맞는 분기 계산
-    public static int getBusinessQuarter(LocalDate date) {
+        if (time.getDayOfWeek() == SUNDAY && time.getHour() < 22) {
+            weekEndDate = time.toLocalDate();
+            weekStartDate = weekEndDate.minusWeeks(1);
+        } else {
+            weekStartDate = time.with(SUNDAY).toLocalDate();
+            weekEndDate = weekStartDate.plusWeeks(1);
+        }
+
         // 주 시작(일요일)과 종료(토요일)
-        LocalDate weekStart = date.minusDays(date.getDayOfWeek().getValue() % 7);
-        LocalDate weekEnd = weekStart.plusDays(6);
 
-        int startQuarter = getQuarterValue(weekStart);
-        int endQuarter = getQuarterValue(weekEnd);
+        int startQuarterValue = getQuarterValue(weekStartDate);
+        int endQuarterValue = getQuarterValue(weekEndDate);
 
-        // 같은 분기면 바로 반환
-        if (startQuarter == endQuarter) {
-            return startQuarter;
+        // 분기 변경 주
+        if (startQuarterValue != endQuarterValue) {
+            // 경계일 요일 판단
+            LocalDate borderDate = getStartDateOfQuarter(weekEndDate);
+            if (isEarlyInWeek(borderDate.getDayOfWeek())) {
+                return new YQWRecord(weekEndDate.getYear(), endQuarterValue, 1);
+            }
         }
 
-        // 분기 경계에 걸친 주 → 각 분기에 며칠씩 포함되는지 비교
-        LocalDate startQuarterEnd = getEndDateOfQuarter(weekStart);
-        long startQuarterDays = ChronoUnit.DAYS.between(weekStart, startQuarterEnd) + 1;
-
-        LocalDate endQuarterStart = getStartDateOfQuarter(weekEnd);
-        long endQuarterDays = ChronoUnit.DAYS.between(endQuarterStart, weekEnd) + 1;
-
-        // 날짜가 더 많은 분기를 선택
-        return startQuarterDays >= endQuarterDays ? startQuarter : endQuarter;
+        return new YQWRecord(
+                weekStartDate.getYear(),
+                startQuarterValue,
+                getWeekNumberOf(weekStartDate)
+        );
     }
 
-    // 비즈니스 규칙에 따른 분기 주차 계산
-    public static int calculateBusinessWeekNumber(LocalDateTime dateTime) {
+    private static int getWeekNumberOf(LocalDate weekStartDate) {
+        LocalDate quarterStartDate = getStartDateOfQuarter(weekStartDate);
 
-        // 일요일이고 22시 이전이면 하루 전 토요일로 간주
-        if (dateTime.getDayOfWeek() == DayOfWeek.SUNDAY && dateTime.getHour() < 22) {
-            dateTime = dateTime.minusDays(1);
-        }
+        return isEarlyInWeek(quarterStartDate.getDayOfWeek()) ?
+                (int) ChronoUnit.WEEKS.between(quarterStartDate, weekStartDate) + 1:
+                (int) ChronoUnit.WEEKS.between(quarterStartDate.plusWeeks(1), weekStartDate) + 1;
+    }
 
-        LocalDate adjustedDate = dateTime.toLocalDate();
-
-        int quarter = getBusinessQuarter(adjustedDate);
-
-        // 분기 시작일 및 첫 번째 일요일 계산
-        LocalDate quarterStart = LocalDate.of(adjustedDate.getYear(), (quarter - 1) * 3 + 1, 1);
-        LocalDate firstSunday = quarterStart.minusDays(quarterStart.getDayOfWeek().getValue() % 7);
-
-        // 주 시작일
-        LocalDate weekStart = adjustedDate.minusDays(adjustedDate.getDayOfWeek().getValue() % 7);
-
-        // 주차 계산
-        long weeks = ChronoUnit.WEEKS.between(firstSunday, weekStart) + 1;
-        return (int) weeks;
+    private static boolean isEarlyInWeek(DayOfWeek day) {
+        return day == SUNDAY || day == MONDAY || day == TUESDAY || day == WEDNESDAY;
     }
 }

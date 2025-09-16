@@ -1,5 +1,7 @@
 package com.duckstar.domain;
 
+import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.SeasonType;
 import com.duckstar.domain.mapping.AnimeSeason;
@@ -47,4 +49,35 @@ public class Season extends BaseEntity {
 
     @Column(nullable = false)
     private Integer typeOrder;
+
+    protected Season(
+            Quarter quarter,
+            Integer yearValue,
+            SeasonType type,
+            Integer typeOrder
+    ) {
+        this.quarter = quarter;
+        this.yearValue = yearValue;
+        this.type = type;
+        this.typeOrder = typeOrder;
+    }
+
+    public static Season create(Quarter quarter, Integer yearValue) {
+
+        SeasonType type;
+        switch (quarter.getQuarterValue()) {
+            case 1 -> type = SeasonType.SPRING;
+            case 2 -> type = SeasonType.SUMMER;
+            case 3 -> type = SeasonType.AUTUMN;
+            case 4 -> type = SeasonType.WINTER;
+            default -> throw new QuarterHandler(ErrorStatus.QUARTER_VALUE_REQUIRED);
+        }
+
+        return new Season(
+                quarter,
+                yearValue,
+                type,
+                type.getOrder()
+        );
+    }
 }

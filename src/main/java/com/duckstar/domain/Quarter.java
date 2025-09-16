@@ -1,14 +1,13 @@
 package com.duckstar.domain;
 
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.util.QuarterUtil;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -36,4 +35,13 @@ public class Quarter extends BaseEntity {
 
     @Column(nullable = false)
     private Integer quarterValue;
+
+    protected Quarter(Integer yearValue, Integer quarterValue) {
+        this.yearValue = yearValue;
+        this.quarterValue = quarterValue;
+    }
+
+    public static Quarter create(Integer yearValue, Integer quarterValue) {
+        return new Quarter(yearValue, quarterValue);
+    }
 }
