@@ -54,43 +54,6 @@ public class VoteService {
                 .candidatesCount(animeCandidates.size())
                 .build();
     }
-//
-//    public VoteCheckDto checkVoted(String principalKey) {
-//        Week currentWeek = weekService.getCurrentWeek();
-//
-//        Optional<WeekVoteSubmission> submissionOpt =
-//                weekVoteSubmissionRepository.findByWeekIdAndPrincipalKey(currentWeek.getId(), principalKey);
-//
-//        Long submissionId = submissionOpt.map(WeekVoteSubmission::getId)
-//                .orElse(null);
-//
-//        return VoteCheckDto.of(submissionId);
-//    }
-//
-//    public AnimeVoteHistoryDto getAnimeVoteHistory(Long submissionId, String principalKey) {
-//        Week currentWeek = weekService.getCurrentWeek();
-//
-//        WeekVoteSubmission submission = weekVoteSubmissionRepository.findById(submissionId)
-//                .orElseThrow(() -> new VoteHandler(ErrorStatus.NOT_VOTED_YET));
-//
-//        if (!submission.getPrincipalKey().equals(principalKey)) {
-//            throw new VoteHandler(ErrorStatus.VOTE_HISTORY_ACCESS_DENIED);
-//        }
-//
-//        List<VoteResponseDto.AnimeBallotDto> ballotDtos = animeVoteRepository.getVoteHistoryBySubmissionId(submissionId);
-//        int size = ballotDtos.size();
-//        int normalCount = (int) ballotDtos.stream().filter(dto -> dto.getBallotType() == BallotType.NORMAL).count();
-//
-//        return AnimeVoteHistoryDto.builder()
-//                .submissionId(submissionId)
-//                .weekDto(WeekDto.from(currentWeek))
-//                .category(VoteCategory.ANIME)
-//                .normalCount(normalCount)
-//                .bonusCount(size - normalCount)
-//                .submittedAt(submission.getCreatedAt())
-//                .animeBallotDtos(ballotDtos)
-//                .build();
-//    }
 
     public AnimeVoteHistoryDto getAnimeVoteHistory(String principalKey) {
 
@@ -210,8 +173,7 @@ public class VoteService {
             AnimeVote animeVote = AnimeVote.create(
                     submission,
                     candidate,
-                    dto.getBallotType(),
-                    gender
+                    dto.getBallotType()
             );
             rows.add(animeVote);
         }

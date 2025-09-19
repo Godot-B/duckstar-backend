@@ -1,5 +1,5 @@
 package com.duckstar.domain.enums;
 
 public enum MedalType {
-    GOLD, SILVER, BRONZE, NONE,
+    GOLD, SILVER, BRONZE, NONE
 }

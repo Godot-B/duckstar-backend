@@ -23,8 +23,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 주 관련
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
 
-    // 순위 정보, 메달
-    MEDAL_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "MEDAL4001", "허용되지 않는 메달 타입입니다."),
+    // 순위 정보
+    MEDAL_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "RANK4001", "허용되지 않는 메달 타입입니다."),
+    RANK_VALUE_NOT_VALID(HttpStatus.BAD_REQUEST, "RANK4002", "순위 값은 1 이상의 정수여야 합니다."),
 
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),

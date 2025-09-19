@@ -46,10 +46,16 @@ public class Week extends BaseEntity {
     private LocalDateTime endDateTime;
 
     @Column(nullable = false)
-    private Integer animeTotalVoteCount = 0;
+    private Integer animeVotes = 0;
 
     @Column(nullable = false)
-    private Integer characterTotalVoteCount = 0;
+    private Integer animeVoterCount = 0;
+
+    @Column(nullable = false)
+    private Integer characterVotes = 0;
+
+    @Column(nullable = false)
+    private Integer characterVoterCount = 0;
 
     protected Week(
             Quarter quarter,
@@ -89,5 +95,10 @@ public class Week extends BaseEntity {
         if (status != VoteStatus.OPEN) {
             status = VoteStatus.OPEN;
         }
+    }
+
+    public void updateAnimeVotes(int animeVotes, int animeVoterCount) {
+        this.animeVotes = animeVotes;
+        this.animeVoterCount = animeVoterCount;
     }
 }

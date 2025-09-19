@@ -8,10 +8,13 @@ import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
+import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.mapping.AnimeCandidate;
+import com.duckstar.domain.mapping.AnimeVote;
+import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
-import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
+import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
@@ -27,10 +30,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.duckstar.util.QuarterUtil.*;
@@ -47,7 +50,6 @@ public class WeekService {
     private final AnimeSeasonRepository animeSeasonRepository;
     private final SeasonRepository seasonRepository;
     private final AnimeService animeService;
-    private final AnimeRepository animeRepository;
 
     public Week getCurrentWeek() {
         LocalDateTime now = LocalDateTime.now();
@@ -137,22 +139,13 @@ public class WeekService {
                 .build();
     }
 
-    @Scheduled(cron = "0 0 22 * * SUN") // 매주 일요일 22시
-    public void handleWeeklySchedule() {
-        setupWeeklyVoting(); // 1. 실시간 주 생성
-        buildDuckstars(); // 2. 지난 주 덕스타 결과 분석 (병렬 X, 순차적으로 실행)
-    }
-
     @Transactional
-    public void setupWeeklyVoting() {
-        Week lastWeek = getLastWeek();
+    public void setupWeeklyVote(LocalDateTime now, Week lastWeek, YQWRecord record) {
         int lastWeekQuarterValue = lastWeek.getQuarter().getQuarterValue();
 
         //=== 지난 투표 주 마감 ===//
         lastWeek.closeVote();
 
-        LocalDateTime now = LocalDateTime.now();
-        YQWRecord record = getThisWeekRecord(now);
         int thisQuarterValue = record.quarterValue();
 
         // 분기, 시즌 찾기(생성) & 주 생성
@@ -172,9 +165,7 @@ public class WeekService {
         List<Anime> nowShowingAnimes = animeService.updateAndGetAnimes(isQuarterChanged, season);
 
         List<AnimeCandidate> animeCandidates = nowShowingAnimes.stream()
-                .map(anime -> {
-                    return AnimeCandidate.create(newWeek, anime);
-                })
+                .map(anime -> AnimeCandidate.create(newWeek, anime))
                 .toList();
         animeCandidateRepository.saveAll(animeCandidates);
 
@@ -205,10 +196,6 @@ public class WeekService {
         return quarter;
     }
 
-    private Week getLastWeek() {
-        return weekRepository.findFirstByOrderByStartDateTimeDesc();
-    }
-
     private Season getOrCreateSeason(boolean isChangedQuarter, Quarter quarter) {
         int thisYearValue = quarter.getYearValue();
         int thisQuarterValue = quarter.getQuarterValue();
@@ -223,10 +210,5 @@ public class WeekService {
             season = seasonOpt.get();
         }
         return season;
-    }
-
-    @Transactional
-    public void buildDuckstars() {
-        
     }
 }

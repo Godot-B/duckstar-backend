@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface AnimeCandidateRepository extends JpaRepository<AnimeCandidate, Long>, AnimeCandidateRepositoryCustom {
     List<AnimeCandidate> getAnimeCandidatesByWeekId(Long weekId, Pageable pageable);
+
+    List<AnimeCandidate> findAllByWeek_Id(Long weekId);
 }

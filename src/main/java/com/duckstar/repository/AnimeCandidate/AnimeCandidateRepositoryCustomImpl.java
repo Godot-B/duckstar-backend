@@ -4,6 +4,7 @@ import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.mapping.QAnimeCandidate;
 import com.duckstar.domain.mapping.QEpisode;
+import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;

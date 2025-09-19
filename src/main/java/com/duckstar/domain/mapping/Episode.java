@@ -14,9 +14,9 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_episode_ae",
-                        columnNames = {"anime_id", "episode_number"}),
+        indexes = {
+                @Index(name = "idx_episode_s",
+                        columnList = "scheduled_at"),
         }
 )
 public class Episode extends BaseEntity {
@@ -33,7 +33,7 @@ public class Episode extends BaseEntity {
 
     //=== 결방, 변칙 편성 update API 마련 필요 ===//
 
-    private Boolean isBreak;  // isBreak 면 episodeNumber = -1
+    private Boolean isBreak;
 
     private Boolean isRescheduled;
 

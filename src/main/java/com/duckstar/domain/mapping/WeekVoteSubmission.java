@@ -16,7 +16,9 @@ import lombok.NoArgsConstructor;
 @Table(
         indexes = {
                 @Index(name = "idx_submission_m",
-                        columnList = "member_id")
+                        columnList = "member_id"),
+                @Index(name = "idx_submission_w",
+                        columnList = "week_id")
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_submission_wpc",

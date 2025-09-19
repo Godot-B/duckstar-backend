@@ -45,29 +45,22 @@ public class AnimeVote extends BaseEntity {
     @Column(nullable = false)
     private Integer score;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Gender gender;
-
     protected AnimeVote(
             WeekVoteSubmission weekVoteSubmission,
             AnimeCandidate animeCandidate,
             BallotType ballotType,
-            Integer score,
-            Gender gender
+            Integer score
     ) {
         this.weekVoteSubmission = weekVoteSubmission;
         this.animeCandidate = animeCandidate;
         this.ballotType = ballotType;
         this.score = score;
-        this.gender = gender;
     }
 
     public static AnimeVote create(
             WeekVoteSubmission weekVoteSubmission,
             AnimeCandidate animeCandidate,
-            BallotType ballotType,
-            Gender gender
+            BallotType ballotType
     ) {
         int typeOrder = ballotType.getScore();
 
@@ -75,8 +68,7 @@ public class AnimeVote extends BaseEntity {
                 weekVoteSubmission,
                 animeCandidate,
                 ballotType,
-                typeOrder,
-                gender
+                typeOrder
         );
     }
 }

@@ -9,15 +9,15 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         indexes = {
                 @Index(name = "idx_anime_candidate_a",
-                        columnList = "anime_id")
+                        columnList = "anime_id"),
+                @Index(name = "idx_anime_candidate_v",
+                        columnList = "votes")
         }
 )
 public class AnimeCandidate extends BaseEntity {
@@ -34,7 +34,10 @@ public class AnimeCandidate extends BaseEntity {
     @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
-    private Integer totalVoteCount = 0;
+    @Column(nullable = false)
+    private Integer votes = 0;  // bonus 점수는 소수점 탈락
+
+    private Integer voterCount = 0;
 
     private Integer maleCount = 0;
 
@@ -50,5 +53,17 @@ public class AnimeCandidate extends BaseEntity {
 
     public static AnimeCandidate create(Week week, Anime anime) {
         return new AnimeCandidate(week, anime);
+    }
+
+    public void updateInfo(int votes, int voterCount, int femaleCount) {
+        this.votes = votes;
+        this.voterCount = voterCount;
+        this.femaleCount = femaleCount;
+
+        this.maleCount = voterCount - femaleCount;
+    }
+
+    public void setRankInfo(RankInfo rankInfo) {
+        this.rankInfo = rankInfo;
     }
 }
