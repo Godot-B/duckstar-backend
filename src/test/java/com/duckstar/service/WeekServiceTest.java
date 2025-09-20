@@ -6,7 +6,6 @@ import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
 
-@Tag("mysql")
 @SpringBootTest
 @ActiveProfiles("test-db")
 public class WeekServiceTest {
