@@ -72,7 +72,7 @@ dependencies {
 test {
 	useJUnitPlatform {
 		if (project.hasProperty('excludeTags')) {
-			excludeTags project.property('excludeTags').toString().split(',')
+			excludeTags = project.property('excludeTags').toString().split(',')
 		}
 	}
 }
