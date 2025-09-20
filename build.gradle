@@ -69,8 +69,12 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+test {
+	useJUnitPlatform {
+		if (project.hasProperty('excludeTags')) {
+			excludeTags project.property('excludeTags').toString().split(',')
+		}
+	}
 }
 
 tasks.named('jar') {

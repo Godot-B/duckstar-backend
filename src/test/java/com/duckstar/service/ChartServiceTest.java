@@ -3,12 +3,14 @@ package com.duckstar.service;
 import com.duckstar.domain.Week;
 import com.duckstar.repository.Week.WeekRepository;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 
+@Tag("mysql")
 @SpringBootTest
 @ActiveProfiles("test-db")
 public class ChartServiceTest {
