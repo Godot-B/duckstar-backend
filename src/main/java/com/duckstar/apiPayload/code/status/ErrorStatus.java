@@ -22,6 +22,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 주 관련
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
+    ROTATION_POLICY_VIOLATION(HttpStatus.BAD_REQUEST, "WEEK4002", "초기화 시간 정책을 준수해주세요."),
 
     // 순위 정보
     MEDAL_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "RANK4001", "허용되지 않는 메달 타입입니다."),

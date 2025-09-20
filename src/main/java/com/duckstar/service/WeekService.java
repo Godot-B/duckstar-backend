@@ -140,7 +140,9 @@ public class WeekService {
     }
 
     @Transactional
-    public void setupWeeklyVote(LocalDateTime now, Week lastWeek, YQWRecord record) {
+    public void setupWeeklyVote(LocalDateTime now, Long lastWeekId, YQWRecord record) {
+        Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
+                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
         int lastWeekQuarterValue = lastWeek.getQuarter().getQuarterValue();
 
         //=== 지난 투표 주 마감 ===//
@@ -148,7 +150,7 @@ public class WeekService {
 
         int thisQuarterValue = record.quarterValue();
 
-        // 분기, 시즌 찾기(생성) & 주 생성
+        //=== 분기, 시즌 찾기(or 생성) & 주 생성 ===//
         boolean isQuarterChanged = lastWeekQuarterValue != thisQuarterValue;
 
         Quarter quarter = getOrCreateQuarter(isQuarterChanged, record);
@@ -161,8 +163,8 @@ public class WeekService {
         );
         weekRepository.save(newWeek);
 
-        // 애니 후보군 생성
-        List<Anime> nowShowingAnimes = animeService.updateAndGetAnimes(isQuarterChanged, season);
+        //=== 애니 후보군 생성 ===//
+        List<Anime> nowShowingAnimes = animeService.updateAndGetAnimes(now, isQuarterChanged, season);
 
         List<AnimeCandidate> animeCandidates = nowShowingAnimes.stream()
                 .map(anime -> AnimeCandidate.create(newWeek, anime))

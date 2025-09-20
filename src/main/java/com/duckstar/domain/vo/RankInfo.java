@@ -21,7 +21,7 @@ public class RankInfo {
     @Column(length = 10, nullable = false)
     private MedalType type;
 
-    @Column(nullable = false)
+    @Column(name = "`rank`", nullable = false)
     private Integer rank;
 
     @Column(nullable = false)
@@ -30,7 +30,7 @@ public class RankInfo {
     @Column(nullable = false)
     private Double malePercent;
 
-    //== 기존 기록 필요 ==//
+    //=== 기존 기록 필요 ===//
 
     private Integer rankDiff;  // 이전 기록 없을 때 null 이며 NEW
 
@@ -73,6 +73,7 @@ public class RankInfo {
         boolean isTop10 = false;
         if (rank <= 3) {
             isPrized = true;
+            isTop10 = true;
         } else if (rank <= 10) {
             isTop10 = true;
         }
@@ -106,6 +107,9 @@ public class RankInfo {
                 rankInfo.peakRank = peakRank;
                 rankInfo.peakDate = lastRankInfo.getPeakDate();
             }
+        } else {
+            rankInfo.peakRank = rank;
+            rankInfo.peakDate = today;
         }
 
         return rankInfo;

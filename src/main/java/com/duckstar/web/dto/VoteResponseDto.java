@@ -1,9 +1,6 @@
 package com.duckstar.web.dto;
 
-import com.duckstar.domain.enums.BallotType;
-import com.duckstar.domain.enums.Medium;
-import com.duckstar.domain.enums.SeasonType;
-import com.duckstar.domain.enums.VoteCategory;
+import com.duckstar.domain.enums.*;
 import com.duckstar.web.dto.WeekResponseDto.WeekDto;
 import lombok.*;
 
@@ -72,12 +69,20 @@ public class VoteResponseDto {
     @Builder
     @Getter
     public static class AnimeCandidateListDto {
+        VoteStatus status;
+
         Long weekId;
 
         WeekDto weekDto;
 
         List<AnimeCandidateDto> animeCandidates;
         Integer candidatesCount;
+
+        public static AnimeCandidateListDto ofEmpty(VoteStatus status) {
+            return AnimeCandidateListDto.builder()
+                    .status(status)
+                    .build();
+        }
     }
 
     @Getter

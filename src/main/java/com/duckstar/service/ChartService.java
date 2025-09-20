@@ -1,5 +1,7 @@
 package com.duckstar.service;
 
+import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.mapping.AnimeCandidate;
@@ -22,15 +24,17 @@ public class ChartService {
 
     private final AnimeCandidateRepository animeCandidateRepository;
     private final AnimeVoteRepository animeVoteRepository;
+    private final WeekRepository weekRepository;
 
     @Transactional
-    public void buildDuckstars(LocalDateTime now, Week lastWeek, Week secondLastWeek) {
+    public void buildDuckstars(LocalDateTime now, Long lastWeekId, Long secondLastWeekId) {
+        Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
+                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+        //=== 투표 집계, 금주의 덕스타 결정 ===//
 
-        //== 투표 집계, 금주의 덕스타 결정 ==//
+        List<AnimeCandidate> candidates = animeCandidateRepository.findAllByWeek_Id(lastWeekId);
 
-        List<AnimeCandidate> candidates = animeCandidateRepository.findAllByWeek_Id(lastWeek.getId());
-
-        List<AnimeVote> allAnimeVotes = animeVoteRepository.findAllByWeekId(lastWeek.getId());
+        List<AnimeVote> allAnimeVotes = animeVoteRepository.findAllByWeekId(lastWeekId);
 
         Map<Long, List<AnimeVote>> animeVoteMap = allAnimeVotes.stream()
                 .collect(Collectors.groupingBy(v -> v.getAnimeCandidate().getId()));
@@ -60,28 +64,40 @@ public class ChartService {
                 .count();
         lastWeek.updateAnimeVotes(totalVotes, voterCount);
 
-        //== 정렬 및 차트 만들기 ==//
+        //=== 정렬 및 차트 만들기 ===//
 
         Map<Integer, List<AnimeCandidate>> chart = buildChart(candidates);
 
-        //== 지난 순위와 결합, RankInfo 셋팅 ==//
+        //=== 지난 순위와 결합, RankInfo 셋팅 ===//
+        Week secondLastWeek = weekRepository.findWeekById(secondLastWeekId).orElse(null);
 
-        List<AnimeCandidate> lastCandidates = animeCandidateRepository.findAllByWeek_Id(secondLastWeek.getId());
+        Map<Long, RankInfo> lastRankInfoMap = Map.of();
+        if (secondLastWeek != null) {
+            List<AnimeCandidate> lastCandidates = animeCandidateRepository.findAllByWeek_Id(secondLastWeek.getId());
 
-        Map<Long, RankInfo> lastRankInfoMap = lastCandidates.stream()
-                .collect(Collectors.toMap(
-                        ac -> ac.getAnime().getId(),
-                        AnimeCandidate::getRankInfo
-                ));
+            if (lastCandidates != null && !lastCandidates.isEmpty()) {
+                lastRankInfoMap = lastCandidates.stream()
+                        .collect(Collectors.toMap(
+                                ac -> ac.getAnime().getId(),
+                                AnimeCandidate::getRankInfo
+                        ));
+            }
+        }
 
         for (Map.Entry<Integer, List<AnimeCandidate>> entry : chart.entrySet()) {
             int rank = entry.getKey();
             for (AnimeCandidate ac : entry.getValue()) {  // 동점자 각각 처리
+                double votePercent = totalVotes != 0 ?
+                        ((double) ac.getVotes() / totalVotes) * 100 :
+                        0;
+
+                int votes = ac.getVotes();
+                Double malePercent = votes != 0 ?  // 보너스 투표 하나만 있는 경우, 성비 제공 X
+                        ((double) ac.getMaleCount() / ac.getVoterCount()) * 100 :
+                        null;
+
                 Long animeId = ac.getAnime().getId();
                 RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
-
-                double votePercent = ((double) ac.getVotes() / totalVotes) * 100;
-                double malePercent = ((double) ac.getMaleCount() / ac.getVoterCount()) * 100;
 
                 RankInfo rankInfo = RankInfo.create(
                         lastRankInfo,
@@ -91,7 +107,7 @@ public class ChartService {
                         malePercent
                 );
 
-                ac.setRankInfo(rankInfo);
+                ac.setRankInfo(lastRankInfo, rankInfo);
             }
         }
     }

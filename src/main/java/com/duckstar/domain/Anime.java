@@ -5,6 +5,7 @@ import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.enums.SiteType;
+import com.duckstar.domain.vo.RankInfo;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -80,6 +81,11 @@ public class Anime extends BaseEntity {
     @Column(length = 1024)
     private String mainThumbnailUrl;
 
+    @Lob
+    private String synopsis;
+
+    //=== 순위 정보 ===//
+
     private Integer debutRank;
 
     private LocalDate debutDate;
@@ -90,10 +96,20 @@ public class Anime extends BaseEntity {
 
     private Integer weeksOnTop10;
 
-    @Lob
-    private String synopsis;
-
     public void setStatus(AnimeStatus status) {
         this.status = status;
+    }
+
+    public void updateRankInfo(RankInfo lastRankInfo, RankInfo rankInfo) {
+        this.weeksOnTop10 = rankInfo.getWeeksOnTop10();
+
+        Integer rank = rankInfo.getPeakRank();
+        LocalDate date = rankInfo.getPeakDate();
+        if (lastRankInfo == null) {
+            this.debutRank = rank;
+            this.debutDate = date;
+        }
+        this.peakRank = rank;
+        this.peakDate = date;
     }
 }

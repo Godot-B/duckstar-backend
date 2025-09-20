@@ -32,16 +32,19 @@ public class ScheduleHandler {
     @Scheduled(cron = "0 0 22 * * SUN")
     public void handleWeeklySchedule() {
         LocalDateTime now = LocalDateTime.of(LocalDate.now(), LocalTime.of(22, 0));
+        runSchedule(now);
+    }
 
+    public void runSchedule(LocalDateTime now) {
         log.info("✈️ 주간 마무리 작업 시작 - {}", now.format(FORMATTER));
         try {
             Week lastWeek = weekRepository.findFirstByOrderByStartDateTimeDesc();
+            Long lastWeekId = lastWeek.getId();
             YQWRecord record = getThisWeekRecord(now);
-
-            weekService.setupWeeklyVote(now, lastWeek, record);  // 1. 새로운 주 생성
+            weekService.setupWeeklyVote(now, lastWeekId, record);  // 1. 새로운 주 생성
 
             Week secondLastWeek = weekRepository.findSecondByOrderByStartDateTimeDesc();
-            chartService.buildDuckstars(now, lastWeek, secondLastWeek);  // 2. 지난 주 덕스타 결과 분석
+            chartService.buildDuckstars(now, lastWeekId, secondLastWeek.getId());  // 2. 지난 주 덕스타 결과 분석
 
             //TODO 3. 해외 순위 수집
 

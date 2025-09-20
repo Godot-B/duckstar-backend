@@ -63,7 +63,8 @@ public class AnimeCandidate extends BaseEntity {
         this.maleCount = voterCount - femaleCount;
     }
 
-    public void setRankInfo(RankInfo rankInfo) {
+    public void setRankInfo(RankInfo lastRankInfo, RankInfo rankInfo) {
         this.rankInfo = rankInfo;
+        this.anime.updateRankInfo(lastRankInfo, rankInfo);
     }
 }

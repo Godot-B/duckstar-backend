@@ -1,9 +1,13 @@
 package com.duckstar.util;
 
+import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.WeekHandler;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 
 import static java.time.DayOfWeek.*;
 
@@ -38,16 +42,14 @@ public class QuarterUtil {
     public static YQWRecord getThisWeekRecord(LocalDateTime time) {
         LocalDate weekStartDate;
         LocalDate weekEndDate;
-
-        if (time.getDayOfWeek() == SUNDAY && time.getHour() < 22) {
-            weekEndDate = time.toLocalDate();
-            weekStartDate = weekEndDate.minusWeeks(1);
-        } else {
-            weekStartDate = time.with(SUNDAY).toLocalDate();
-            weekEndDate = weekStartDate.plusWeeks(1);
+        if (!time.getDayOfWeek().equals(SUNDAY) || time.getHour() < 22) {
+            throw new WeekHandler(ErrorStatus.ROTATION_POLICY_VIOLATION);
         }
 
         // 주 시작(일요일)과 종료(토요일)
+        // 여기서는 분기 변경 계산을 위해 종료일을 토요일로 간주
+        weekStartDate = time.toLocalDate();
+        weekEndDate = weekStartDate.plusDays(6);
 
         int startQuarterValue = getQuarterValue(weekStartDate);
         int endQuarterValue = getQuarterValue(weekEndDate);
@@ -70,10 +72,10 @@ public class QuarterUtil {
 
     private static int getWeekNumberOf(LocalDate weekStartDate) {
         LocalDate quarterStartDate = getStartDateOfQuarter(weekStartDate);
-
+        LocalDate lastSunday = quarterStartDate.with(TemporalAdjusters.previousOrSame(SUNDAY));
         return isEarlyInWeek(quarterStartDate.getDayOfWeek()) ?
-                (int) ChronoUnit.WEEKS.between(quarterStartDate, weekStartDate) + 1:
-                (int) ChronoUnit.WEEKS.between(quarterStartDate.plusWeeks(1), weekStartDate) + 1;
+                (int) ChronoUnit.WEEKS.between(lastSunday, weekStartDate) + 1 :
+                (int) ChronoUnit.WEEKS.between(lastSunday, weekStartDate);
     }
 
     private static boolean isEarlyInWeek(DayOfWeek day) {

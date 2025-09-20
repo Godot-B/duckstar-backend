@@ -42,10 +42,16 @@ public class VoteService {
     public AnimeCandidateListDto getAnimeCandidateList() {
         Week currentWeek = weekService.getCurrentWeek();
 
+        VoteStatus status = currentWeek.getStatus();
+        if (status != VoteStatus.OPEN) {
+            return AnimeCandidateListDto.ofEmpty(status);
+        }
+
         List<AnimeCandidateDto> animeCandidates =
                 animeCandidateRepository.getAnimeCandidateDtosByWeekId(currentWeek.getId());
 
         return AnimeCandidateListDto.builder()
+                .status(status)
                 .weekId(currentWeek.getId())
                 .weekDto(WeekDto.from(currentWeek))
                 .animeCandidates(

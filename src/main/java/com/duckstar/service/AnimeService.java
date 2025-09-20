@@ -6,7 +6,9 @@ import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.enums.AnimeStatus;
+import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.AnimeCandidate;
+import com.duckstar.domain.mapping.AnimeSeason;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
@@ -22,8 +24,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 
@@ -112,46 +117,58 @@ public class AnimeService {
     }
 
     @Transactional
-    public List<Anime> updateAndGetAnimes(boolean isQuarterChanged, Season season) {
+    public List<Anime> updateAndGetAnimes(LocalDateTime now, boolean isQuarterChanged, Season season) {
         List<Anime> animes = animeRepository.findAllByStatusOrStatus(AnimeStatus.UPCOMING, AnimeStatus.NOW_SHOWING);
-        LocalDateTime now = LocalDateTime.now();
 
         LocalDateTime threshold = now.plusWeeks(1);
 
-        return animes.stream()
-                .peek(anime -> {
-                    if (anime.getStatus() == AnimeStatus.UPCOMING) {
-                        if (!threshold.isBefore(anime.getPremiereDateTime())) {
-                            anime.setStatus(AnimeStatus.NOW_SHOWING);
-                        }
-                    } else if (anime.getStatus() == AnimeStatus.NOW_SHOWING) {
-                        // 분기마다 수십 개 수준이라 가능,,
-                        // 수백~ 수천 등 더 많아지면 N+1 이슈 고려해야 함.
-                        LocalDateTime lastEpScheduledAt = findLastEpScheduledAt(anime).orElseThrow(() ->
-                                        new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND))
-                                .getScheduledAt();
+        // 방영 상태 업데이트
+        animes.forEach(anime -> updateAnimeStatus(now, anime, threshold));
 
-                        if (!now.isBefore(lastEpScheduledAt)) {
-                            anime.setStatus(AnimeStatus.ENDED);
-                        }
-                    }
-                })
-                .filter(anime -> isQuarterChanged ?
-                        anime.getStatus() == AnimeStatus.NOW_SHOWING :
-                        anime.getStatus() == AnimeStatus.NOW_SHOWING && isEligibleForNextSeason(anime, season)
-                )
+        // 시즌 애니메이션
+        List<Anime> seasonAnimes = animeSeasonRepository.findAllBySeason_Id(season.getId()).stream()
+                .map(AnimeSeason::getAnime)
+                .filter(anime -> anime.getStatus() != AnimeStatus.UPCOMING)
                 .toList();
+
+        Set<Long> set = new HashSet<>();
+        List<Anime> result;
+
+        // 바뀐 주차까지만 합집합
+        if (isQuarterChanged) {
+            result = Stream.concat(
+                            animes.stream()
+                                    .filter(anime -> anime.getStatus() == AnimeStatus.NOW_SHOWING),
+                            seasonAnimes.stream()
+                    )
+                    .filter(anime -> set.add(anime.getId()))
+                    .toList();
+        } else {
+            result = seasonAnimes;
+        }
+
+        return result;
     }
 
-    private boolean isEligibleForNextSeason(Anime anime, Season season) {
-        LocalDateTime cutOff = LocalDateTime.of(
-                season.getYearValue(),
-                season.getType().getStartDate().getMonth(),
-                season.getType().getStartDate().getDayOfMonth(),
-                22,
-                0
-        );
-        return !anime.getPremiereDateTime().isBefore(cutOff);
+    private void updateAnimeStatus(LocalDateTime now, Anime anime, LocalDateTime threshold) {
+        if (anime.getStatus() == AnimeStatus.UPCOMING) {
+            boolean isShowingThisWeek = !threshold.isBefore(anime.getPremiereDateTime());
+            if (isShowingThisWeek) {
+                anime.setStatus(AnimeStatus.NOW_SHOWING);
+            }
+        } else if (anime.getStatus() == AnimeStatus.NOW_SHOWING) {
+            // 분기마다 수십 개 수준이라 가능,,
+            // 수백~ 수천 등 더 많아지면 N+1 이슈 고려해야 함.
+            Episode episode = findLastEpScheduledAt(anime).orElse(null);
+            LocalDateTime lastEpScheduledAt = episode != null ?
+                    episode.getScheduledAt() :
+                    null;
+
+            boolean isAfterLastEpisode = lastEpScheduledAt != null && !now.isBefore(lastEpScheduledAt);
+            if (isAfterLastEpisode) {
+                anime.setStatus(AnimeStatus.ENDED);
+            }
+        }
     }
 
     private Optional<Episode> findLastEpScheduledAt(Anime anime) {
