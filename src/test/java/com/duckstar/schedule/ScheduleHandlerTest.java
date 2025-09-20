@@ -1,17 +1,13 @@
 //package com.duckstar.schedule;
 //
-//import org.junit.jupiter.api.Tag;
 //import org.junit.jupiter.api.Test;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.test.context.ActiveProfiles;
 //import org.springframework.transaction.annotation.Transactional;
 //
 //import java.time.LocalDateTime;
 //
-//@Tag("mysql")
 //@SpringBootTest
-//@ActiveProfiles("test-db")
 //public class ScheduleHandlerTest {
 //    @Autowired
 //    ScheduleHandler scheduleHandler;
