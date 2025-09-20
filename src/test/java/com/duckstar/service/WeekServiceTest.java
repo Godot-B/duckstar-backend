@@ -5,7 +5,6 @@ import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Week.WeekRepository;
-import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +24,7 @@ public class WeekServiceTest {
 
     @Autowired WeekService weekService;
     @Autowired WeekRepository weekRepository;
-    @Autowired
-    private AnimeCandidateRepository animeCandidateRepository;
+    @Autowired AnimeCandidateRepository animeCandidateRepository;
 
     @Test
     @Transactional

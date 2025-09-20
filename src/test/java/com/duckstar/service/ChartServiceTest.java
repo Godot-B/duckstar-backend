@@ -10,11 +10,9 @@ import org.springframework.test.annotation.Rollback;
 
 @SpringBootTest
 public class ChartServiceTest {
-    @Autowired
-    ChartService chartService;
 
-    @Autowired
-    WeekRepository weekRepository;
+    @Autowired ChartService chartService;
+    @Autowired WeekRepository weekRepository;
 
     @Test
     @Rollback(false)
