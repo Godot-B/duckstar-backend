@@ -10,6 +10,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("test-db")
 public class ChartServiceTest {
 
@@ -18,7 +19,6 @@ public class ChartServiceTest {
 
     @Test
     @Rollback(false)
-    @Disabled("수동 실행 전용")
     public void buildChartTest() throws Exception {
         long start = System.nanoTime();
 

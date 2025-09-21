@@ -1,5 +1,6 @@
 //package com.duckstar.schedule;
 //
+//import org.junit.jupiter.api.Disabled;
 //import org.junit.jupiter.api.Test;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +11,7 @@
 //
 //@SpringBootTest
 //@ActiveProfiles("test-db")
+//@Disabled("로컬 개발용 테스트")
 //public class ScheduleHandlerTest {
 //    @Autowired
 //    ScheduleHandler scheduleHandler;

@@ -6,6 +6,7 @@ import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +22,7 @@ import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
 
 @SpringBootTest
+@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("test-db")
 public class WeekServiceTest {
 
