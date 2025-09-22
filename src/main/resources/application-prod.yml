@@ -65,10 +65,6 @@ server:
         secure: true                      # HTTPS 전용
         http-only: true
         same-site: Lax
-  ssl:
-    trust-store: classpath:truststore.p12
-    trust-store-password: secret
-    trust-store-type: PKCS12
 
 logging:
   level:
