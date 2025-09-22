@@ -16,10 +16,6 @@ import java.time.LocalDateTime;
         indexes = {
                 @Index(name = "idx_quarter_yq",
                         columnList = "year_value, quarter_value")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_quarter_yq",
-                        columnNames = {"year_value", "quarter_value"})
         }
 )
 public class Quarter extends BaseEntity {

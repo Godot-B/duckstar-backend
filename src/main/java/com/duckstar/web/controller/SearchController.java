@@ -1,15 +1,11 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
-import com.duckstar.domain.enums.DayOfWeekShort;
-import com.duckstar.service.AnimeService;
+import com.duckstar.domain.enums.SeasonType;
 import com.duckstar.service.WeekService;
-import com.duckstar.web.dto.SearchResponseDto;
-import com.duckstar.web.dto.SearchResponseDto.AnimePreviewDto;
 import com.duckstar.web.dto.SearchResponseDto.AnimePreviewListDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +21,13 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
 
     private final WeekService weekService;
 
-    @Operation(summary = "분류된 편성표 조회 API", description =
+    @GetMapping("/seasons")
+    public ApiResponse<Map<Integer, List<SeasonType>>> getSeasons() {
+        return ApiResponse.onSuccess(
+                weekService.getSeasons());
+    }
+
+    @Operation(summary = "금주의 분류된 편성표 조회 API", description =
             """
                     분기 신작 애니는 많아도 100개 이하 -> 전체 조회
                     
@@ -39,13 +41,18 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
                     2. 기본 AnimeStatus 표시
                     3. 오늘과 같은 요일이고 && NOW_SHOWING && 아직 방영안한 애니들만: 방영까지 남은 시간 표시
                     4. 검색 - 애니메이션 제목 쿼리, 애니메이션 OTT 태그 필터 (프론트 메모리 상에서)""")
-    @GetMapping("/{year}/{quarter}")
-    public ApiResponse<AnimePreviewListDto> getSchedule(
-            @PathVariable Integer year, @PathVariable Integer quarter) {
-        Long quarterId = weekService.getQuarterIdByYQ(year, quarter);
-
+    @GetMapping
+    public ApiResponse<AnimePreviewListDto> getWeeklySchedule() {
         return ApiResponse.onSuccess(
-                weekService.getScheduleByQuarterId(quarterId));
+                weekService.getWeeklySchedule());
+    }
+
+    @Operation(summary = "특정 시즌의 분류된 편성표 조회 API")
+    @GetMapping("/{year}/{quarter}")
+    public ApiResponse<AnimePreviewListDto> getScheduleByQuarter(
+            @PathVariable Integer year, @PathVariable Integer quarter) {
+        return ApiResponse.onSuccess(
+                weekService.getScheduleByQuarterId(year, quarter));
     }
 
     // 캐릭터 검색 결과 반환 API

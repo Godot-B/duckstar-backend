@@ -50,4 +50,9 @@ public class Character extends BaseEntity {
     private LocalDate peakDate;
 
     private Integer weeksOnTop10;
+
+    public void updateImage(String mainImageUrl, String mainThumbnailUrl) {
+        this.mainImageUrl = mainImageUrl;
+        this.mainThumbnailUrl = mainThumbnailUrl;
+    }
 }

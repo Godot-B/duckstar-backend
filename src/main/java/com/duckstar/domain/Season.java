@@ -66,10 +66,10 @@ public class Season extends BaseEntity {
 
         SeasonType type;
         switch (quarter.getQuarterValue()) {
-            case 1 -> type = SeasonType.SPRING;
-            case 2 -> type = SeasonType.SUMMER;
-            case 3 -> type = SeasonType.AUTUMN;
-            case 4 -> type = SeasonType.WINTER;
+            case 1 -> type = SeasonType.WINTER;
+            case 2 -> type = SeasonType.SPRING;
+            case 3 -> type = SeasonType.SUMMER;
+            case 4 -> type = SeasonType.AUTUMN;
             default -> throw new QuarterHandler(ErrorStatus.QUARTER_VALUE_REQUIRED);
         }
 

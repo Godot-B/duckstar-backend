@@ -4,9 +4,7 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -40,4 +38,36 @@ public class Episode extends BaseEntity {
     private LocalDateTime scheduledAt;
 
     private LocalDateTime nextEpScheduledAt;
+
+    protected Episode(
+            Anime anime,
+            Integer episodeNumber,
+            Boolean isBreak,
+            Boolean isRescheduled,
+            LocalDateTime scheduledAt,
+            LocalDateTime nextEpScheduledAt
+    ) {
+        this.anime = anime;
+        this.episodeNumber = episodeNumber;
+        this.isBreak = isBreak;
+        this.isRescheduled = isRescheduled;
+        this.scheduledAt = scheduledAt;
+        this.nextEpScheduledAt = nextEpScheduledAt;
+    }
+
+    public static Episode create(
+            Anime anime,
+            Integer episodeNumber,
+            LocalDateTime scheduledAt,
+            LocalDateTime nextEpScheduledAt
+    ) {
+        return new Episode(
+                anime,
+                episodeNumber,
+                null,
+                null,
+                scheduledAt,
+                nextEpScheduledAt
+        );
+    }
 }

@@ -139,9 +139,9 @@ public class VoteService {
                 gender,
                 VoteCategory.ANIME
         );
-
+        WeekVoteSubmission savedSubmission;
         try {
-            weekVoteSubmissionRepository.save(submission);
+            savedSubmission = weekVoteSubmissionRepository.save(submission);
         } catch (DataIntegrityViolationException e) {
             throw new VoteHandler(ErrorStatus.ALREADY_VOTED);
         }
@@ -177,7 +177,7 @@ public class VoteService {
                     animeCandidateRepository.getReferenceById(dto.getCandidateId()); // 프록시 객체 반환
 
             AnimeVote animeVote = AnimeVote.create(
-                    submission,
+                    savedSubmission,
                     candidate,
                     dto.getBallotType()
             );
@@ -187,7 +187,7 @@ public class VoteService {
         animeVoteRepository.saveAll(rows);
 
         return VoteReceiptDto.builder()
-                .submissionId(submission.getId())
+                .submissionId(savedSubmission.getId())
                 .weekDto(WeekDto.from(ballotWeek))
                 .category(submission.getCategory())
                 .normalCount(normalCount)

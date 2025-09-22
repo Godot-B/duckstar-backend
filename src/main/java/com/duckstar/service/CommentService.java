@@ -200,7 +200,7 @@ public class CommentService {
 
             if (likeOpt.isEmpty()) {
                 commentLike = CommentLike.create(comment, member);
-                commentLikeRepository.save(commentLike);
+                commentLike = commentLikeRepository.save(commentLike);
             }
         }
 

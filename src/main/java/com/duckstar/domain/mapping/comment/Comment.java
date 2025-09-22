@@ -102,4 +102,8 @@ public abstract class Comment extends BaseEntity {
     public void removeReply() {
         if (replyCount > 0) replyCount -= 1;
     }
+
+    public void setEpisode(Episode episode) {
+        this.episode = episode;
+    }
 }

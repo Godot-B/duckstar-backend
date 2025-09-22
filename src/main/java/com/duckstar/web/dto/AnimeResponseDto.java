@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static com.duckstar.web.dto.EpisodeResponseDto.*;
+
 public class AnimeResponseDto {
 
     @Builder
@@ -24,7 +26,7 @@ public class AnimeResponseDto {
 
         AnimeStatDto animeStatDto;
 
-        List<EpisodeDto> episodeDtos;
+        List<EpisodeDto> episodeResponseDtos;
 
         List<RackUnitDto> rackUnitDtos;
 

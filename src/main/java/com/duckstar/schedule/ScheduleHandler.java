@@ -1,7 +1,11 @@
 package com.duckstar.schedule;
 
+import com.duckstar.domain.Anime;
 import com.duckstar.domain.Week;
+import com.duckstar.domain.enums.AnimeStatus;
+import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Week.WeekRepository;
+import com.duckstar.service.AnimeService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.WeekService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +17,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
@@ -27,12 +33,30 @@ public class ScheduleHandler {
     private final ChartService chartService;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private final AnimeService animeService;
+    private final ScheduleState scheduleState;
+
+    // 매 분마다 시작 or 종영 체크
+    @Scheduled(fixedRate = 60000)
+    public void checkAnimeStatus() {
+        if (scheduleState.isAdminMode()) {
+            return;
+        }
+
+        animeService.updateAnimeStatusByMinute();
+    }
 
     // 매주 일요일 22시
     @Scheduled(cron = "0 0 22 * * SUN")
     public void handleWeeklySchedule() {
-        LocalDateTime now = LocalDateTime.of(LocalDate.now(), LocalTime.of(22, 0));
-        runSchedule(now);
+        scheduleState.startRunning();
+
+        try {
+            LocalDateTime now = LocalDateTime.of(LocalDate.now(), LocalTime.of(22, 0));
+            runSchedule(now);
+        } finally {
+            scheduleState.stopRunning();
+        }
     }
 
     public void runSchedule(LocalDateTime now) {

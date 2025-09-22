@@ -44,6 +44,8 @@ public class SearchResponseDto {
 
         LocalDateTime scheduledAt;
 
+        String airTime;     // 방영시간 (HH:mm 형식)
+
         String genre;
 
         Medium medium;

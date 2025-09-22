@@ -77,11 +77,11 @@ public class SecurityConfig {
                         .authenticated()
 
                         .requestMatchers(
-                                "/api/v1/**", "/import/**"
+                                "/api/v1/**"
                         ).permitAll()
 
                         .requestMatchers(
-                                "/admin/**"
+                                "/api/admin/**"
                         ).hasRole("ADMIN")
 
                         .anyRequest().authenticated()

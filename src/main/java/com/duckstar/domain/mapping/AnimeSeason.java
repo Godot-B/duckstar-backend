@@ -9,8 +9,6 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
-@AllArgsConstructor
 public class AnimeSeason extends BaseEntity {
 
     @Id
@@ -24,4 +22,13 @@ public class AnimeSeason extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "season_id", nullable = false)
     private Season season;
+
+    protected AnimeSeason(Anime anime, Season season) {
+        this.anime = anime;
+        this.season = season;
+    }
+
+    public static AnimeSeason create(Anime anime, Season season) {
+        return new AnimeSeason(anime, season);
+    }
 }

@@ -1,20 +1,16 @@
 package com.duckstar.repository.Episode;
 
 import com.duckstar.domain.QWeek;
-import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.QEpisode;
-import com.duckstar.web.dto.EpisodeDto;
+import com.duckstar.web.dto.EpisodeResponseDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import static com.duckstar.web.dto.EpisodeDto.*;
+import static com.duckstar.web.dto.EpisodeResponseDto.*;
 
 @Repository
 @RequiredArgsConstructor

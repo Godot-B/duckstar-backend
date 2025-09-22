@@ -42,9 +42,6 @@ public class QuarterUtil {
     public static YQWRecord getThisWeekRecord(LocalDateTime time) {
         LocalDate weekStartDate;
         LocalDate weekEndDate;
-        if (!time.getDayOfWeek().equals(SUNDAY) || time.getHour() < 22) {
-            throw new WeekHandler(ErrorStatus.ROTATION_POLICY_VIOLATION);
-        }
 
         // 주 시작(일요일)과 종료(토요일)
         // 여기서는 분기 변경 계산을 위해 종료일을 토요일로 간주

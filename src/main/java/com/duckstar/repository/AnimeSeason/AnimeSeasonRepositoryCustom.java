@@ -12,5 +12,6 @@ public interface AnimeSeasonRepositoryCustom {
             LocalDateTime weekStart,
             LocalDateTime weekEnd
     );
+    List<AnimePreviewDto> getSeasonAnimePreviewsByQuarter(Long quarterId);
     List<SeasonDto> getSeasonDtosByAnimeId(Long animeId);
 }

@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface AnimeRepository extends JpaRepository<Anime, Long> {
     List<Anime> findAllByStatusOrStatus(AnimeStatus status1, AnimeStatus status2);
+    List<Anime> findAllByIdGreaterThanEqual(Long idIsGreaterThan);
 }

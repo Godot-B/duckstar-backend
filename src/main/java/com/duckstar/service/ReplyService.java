@@ -177,7 +177,7 @@ public class ReplyService {
 
             if (likeOpt.isEmpty()) {
                 replyLike = ReplyLike.create(reply, member);
-                replyLikeRepository.save(replyLike);
+                replyLike = replyLikeRepository.save(replyLike);
             }
         }
 

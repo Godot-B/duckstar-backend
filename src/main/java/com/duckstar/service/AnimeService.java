@@ -2,35 +2,36 @@ package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
-import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
+import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.enums.AnimeStatus;
-import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.domain.mapping.AnimeSeason;
 import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
+import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
+import com.duckstar.schedule.ScheduleState;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
+import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
+import static com.duckstar.web.dto.EpisodeResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +44,8 @@ public class AnimeService {
     private final AnimeOttRepository animeOttRepository;
     private final AnimeCharacterRepository animeCharacterRepository;
     private final EpisodeRepository episodeRepository;
+    private final ScheduleState scheduleState;
+    private final AnimeCommentRepository animeCommentRepository;
 
     public Anime findByIdOrThrow(Long animeId) {
         return animeRepository.findById(animeId).orElseThrow(() ->
@@ -104,7 +107,7 @@ public class AnimeService {
         return AnimeHomeDto.builder()
                 .animeInfoDto(animeInfoDto)
                 .animeStatDto(animeStatDto)
-                .episodeDtos(
+                .episodeResponseDtos(
                         episodeRepository.getEpisodeDtosByAnimeId(animeId)
                 )
                 .rackUnitDtos(
@@ -117,13 +120,8 @@ public class AnimeService {
     }
 
     @Transactional
-    public List<Anime> updateAndGetAnimes(LocalDateTime now, boolean isQuarterChanged, Season season) {
+    public List<Anime> getAnimesForCandidate(boolean isQuarterChanged, Season season) {
         List<Anime> animes = animeRepository.findAllByStatusOrStatus(AnimeStatus.UPCOMING, AnimeStatus.NOW_SHOWING);
-
-        LocalDateTime threshold = now.plusWeeks(1);
-
-        // 방영 상태 업데이트
-        animes.forEach(anime -> updateAnimeStatus(now, anime, threshold));
 
         // 시즌 애니메이션
         List<Anime> seasonAnimes = animeSeasonRepository.findAllBySeason_Id(season.getId()).stream()
@@ -150,10 +148,25 @@ public class AnimeService {
         return result;
     }
 
-    private void updateAnimeStatus(LocalDateTime now, Anime anime, LocalDateTime threshold) {
+    @Transactional
+    public void updateAnimeStatusByMinute() {
+        List<Anime> animes = animeRepository.findAllByStatusOrStatus(AnimeStatus.UPCOMING, AnimeStatus.NOW_SHOWING);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 방영 상태 업데이트
+        animes.forEach(anime -> updateAnimeStatus(now, anime));
+    }
+
+    public void updateAnimeStatus(LocalDateTime now, Anime anime) {
+        LocalDateTime premiereDateTime = anime.getPremiereDateTime();
+        if (premiereDateTime == null) {
+            return;
+        }
+
         if (anime.getStatus() == AnimeStatus.UPCOMING) {
-            boolean isShowingThisWeek = !threshold.isBefore(anime.getPremiereDateTime());
-            if (isShowingThisWeek) {
+            boolean isPremiered = !now.isBefore(premiereDateTime);
+            if (isPremiered) {
                 anime.setStatus(AnimeStatus.NOW_SHOWING);
             }
         } else if (anime.getStatus() == AnimeStatus.NOW_SHOWING) {
@@ -173,5 +186,103 @@ public class AnimeService {
 
     private Optional<Episode> findLastEpScheduledAt(Anime anime) {
         return episodeRepository.findTopByAnimeOrderByEpisodeNumberDesc(anime);
+    }
+
+    @Transactional
+    public EpisodeResultDto updateTotalEpisodes(Long animeId, EpisodeRequestDto request) {
+        if (scheduleState.isWeeklyScheduleRunning()) {
+            throw new WeekHandler(ErrorStatus.SCHEDULE_RUNNING);
+        }
+
+        scheduleState.startAdminMode();
+        try {
+            Anime anime = animeRepository.findById(animeId)
+                    .orElseThrow(() -> new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
+
+            Integer oldTotalEpisodes = anime.getTotalEpisodes();
+            oldTotalEpisodes = oldTotalEpisodes == null ? 12 : oldTotalEpisodes;
+            int lastEpisodeNumber = oldTotalEpisodes;
+
+            Integer newTotalEpisodes = request.getTotalEpisodes();
+
+            List<Episode> episodes = episodeRepository.findAllByAnime_IdOrderByEpisodeNumberAsc(animeId);
+
+            if (oldTotalEpisodes.equals(newTotalEpisodes)) {
+                return EpisodeResultDto.builder()
+                        .message("에피소드 수 변화 없음")
+                        .build();
+
+            } else if (oldTotalEpisodes < newTotalEpisodes) {
+                anime.updateTotalEpisodes(newTotalEpisodes);
+                Episode lastEpisode = episodes.get(episodes.size() - 1);
+
+                int diff = newTotalEpisodes - oldTotalEpisodes;
+                LocalDateTime scheduledAt = lastEpisode.getNextEpScheduledAt();
+
+                LocalDateTime nextEpScheduledAt;
+                List<EpisodePreviewDto> addedEpisodes = new ArrayList<>();
+                for (int i = 0; i < diff; i++) {
+                    int episodeNumber = lastEpisodeNumber + i + 1;
+                    nextEpScheduledAt = scheduledAt.plusWeeks(1);
+                    Episode episode = Episode.create(
+                            anime,
+                            episodeNumber,
+                            scheduledAt,
+                            nextEpScheduledAt
+                    );
+                    Episode saved = episodeRepository.save(episode);
+
+                    animeCommentRepository.findAllByAnime_IdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                            anime.getId(), scheduledAt, nextEpScheduledAt)
+                    .forEach(ac -> ac.setEpisode(saved));
+
+                    addedEpisodes.add(EpisodePreviewDto.of(episode));
+
+                    scheduledAt = scheduledAt.plusWeeks(1);
+                }
+                return EpisodeResultDto.builder()
+                        .message("에피소드 추가: " + diff + "개")
+                        .addedEpisodes(addedEpisodes)
+                        .build();
+
+            } else {
+                anime.updateTotalEpisodes(newTotalEpisodes);
+                int newLastEpisodeNumber = newTotalEpisodes;
+
+                // 삭제되어야 하는 에피소드 id들
+                List<Long> episodeIdsToDelete = episodes.stream()
+                        .filter(ep -> ep.getEpisodeNumber() > newLastEpisodeNumber &&
+                                ep.getEpisodeNumber() <= lastEpisodeNumber)
+                        .map(Episode::getId)
+                        .toList();
+
+                List<EpisodePreviewDto> deletedEpisodes = new ArrayList<>();
+                int episodeNumber = newLastEpisodeNumber + 1;
+                for (Long episodeId : episodeIdsToDelete) {
+                    List<AnimeComment> comments = animeCommentRepository.findAllByEpisode_Id(episodeId);
+
+                    // 댓글에서 끊어야 할 에피소드 관계 끊기
+                    comments.forEach(ac -> ac.setEpisode(null));
+
+                    deletedEpisodes.add(
+                            EpisodePreviewDto.builder()
+                                    .episodeId(episodeId)
+                                    .episodeNumber(episodeNumber)
+                                    .build()
+                    );
+                    episodeNumber += 1;
+                }
+                episodeRepository.deleteAllById(episodeIdsToDelete);
+
+                int diff = oldTotalEpisodes - newTotalEpisodes;
+                return EpisodeResultDto.builder()
+                        .message("에피소드 삭제: " + diff + "개")
+                        .deletedEpisodes(deletedEpisodes)
+                        .build();
+            }
+
+        } finally {
+            scheduleState.stopAdminMode();
+        }
     }
 }

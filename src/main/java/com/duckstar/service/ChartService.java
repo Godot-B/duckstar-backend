@@ -30,8 +30,8 @@ public class ChartService {
     public void buildDuckstars(LocalDateTime now, Long lastWeekId, Long secondLastWeekId) {
         Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
-        //=== 투표 집계, 금주의 덕스타 결정 ===//
 
+        //=== 투표 집계, 금주의 덕스타 결정 ===//
         List<AnimeCandidate> candidates = animeCandidateRepository.findAllByWeek_Id(lastWeekId);
 
         List<AnimeVote> allAnimeVotes = animeVoteRepository.findAllByWeekId(lastWeekId);
@@ -65,7 +65,6 @@ public class ChartService {
         lastWeek.updateAnimeVotes(totalVotes, voterCount);
 
         //=== 정렬 및 차트 만들기 ===//
-
         Map<Integer, List<AnimeCandidate>> chart = buildChart(candidates);
 
         //=== 지난 순위와 결합, RankInfo 셋팅 ===//

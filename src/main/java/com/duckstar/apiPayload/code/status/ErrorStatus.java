@@ -19,10 +19,12 @@ public enum ErrorStatus implements BaseErrorCode {
     // 분기 관련
     QUARTER_NOT_FOUND(HttpStatus.BAD_REQUEST, "QUARTER4001", "존재하지 않는 분기입니다."),
     QUARTER_VALUE_REQUIRED(HttpStatus.BAD_REQUEST, "QUARTER4002", "분기 값이 필요합니다."),
+    SEASON_NOT_FOUND(HttpStatus.BAD_REQUEST, "QUARTER4003", "존재하지 않는 시즌입니다."),
 
     // 주 관련
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
     ROTATION_POLICY_VIOLATION(HttpStatus.BAD_REQUEST, "WEEK4002", "초기화 시간 정책을 준수해주세요."),
+    SCHEDULE_RUNNING(HttpStatus.BAD_REQUEST, "WEEK4003", "주간 초기화 작업이 진행 중입니다. 나중에 시도해 주세요."),
 
     // 순위 정보
     MEDAL_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "RANK4001", "허용되지 않는 메달 타입입니다."),
@@ -30,6 +32,9 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
+
+    // 캐릭터
+    CHARACTER_NOT_FOUND(HttpStatus.BAD_REQUEST, "CHARACTER4001", "존재하지 않는 캐릭터입니다."),
 
     // 에피소드
     EPISODE_NOT_FOUND(HttpStatus.BAD_REQUEST, "EPISODE4001", "존재하지 않는 에피소드입니다."),

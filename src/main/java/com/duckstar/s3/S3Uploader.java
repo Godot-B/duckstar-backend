@@ -2,7 +2,10 @@ package com.duckstar.s3;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.ImageHandler;
+import com.sksamuel.scrimage.ImmutableImage;
+import com.sksamuel.scrimage.webp.WebpWriter;
 import lombok.RequiredArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,6 +18,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -100,5 +104,45 @@ public class S3Uploader {
         }
 
         return imageUrl.substring(bucketUrl.length());
+    }
+
+    public File createThumbnail(File original, int minWidth, int minHeight) throws IOException {
+        // 원본 이미지 로드
+        ImmutableImage img = ImmutableImage.loader().fromFile(original);
+
+        int ow = img.width;
+        int oh = img.height;
+
+        // 1. 최소 배율 계산
+        double scaleW = (double) minWidth / ow;
+        double scaleH = (double) minHeight / oh;
+
+        // 2. 둘 중 더 큰 배율 선택 → 최소 크기 보장
+        double scale = Math.max(scaleW, scaleH);
+
+        int tw = (int) Math.round(ow * scale);
+        int th = (int) Math.round(oh * scale);
+
+        // 3. 리사이즈 & WebP 변환
+        ImmutableImage thumb = img.cover(tw, th);
+
+        File thumbFile = new File(original.getParent(), "thumb.webp");
+        WebpWriter writer = WebpWriter.DEFAULT.withQ(80); // 품질 80%
+        thumb.output(writer, thumbFile);
+
+        return thumbFile;
+    }
+
+    public String uploadWithKey(File file, String s3Key) {
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(s3Key)
+                .contentType("image/webp")
+                .cacheControl("public, max-age=31536000")
+                .build();
+
+        s3Client.putObject(request, RequestBody.fromFile(file));
+
+        return "https://" + bucket + "/" + s3Key;
     }
 }

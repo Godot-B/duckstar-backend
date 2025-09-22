@@ -112,4 +112,13 @@ public class Anime extends BaseEntity {
         this.peakRank = rank;
         this.peakDate = date;
     }
+
+    public void updateImage(String mainImageUrl, String mainThumbnailUrl) {
+        this.mainImageUrl = mainImageUrl;
+        this.mainThumbnailUrl = mainThumbnailUrl;
+    }
+
+    public void updateTotalEpisodes(int totalEpisodes) {
+        this.totalEpisodes = totalEpisodes;
+    }
 }
