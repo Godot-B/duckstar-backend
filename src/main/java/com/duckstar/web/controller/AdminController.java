@@ -42,4 +42,10 @@ public class AdminController {
             @PathVariable Long animeId, @RequestBody EpisodeRequestDto request) {
         return ApiResponse.onSuccess(animeService.updateTotalEpisodes(animeId, request));
     }
+
+    @Operation(summary = "애니메이션 총 화수 알 수 없음 Set API")
+    @PatchMapping(value = "/{animeId}/total-episodes/unknown")
+    public ApiResponse<EpisodeResultDto> updateTotalEpisodes(@PathVariable Long animeId) {
+        return ApiResponse.onSuccess(animeService.setUnknown(animeId));
+    }
 }

@@ -66,6 +66,8 @@ public enum ErrorStatus implements BaseErrorCode {
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4012", "리프레시 토큰이 만료되었습니다. 다시 로그인해 주세요."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "유효하지 않은 토큰입니다."),
 
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "AUTH4291", "요청 한도를 초과했습니다."),
+
     // 회원 관련
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "존재하지 않는 회원입니다."),
     PRINCIPAL_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4002", "로그인 중인 id로 회원을 찾을 수 없습니다."),

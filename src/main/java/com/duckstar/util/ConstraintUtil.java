@@ -3,7 +3,7 @@ package com.duckstar.util;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class UtilClass {
+public class ConstraintUtil {
 
     public static boolean addViolationAndFalse(
             ConstraintValidatorContext context,
@@ -30,6 +30,4 @@ public class UtilClass {
                 .addConstraintViolation();
         return false;
     }
-
-
 }

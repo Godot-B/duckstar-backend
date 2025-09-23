@@ -2,17 +2,18 @@ package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.domain.enums.SeasonType;
+import com.duckstar.service.SearchService;
 import com.duckstar.service.WeekService;
+import com.duckstar.web.dto.SearchResponseDto;
 import com.duckstar.web.dto.SearchResponseDto.AnimePreviewListDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
+import static com.duckstar.web.dto.SearchResponseDto.*;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -20,6 +21,7 @@ import java.util.Map;
 public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이션 및 캐릭터 전체 검색 API 개발
 
     private final WeekService weekService;
+    private final SearchService searchService;
 
     @GetMapping("/seasons")
     public ApiResponse<Map<Integer, List<SeasonType>>> getSeasons() {
@@ -55,8 +57,10 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
                 weekService.getScheduleByQuarterId(year, quarter));
     }
 
-    // 캐릭터 검색 결과 반환 API
-
-
-    // ⚠️ 분기 2개째 되면: 애니메이션 및 캐릭터 전체 검색 API 개발
+    @Operation(summary = "키워드를 통한 애니메이션 검색 API")
+    @GetMapping("/animes")
+    public ApiResponse<SearchResponseDto> searchAnimes(@RequestParam String query) {
+        return ApiResponse.onSuccess(
+                searchService.searchAnimes(query));
+    }
 }

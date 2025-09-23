@@ -12,6 +12,7 @@ import com.duckstar.domain.enums.SeasonType;
 import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
+import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
@@ -44,13 +45,14 @@ public class WeekService {
     private final AnimeSeasonRepository animeSeasonRepository;
     private final SeasonRepository seasonRepository;
     private final AnimeService animeService;
+    private final EpisodeRepository episodeRepository;
 
     public Week getCurrentWeek() {
         LocalDateTime now = LocalDateTime.now();
         return getWeekByTime(now);
     }
 
-    private Week getWeekByTime(LocalDateTime time) {
+    public Week getWeekByTime(LocalDateTime time) {
         return weekRepository.findWeekByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(time, time)
                 .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
     }
@@ -86,8 +88,7 @@ public class WeekService {
         LocalDateTime weekEnd = currentWeek.getEndDateTime();
 
         List<AnimePreviewDto> animePreviews =
-                animeSeasonRepository.getSeasonAnimePreviewsByQuarterAndWeek(
-                        quarterId,
+                episodeRepository.getAnimePreviewsByWeek(
                         weekStart,
                         weekEnd
                 );
@@ -116,7 +117,7 @@ public class WeekService {
     public AnimePreviewListDto getScheduleByQuarterId(Integer year, Integer quarter) {
         Long quarterId = getQuarterIdByYQ(year, quarter);
         List<AnimePreviewDto> animePreviews =
-                animeSeasonRepository.getSeasonAnimePreviewsByQuarter(quarterId);
+                animeSeasonRepository.getAnimePreviewsByQuarter(quarterId);
 
         Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
                 .collect(

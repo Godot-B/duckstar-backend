@@ -54,8 +54,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String jwtRefreshTokenFromCookie = jwtTokenProvider.resolveFromCookie(req, "REFRESH_TOKEN");
 
         // JWT 토큰 생성 및 쿠키 설정
-        LoginResponseDto loginResponse = authService.loginOrRegister
-                (
+        LoginResponseDto loginResponse = authService.loginOrRegister(
                         provider,
                         socialAccessToken,
                         socialRefreshToken,

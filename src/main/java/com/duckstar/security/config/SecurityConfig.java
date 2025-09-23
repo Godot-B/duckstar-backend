@@ -52,47 +52,32 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/home",
-                                "/signup", "/css/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
+                                "/", "/home", "/signup", "/css/**",
+                                "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-resources/**", "/webjars/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/animes/*").authenticated()
+
+                        .requestMatchers(
+                                "/api/v1/vote/**",
+                                "/api/v1/search/**",
+                                "/api/v1/animes/**",
+                                "/api/v1/home/**",
+                                "/api/v1/chart/**"
                         ).permitAll()
 
-                        .requestMatchers(
-                                "/api/v1/auth/logout",
-                                "/api/v1/auth/withdraw/kakao",
-                                "/api/v1/members/me"
-                        ).authenticated()
-//                        .requestMatchers(HttpMethod.POST, "/api/v1/vote/anime/history")
-//                        .authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/animes/{animeId}")
-                        .authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/comments/{commentId}")
-                        .authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/comments/{commentId}/replies")
-                        .authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/comments/{commentId}/replies/{replyId}")
-                        .authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/comments/*/replies/**").permitAll()
 
-                        .requestMatchers(
-                                "/api/v1/**"
-                        ).permitAll()
-
-                        .requestMatchers(
-                                "/api/admin/**"
-                        ).hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
 
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth -> oauth
-                        .tokenEndpoint(token -> token
-                                .accessTokenResponseClient(customKakaoAccessTokenResponseClient)
-                        )
-                        .successHandler(oAuth2LoginSuccessHandler)
+                .oauth2Login(oauth ->
+                        oauth.tokenEndpoint(token ->
+                                        token.accessTokenResponseClient(customKakaoAccessTokenResponseClient)
+                                )
+                                .successHandler(oAuth2LoginSuccessHandler)
                 )
-
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

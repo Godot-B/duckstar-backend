@@ -5,6 +5,7 @@ import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
+import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.domain.mapping.AnimeSeason;
@@ -17,9 +18,11 @@ import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
+import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.schedule.ScheduleState;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
+import com.duckstar.web.dto.SearchResponseDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +35,7 @@ import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
+import static com.duckstar.web.dto.SearchResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +50,7 @@ public class AnimeService {
     private final EpisodeRepository episodeRepository;
     private final ScheduleState scheduleState;
     private final AnimeCommentRepository animeCommentRepository;
+    private final WeekRepository weekRepository;
 
     public Anime findByIdOrThrow(Long animeId) {
         return animeRepository.findById(animeId).orElseThrow(() ->
@@ -121,7 +126,7 @@ public class AnimeService {
 
     @Transactional
     public List<Anime> getAnimesForCandidate(boolean isQuarterChanged, Season season) {
-        List<Anime> animes = animeRepository.findAllByStatusOrStatus(AnimeStatus.UPCOMING, AnimeStatus.NOW_SHOWING);
+        List<Anime> animes = animeRepository.findAllByStatus(AnimeStatus.NOW_SHOWING);
 
         // 시즌 애니메이션
         List<Anime> seasonAnimes = animeSeasonRepository.findAllBySeason_Id(season.getId()).stream()
@@ -135,8 +140,7 @@ public class AnimeService {
         // 바뀐 주차까지만 합집합
         if (isQuarterChanged) {
             result = Stream.concat(
-                            animes.stream()
-                                    .filter(anime -> anime.getStatus() == AnimeStatus.NOW_SHOWING),
+                            animes.stream(),
                             seasonAnimes.stream()
                     )
                     .filter(anime -> set.add(anime.getId()))
@@ -168,6 +172,14 @@ public class AnimeService {
             boolean isPremiered = !now.isBefore(premiereDateTime);
             if (isPremiered) {
                 anime.setStatus(AnimeStatus.NOW_SHOWING);
+                if (!animeCandidateRepository.existsByAnime_Id(anime.getId())) {
+                    Week week = weekRepository.findWeekByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(now, now)
+                            .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+
+                    AnimeCandidate candidate = AnimeCandidate.create(week, anime);
+
+                    animeCandidateRepository.save(candidate);
+                }
             }
         } else if (anime.getStatus() == AnimeStatus.NOW_SHOWING) {
             // 분기마다 수십 개 수준이라 가능,,
@@ -177,7 +189,7 @@ public class AnimeService {
                     episode.getScheduledAt() :
                     null;
 
-            boolean isAfterLastEpisode = lastEpScheduledAt != null && !now.isBefore(lastEpScheduledAt);
+            boolean isAfterLastEpisode = lastEpScheduledAt != null && !now.isBefore(lastEpScheduledAt.plusMinutes(24));
             if (isAfterLastEpisode) {
                 anime.setStatus(AnimeStatus.ENDED);
             }
@@ -208,6 +220,7 @@ public class AnimeService {
             List<Episode> episodes = episodeRepository.findAllByAnime_IdOrderByEpisodeNumberAsc(animeId);
 
             if (oldTotalEpisodes.equals(newTotalEpisodes)) {
+                anime.updateTotalEpisodes(12);
                 return EpisodeResultDto.builder()
                         .message("에피소드 수 변화 없음")
                         .build();
@@ -280,6 +293,33 @@ public class AnimeService {
                         .deletedEpisodes(deletedEpisodes)
                         .build();
             }
+
+        } finally {
+            scheduleState.stopAdminMode();
+        }
+    }
+
+    public Optional<Episode> findCurrentEpisode(Anime anime, LocalDateTime now) {
+        return episodeRepository
+                .findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(anime, now, now);
+    }
+
+    @Transactional
+    public EpisodeResultDto setUnknown(Long animeId) {
+        if (scheduleState.isWeeklyScheduleRunning()) {
+            throw new WeekHandler(ErrorStatus.SCHEDULE_RUNNING);
+        }
+
+        scheduleState.startAdminMode();
+        try {
+            Anime anime = animeRepository.findById(animeId)
+                    .orElseThrow(() -> new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
+
+            anime.updateTotalEpisodes(null);
+
+            return EpisodeResultDto.builder()
+                    .message("에피소드 수 미정")
+                    .build();
 
         } finally {
             scheduleState.stopAdminMode();

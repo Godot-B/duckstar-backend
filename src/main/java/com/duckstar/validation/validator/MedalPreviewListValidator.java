@@ -2,7 +2,7 @@ package com.duckstar.validation.validator;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.domain.enums.MedalType;
-import com.duckstar.util.UtilClass;
+import com.duckstar.util.ConstraintUtil;
 import com.duckstar.validation.annotation.MedalTypeSubset;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import jakarta.validation.ConstraintValidator;
@@ -30,7 +30,7 @@ public class MedalPreviewListValidator implements ConstraintValidator<MedalTypeS
                         allowedTypes.contains(dto.getType()));
 
         if (!isValid) {
-            return UtilClass.addViolationAndFalse(context, ErrorStatus.MEDAL_TYPE_NOT_VALID);
+            return ConstraintUtil.addViolationAndFalse(context, ErrorStatus.MEDAL_TYPE_NOT_VALID);
         }
 
         return isValid;

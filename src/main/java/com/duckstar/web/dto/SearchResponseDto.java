@@ -14,7 +14,12 @@ import java.util.Map;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 
+@Builder
+@Getter
 public class SearchResponseDto {
+
+    Integer size;
+    List<AnimePreviewDto> animePreviews;
 
     @Builder
     @Getter

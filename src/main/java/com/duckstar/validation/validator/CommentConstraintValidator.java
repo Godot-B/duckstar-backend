@@ -7,7 +7,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.duckstar.util.UtilClass.*;
+import static com.duckstar.util.ConstraintUtil.*;
 
 public class CommentConstraintValidator implements ConstraintValidator<CommentConstraint, CommentRequestDto> {
 

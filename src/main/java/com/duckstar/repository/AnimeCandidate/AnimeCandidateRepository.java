@@ -10,4 +10,6 @@ public interface AnimeCandidateRepository extends JpaRepository<AnimeCandidate, 
     List<AnimeCandidate> getAnimeCandidatesByWeekId(Long weekId, Pageable pageable);
 
     List<AnimeCandidate> findAllByWeek_Id(Long weekId);
+
+    boolean existsByAnime_Id(Long animeId);
 }

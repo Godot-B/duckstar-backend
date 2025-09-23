@@ -91,7 +91,7 @@ public class CommentService {
             }
         } else {
             LocalDateTime now = LocalDateTime.now();
-            episode = findCurrentEpisode(anime, now)
+            episode = animeService.findCurrentEpisode(anime, now)
                     .orElse(null);
         }
 
@@ -114,11 +114,6 @@ public class CommentService {
         AnimeComment saved = animeCommentRepository.save(animeComment);
 
         return CommentDto.ofCreated(saved, author, voteCount);
-    }
-
-    private Optional<Episode> findCurrentEpisode(Anime anime, LocalDateTime now) {
-        return episodeRepository
-                .findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(anime, now, now);
     }
 
     public AnimeCommentSliceDto getAnimeCommentSliceDto(

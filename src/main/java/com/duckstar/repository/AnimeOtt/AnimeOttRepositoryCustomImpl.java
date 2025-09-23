@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import static com.duckstar.web.dto.AnimeResponseDto.*;
+
 @Repository
 @RequiredArgsConstructor
 public class AnimeOttRepositoryCustomImpl implements AnimeOttRepositoryCustom {
@@ -19,10 +21,10 @@ public class AnimeOttRepositoryCustomImpl implements AnimeOttRepositoryCustom {
     private final QOtt ott = QOtt.ott;
 
     @Override
-    public List<AnimeResponseDto.OttDto> getOttDtosByAnimeId(Long animeId) {
+    public List<OttDto> getOttDtosByAnimeId(Long animeId) {
         return queryFactory.select(
                         Projections.constructor(
-                                AnimeResponseDto.OttDto.class,
+                                OttDto.class,
                                 ott.type,
                                 animeOtt.watchUrl
                         )
