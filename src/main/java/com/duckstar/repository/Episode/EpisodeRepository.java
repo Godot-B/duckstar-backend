@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EpisodeRepository extends JpaRepository<Episode, Long>, EpisodeRepositoryCustom {
-    Optional<Episode> findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(Anime anime, LocalDateTime scheduledAtIsLessThan, LocalDateTime nextEpScheduledAtIsGreaterThan);
+    Optional<Episode> findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(Anime anime, LocalDateTime time1, LocalDateTime time2);
     Optional<Episode> findTopByAnimeOrderByEpisodeNumberDesc(Anime anime);
 
-    List<Episode> findAllByAnime_Id(Long animeId);
+    List<Episode> findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(LocalDateTime time1, LocalDateTime time2);
 
     List<Episode> findAllByAnime_IdOrderByEpisodeNumberAsc(Long animeId);
 }

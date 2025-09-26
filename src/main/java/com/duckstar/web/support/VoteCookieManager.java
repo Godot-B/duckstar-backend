@@ -1,7 +1,5 @@
 package com.duckstar.web.support;
 
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,8 +15,11 @@ public class VoteCookieManager {
     private static final String VOTE_COOKIE = "vote_cookie_id";
     private static final long VOTE_COOKIE_TTL_SEC = 60L * 60 * 24 * 180;  // 180일
 
-    @Value("${app.jwt.secure-cookie}")
+    @Value("${app.cookie.secure}")
     private boolean secureCookie;
+
+    @Value("${app.cookie.same-site}")
+    private String sameSite;
 
     public String ensureVoteCookie(HttpServletRequest requestRaw, HttpServletResponse responseRaw) {
         String existing = null;
@@ -31,8 +32,6 @@ public class VoteCookieManager {
             }
         }
         if (existing != null && existing.isBlank()) return existing;
-
-        String sameSite = secureCookie ? "None" : "Lax";
 
         String cookieId = UUID.randomUUID().toString();
         ResponseCookie cookie = ResponseCookie.from(VOTE_COOKIE, cookieId)

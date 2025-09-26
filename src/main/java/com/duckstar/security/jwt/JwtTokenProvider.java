@@ -1,21 +1,24 @@
-package com.duckstar.security;
+package com.duckstar.security.jwt;
 
+import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.security.domain.enums.Role;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -29,32 +32,30 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        this.secretKey = Keys.hmacShaKeyFor(secretKeyRaw.getBytes());
+        this.secretKey = Keys.hmacShaKeyFor(secretKeyRaw.getBytes(StandardCharsets.UTF_8));
     }
 
     public String createAccessToken(Long memberId, Role role) {
-        return createToken(memberId, role, accessTokenValidTime);
+        return createToken(memberId, role, accessTokenValidTime, "ACCESS");
     }
 
     public String createRefreshToken(Long memberId, Role role) {
-        return createToken(memberId, role, refreshTokenValidTime);
+        return createToken(memberId, role, refreshTokenValidTime, "REFRESH");
     }
 
-    private String createToken(Long memberId, Role role, long validTime) {
+    private String createToken(Long memberId, Role role, long validTime, String type) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + validTime);
 
         return Jwts.builder()
                 .setSubject(String.valueOf(memberId))
                 .claim("role", role.name())
+                .setIssuer("duckstar.kr")
+                .claim("typ", type)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    public boolean validateClaims(Claims claims) {
-        return claims != null && !claims.getExpiration().before(new Date());
     }
 
     public boolean validateToken(String token) {
@@ -69,9 +70,26 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT 만료: {}", e.getMessage());
+            throw new AuthHandler(ErrorStatus.ACCESS_TOKEN_EXPIRED);
         } catch (JwtException | IllegalArgumentException e) {
-            return null;
+            log.warn("JWT 파싱 실패: {}", e.getMessage());
+            throw new AuthHandler(ErrorStatus.INVALID_TOKEN);
         }
+    }
+
+    private boolean validateClaims(Claims claims) {
+        return !claims.getExpiration().before(new Date()) &&
+                "duckstar.kr".equals(claims.getIssuer());
+    }
+
+    public boolean isAccessToken(Claims claims) {
+        return "ACCESS".equals(claims.get("typ", String.class));
+    }
+
+    public boolean isRefreshToken(Claims claims) {
+        return "REFRESH".equals(claims.get("typ", String.class));
     }
 
     public String resolveFromCookie(HttpServletRequest request, String name) {
@@ -83,5 +101,18 @@ public class JwtTokenProvider {
             }
         }
         return null;
+    }
+
+    public Long extractMemberId(String token) {
+        try {
+            return Long.valueOf(Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject());
+        } catch (JwtException e) {
+            throw new AuthHandler(ErrorStatus.INVALID_TOKEN);
+        }
     }
 }

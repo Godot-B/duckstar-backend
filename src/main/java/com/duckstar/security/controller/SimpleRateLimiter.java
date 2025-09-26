@@ -1,4 +1,4 @@
-package com.duckstar.security.presentation;
+package com.duckstar.security.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,10 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SimpleRateLimiter {
 
     private final Map<String, List<LocalDateTime>> requests = new ConcurrentHashMap<>();
-    private final int maxRequests = 10; // 1분당 최대 10회
-    private final Duration window = Duration.ofMinutes(1); // 1분 윈도우
 
-    public boolean isAllowed(String key) {
+    public boolean isAllowed(String key, int maxRequests, Duration window) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime cutoff = now.minus(window);
 
@@ -37,13 +35,14 @@ public class SimpleRateLimiter {
         return true;
     }
 
-    // IP별 제한
-    public boolean isAllowedByIp(String ip) {
-        return isAllowed("ip:" + ip);
+    // 편의 메서드
+    // IP 별 제한
+    public boolean isAllowedByIp(String ip, int maxRequests, Duration window) {
+        return isAllowed("ip:" + ip, maxRequests, window);
     }
 
-    // 사용자별 제한
-    public boolean isAllowedByUser(Long userId) {
-        return isAllowed("user:" + userId);
+    // 사용자 별 제한
+    public boolean isAllowedByUser(Long userId, int maxRequests, Duration window) {
+        return isAllowed("user:" + userId, maxRequests, window);
     }
 }

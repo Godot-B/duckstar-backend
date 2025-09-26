@@ -33,7 +33,7 @@ public class AnimeVoteConstraintValidator implements ConstraintValidator<AnimeVo
         }
 
         Gender gender = animeVoteRequest.getGender();
-        if (gender == Gender.NONE) {
+        if (gender == Gender.UNKNOWN) {
             return addViolationAndFalse(
                     context,
                     ErrorStatus.VOTER_GENDER_REQUIRED,

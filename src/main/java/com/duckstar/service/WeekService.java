@@ -208,7 +208,7 @@ public class WeekService {
         Week savedWeek = weekRepository.save(newWeek);
 
         //=== 애니 후보군 생성 ===//
-        List<Anime> nowShowingAnimes = animeService.getAnimesForCandidate(isQuarterChanged, season);
+        List<Anime> nowShowingAnimes = animeService.getAnimesForCandidate(isQuarterChanged, season, now);
 
         List<AnimeCandidate> animeCandidates = nowShowingAnimes.stream()
                 .map(anime -> AnimeCandidate.create(savedWeek, anime))

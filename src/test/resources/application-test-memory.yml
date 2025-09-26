@@ -34,14 +34,13 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-
 app:
-  frontend:
-    redirect-uri: "https://localhost:3000/oauth/callback"  # 로그인 성공 후 프론트로 최종 리다이렉트
   kakao:
-    admin-key: dummy
-  jwt:
-    secure-cookie: false
+    admin-key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+  cookie:
+    same-site: None
+    secure: false
 
 jwt:
   secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef

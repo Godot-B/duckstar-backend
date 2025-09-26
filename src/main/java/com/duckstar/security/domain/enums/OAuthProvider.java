@@ -1,5 +1,5 @@
 package com.duckstar.security.domain.enums;
 
 public enum OAuthProvider {
-    KAKAO,
+    KAKAO, NAVER, GOOGLE, LOCAL
 }

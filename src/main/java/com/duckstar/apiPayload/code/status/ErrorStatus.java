@@ -58,13 +58,14 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 인증 관련
     UNSUPPORTED_OAUTH_TYPE(HttpStatus.BAD_REQUEST, "AUTH4001", "지원하지 않는 소셜 로그인 제공자입니다."),
-    MEMBER_TOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4002", "회원의 JWT 토큰 데이터가 존재하지 않습니다."),
-    REFRESH_TOKEN_MISSING(HttpStatus.BAD_REQUEST, "AUTH4003", "리프레시 토큰이 요청에 포함되어 있지 않습니다.."),
-    OAUTH_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4004", "소셜 로그인 계정이 존재하지 않습니다."),
-
-    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "AUTH4011", "이미 사용된 리프레시 토큰입니다. 다시 로그인해 주세요."),
-    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4012", "리프레시 토큰이 만료되었습니다. 다시 로그인해 주세요."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "유효하지 않은 토큰입니다."),
+    REFRESH_TOKEN_MISSING(HttpStatus.BAD_REQUEST, "AUTH4002", "리프레시 토큰이 요청에 포함되어 있지 않습니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4003", "리프레시 토큰이 존재하지 않습니다."),
+//    OAUTH_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4004", "소셜 로그인 계정이 존재하지 않습니다."),
+//
+//    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "AUTH4011", "이미 사용된 리프레시 토큰입니다. 다시 로그인해 주세요."),
+    ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4011", "액세스 토큰이 만료되었습니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "유효하지 않은 토큰입니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4013", "리프레시 토큰이 만료되었습니다. 다시 로그인해 주세요."),
 
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "AUTH4291", "요청 한도를 초과했습니다."),
 

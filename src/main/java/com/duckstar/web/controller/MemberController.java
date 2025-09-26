@@ -22,13 +22,10 @@ public class MemberController {
     private final MemberService memberService;
 
     @GetMapping("/me")
-    public MePreviewDto getCurrentUser(
+    public ApiResponse<MePreviewDto> getCurrentUser(
             @AuthenticationPrincipal MemberPrincipal principal) {
-        if (principal == null) {
-            return MePreviewDto.ofEmpty();
-        } else {
-            return memberService.getCurrentUser(principal.getId());
-        }
+        return ApiResponse.onSuccess(
+                memberService.getCurrentUser(principal));
     }
 
     @Operation(summary = "프로필 수정 API", description = "닉네임 또는 프로필 이미지를 수정합니다.")

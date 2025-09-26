@@ -59,12 +59,6 @@ server:
     enabled: true
     min-response-size: 1024
     mime-types: application/json,application/javascript,text/css,text/html,text/xml,text/plain
-  servlet:
-    session:
-      cookie:
-        secure: true                      # HTTPS 전용
-        http-only: true
-        same-site: Lax
 
 logging:
   level:
@@ -74,21 +68,16 @@ logging:
     org.hibernate.type: WARN
 
 app:
-  frontend:
-    redirect-uri: "https://duckstar.kr/oauth/callback"  # 로그인 성공 후 프론트로 최종 리다이렉트
   kakao:
-    admin-key: ${KAKAO_ADMIN_KEY} #
-  jwt:
-    secure-cookie: true
+    admin-key: ${KAKAO_ADMIN_KEY}
+  cookie:
+    same-site: Lax
+    secure: true
 
 jwt:
-  secret: ${JWT_SECRET} #
+  secret: ${JWT_SECRET}
 
 cloud:
   aws:
     s3:
       bucket: img.duckstar.kr
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false

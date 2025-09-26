@@ -33,9 +33,13 @@ public class MemberService {
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
     }
 
-    public MePreviewDto getCurrentUser(Long memberId) {
-        Member member = findByIdOrThrow(memberId);
-        return MePreviewDto.of(member);
+    public MePreviewDto getCurrentUser(MemberPrincipal principal) {
+        if (principal == null) {
+            return MePreviewDto.ofEmpty();
+        } else {
+            Member member = findByIdOrThrow(principal.getId());
+            return MePreviewDto.of(member);
+        }
     }
 
     @Transactional

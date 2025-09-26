@@ -59,6 +59,6 @@ public class MemberPrincipal implements OAuth2User {
     public boolean isAdmin() {
         return authorities.stream()
                 .anyMatch(auth ->
-                        Objects.equals(auth.getAuthority(), Role.ADMIN.name()));
+                        "ROLE_ADMIN".equals(auth.getAuthority()));
     }
 }

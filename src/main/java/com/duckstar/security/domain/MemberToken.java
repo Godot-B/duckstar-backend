@@ -12,6 +12,12 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_member_token_r",
+                        columnList = "refresh_token")
+        }
+)
 public class MemberToken extends BaseEntity {
 
     @Id
@@ -25,9 +31,8 @@ public class MemberToken extends BaseEntity {
     @Lob
     private String refreshToken;     // JWT refresh token
 
+    // DB단 검증, 삭제 필요
     private LocalDateTime refreshTokenExpiresAt;
-
-    private Boolean isValid = true;         // 로그아웃 시 false
 
     protected MemberToken(
             Member member,
@@ -51,19 +56,7 @@ public class MemberToken extends BaseEntity {
         );
     }
 
-    public void invalidate() {
-        isValid = false;
-    }
-
-    public void validate() {
-        isValid = true;
-    }
-
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.refreshTokenExpiresAt);
-    }
-
-    public boolean isValid() {
-        return isValid;
     }
 }
