@@ -18,16 +18,14 @@ import java.util.Objects;
 public class RankInfo {
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(10)", nullable = false)
+    @Column(columnDefinition = "varchar(10)")
     private MedalType type;
 
-    @Column(name = "`rank`", nullable = false)
+    @Column(name = "`rank`")
     private Integer rank;
 
-    @Column(nullable = false)
     private Double votePercent;
 
-    @Column(nullable = false)
     private Double malePercent;
 
     //=== 기존 기록 필요 ===//
@@ -36,10 +34,8 @@ public class RankInfo {
 
     private Integer consecutiveWeeksAtSameRank = 0;
 
-    @Column(nullable = false)
     private Integer peakRank;
 
-    @Column(nullable = false)
     private LocalDate peakDate;
 
     private Integer weeksOnTop10;
