@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         indexes = {
-                @Index(name = "idx_submission_m",
-                        columnList = "member_id"),
+                @Index(name = "idx_submission_p",
+                        columnList = "principal_key"),
                 @Index(name = "idx_submission_w",
                         columnList = "week_id")
         },
@@ -42,6 +42,7 @@ public class WeekVoteSubmission extends BaseEntity {
     @Column(length = 64)
     private String cookieId;
 
+    // 인덱스
     @Column(length = 80, nullable = false)
     private String principalKey;
 
@@ -50,7 +51,7 @@ public class WeekVoteSubmission extends BaseEntity {
     private Gender gender;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
     private VoteCategory category;
 
     protected WeekVoteSubmission(
@@ -85,5 +86,10 @@ public class WeekVoteSubmission extends BaseEntity {
                 gender,
                 category
         );
+    }
+
+    public void setMember(Member member, String principalKey) {
+        this.member = member;
+        this.principalKey = principalKey;
     }
 }

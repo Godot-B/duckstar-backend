@@ -71,11 +71,13 @@ app:
   kakao:
     admin-key: ${KAKAO_ADMIN_KEY}
   cookie:
-    same-site: Lax
+    same-site: None
     secure: true
+  base-url: https://duckstar.kr
 
 jwt:
   secret: ${JWT_SECRET}
+  issuer: "duckstar.kr"
 
 cloud:
   aws:

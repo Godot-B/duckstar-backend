@@ -1,6 +1,8 @@
 package com.duckstar.web.dto;
 
+import com.duckstar.domain.Anime;
 import com.duckstar.domain.enums.*;
+import com.duckstar.domain.mapping.AnimeVote;
 import com.duckstar.web.dto.WeekResponseDto.WeekDto;
 import lombok.*;
 
@@ -11,24 +13,10 @@ public class VoteResponseDto {
 
     @Builder
     @Getter
-    public static class VoteReceiptDto {
-        Long submissionId;
-
-        WeekDto weekDto;
-
-        VoteCategory category;
-
-        Integer normalCount;
-
-        Integer bonusCount;
-
-        LocalDateTime submittedAt;
-    }
-
-    @Builder
-    @Getter
     public static class AnimeVoteHistoryDto {
         Boolean hasVoted;
+
+        String nickName;
 
         Long submissionId;
 
@@ -62,8 +50,6 @@ public class VoteResponseDto {
         String mainThumbnailUrl;
 
         String titleKor;
-
-        Medium medium;
     }
 
     @Builder

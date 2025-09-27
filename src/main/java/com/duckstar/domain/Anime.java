@@ -34,11 +34,11 @@ public class Anime extends BaseEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
     private Medium medium;  // TVA, MOVIE
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(columnDefinition = "varchar(20)")
     private AnimeStatus status;     // 방영(상영) 상태
 
     private Integer totalEpisodes;
@@ -53,7 +53,7 @@ public class Anime extends BaseEntity {
     private String titleEng;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 4)
+    @Column(columnDefinition = "varchar(10)")
     private DayOfWeekShort dayOfWeek;
 
     @Column(length = 5)

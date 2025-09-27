@@ -11,12 +11,14 @@ import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
+import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.CommentLikeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
 import com.duckstar.s3.S3Uploader;
 import com.duckstar.security.MemberPrincipal;
+import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
 import com.duckstar.web.dto.PageInfo;
@@ -39,22 +41,14 @@ import static com.duckstar.web.dto.BoardRequestDto.*;
 public class CommentService {
 
     private final AnimeCommentRepository animeCommentRepository;
-    private final MemberService memberService;
     private final AnimeVoteRepository animeVoteRepository;
     private final EpisodeRepository episodeRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final MemberRepository memberRepository;
+    private final AnimeRepository animeRepository;
+
     private final AnimeService animeService;
     private final S3Uploader s3Uploader;
-    private final CommentLikeRepository commentLikeRepository;
-
-    public AnimeComment findByIdOrThrow(Long commentId) {
-        return animeCommentRepository.findById(commentId).orElseThrow(() ->
-                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
-    }
-
-    private CommentLike findLikeByIdOrThrow(Long commentLikeId) {
-        return commentLikeRepository.findById(commentLikeId)
-                .orElseThrow(() -> new LikeHandler(ErrorStatus.LIKE_NOT_FOUND));
-    }
 
     @Transactional
     public CommentDto leaveAnimeComment(
@@ -66,10 +60,12 @@ public class CommentService {
             throw new AuthHandler(ErrorStatus.POST_UNAUTHORIZED);
         }
 
-        Anime anime = animeService.findByIdOrThrow(animeId);
+        Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
+                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
         Long memberId = principal.getId();
-        Member author = memberService.findByIdOrThrow(memberId);
+        Member author = memberRepository.findById(memberId).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         int voteCount = animeVoteRepository
                 .countAllByAnimeCandidate_Anime_IdAndWeekVoteSubmission_Member_Id(
@@ -172,16 +168,19 @@ public class CommentService {
             Long commentLikeId,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = findByIdOrThrow(commentId);
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
 
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
-        Member member = memberService.findByIdOrThrow(principal.getId());
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         CommentLike commentLike = null;
         if (commentLikeId != null) {
-            commentLike = findLikeByIdOrThrow(commentLikeId);
+            commentLike = commentLikeRepository.findById(commentLikeId)
+                    .orElseThrow(() -> new LikeHandler(ErrorStatus.LIKE_NOT_FOUND));
 
             if (!Objects.equals(commentLike.getComment(), comment) ||
                     !Objects.equals(commentLike.getMember(), member)) {
@@ -208,17 +207,20 @@ public class CommentService {
             Long commentLikeId,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = findByIdOrThrow(commentId);
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
 
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
-        Member member = memberService.findByIdOrThrow(principal.getId());
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         if (commentLikeId == null) {
             throw new AuthHandler(ErrorStatus.LIKE_NOT_FOUND);
         }
-        CommentLike commentLike = findLikeByIdOrThrow(commentLikeId);
+        CommentLike commentLike = commentLikeRepository.findById(commentLikeId)
+                .orElseThrow(() -> new LikeHandler(ErrorStatus.LIKE_NOT_FOUND));
 
         if (!Objects.equals(commentLike.getComment(), comment) ||
                 !Objects.equals(commentLike.getMember(), member)) {
@@ -238,7 +240,8 @@ public class CommentService {
             Long commentId,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = findByIdOrThrow(commentId);
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
 
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.DELETE_UNAUTHORIZED);

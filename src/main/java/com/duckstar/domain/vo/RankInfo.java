@@ -18,7 +18,7 @@ import java.util.Objects;
 public class RankInfo {
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
     private MedalType type;
 
     @Column(name = "`rank`", nullable = false)

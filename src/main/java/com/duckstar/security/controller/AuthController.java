@@ -68,7 +68,7 @@ public class AuthController {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
 
         Long memberId = principal.getId();
-        if (!rateLimiter.isAllowedByUser(memberId, 1, Duration.ofDays(1))) {
+        if (!rateLimiter.isAllowedByUser(memberId, 10, Duration.ofMinutes(1))) {
             throw new AuthHandler(ErrorStatus.TOO_MANY_REQUESTS);
         }
 

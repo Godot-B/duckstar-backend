@@ -50,14 +50,10 @@ public class AnimeService {
     private final AnimeOttRepository animeOttRepository;
     private final AnimeCharacterRepository animeCharacterRepository;
     private final EpisodeRepository episodeRepository;
-    private final ScheduleState scheduleState;
     private final AnimeCommentRepository animeCommentRepository;
     private final WeekRepository weekRepository;
 
-    public Anime findByIdOrThrow(Long animeId) {
-        return animeRepository.findById(animeId).orElseThrow(() ->
-                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
-    }
+    private final ScheduleState scheduleState;
 
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
         List<AnimeCandidate> animeCandidates =
@@ -73,7 +69,8 @@ public class AnimeService {
 
     public AnimeHomeDto getAnimeHomeDtoById(Long animeId) {
         // 애니 정보, 분기 성적 통계
-        Anime anime = findByIdOrThrow(animeId);
+        Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
+                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
         LocalDateTime premiereDateTime = anime.getPremiereDateTime();
 
@@ -134,15 +131,13 @@ public class AnimeService {
                 .filter(anime -> anime.getStatus() != AnimeStatus.UPCOMING)
                 .toList();
 
-        // 이번 주 방영 애니
-        List<Anime> thisWeekAnimes = episodeRepository.findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(now, now.plusWeeks(1))
-                .stream()
-                .map(Episode::getAnime)
-                .toList();
+        // 이번 주 첫 방영 애니
+        List<Anime> thisWeekComingAnimes = animeRepository
+                .findAllByPremiereDateTimeGreaterThanEqualAndPremiereDateTimeLessThan(now, now.plusWeeks(1));
 
         List<Anime> combinedList = new ArrayList<>();
         combinedList.addAll(seasonAnimes);
-        combinedList.addAll(thisWeekAnimes);
+        combinedList.addAll(thisWeekComingAnimes);
 
         // 바뀐 주차까지만 NOW_SHOWING 합집합
         if (isQuarterChanged) {

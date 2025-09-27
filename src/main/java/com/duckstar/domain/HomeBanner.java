@@ -22,11 +22,11 @@ public class HomeBanner extends BaseEntity {
     private Week week;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
     private BannerType bannerType;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
     private ContentType contentType;
 
     @Column(nullable = false)

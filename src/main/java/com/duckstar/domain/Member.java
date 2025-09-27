@@ -34,27 +34,29 @@ public class Member extends BaseEntity {
 //    private String password; // BCrypt, nullable if 소셜 로그인
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 15)
+    @Column(columnDefinition = "varchar(15)")
     private OAuthProvider provider; // KAKAO, NAVER, GOOGLE, LOCAL 등
 
-    @Column(unique = true)
     private String providerId; // 소셜 서비스에서 내려준 고유 ID
 
+    @Column(nullable = false)
     private String nickname;
 
     private String profileImageUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 15, nullable = false)
-    private Gender gender;
+    @Column(columnDefinition = "varchar(15)", nullable = false)
+    private Gender gender = Gender.UNKNOWN;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 15, nullable = false)
+    @Column(columnDefinition = "varchar(15)", nullable = false)
     private Role role = Role.USER;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 15, nullable = false)
+    @Column(columnDefinition = "varchar(15)", nullable = false)
     private MemberStatus status = MemberStatus.ACTIVE;
+
+    private Boolean profileInitialized = false;
 
     protected Member(Long id) {
         this.id = id;
@@ -67,8 +69,7 @@ public class Member extends BaseEntity {
             OAuthProvider provider,
             String providerId,
             String nickname,
-            String profileImageUrl,
-            Gender gender
+            String profileImageUrl
     ) {
 //        this.email = email;
 //        this.password = password;
@@ -76,7 +77,6 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
-        this.gender = gender;
     }
 
 //    public static Member createLocal(String email, String password, String nickname) {
@@ -87,7 +87,6 @@ public class Member extends BaseEntity {
 //                .providerId(null)
 //                .nickname(nickname)
 //                .profileImageUrl(null)
-//                .gender(null)
 //                .build();
 //    }
 
@@ -104,7 +103,6 @@ public class Member extends BaseEntity {
                 .providerId(providerId)
                 .nickname(nickname)
                 .profileImageUrl(profileImageUrl)
-                .gender(null)
                 .build();
     }
 
@@ -120,6 +118,7 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
+        this.role = Role.USER;
     }
 
     public void updateProfile(String nickname, String profileImageUrl) {
@@ -137,6 +136,13 @@ public class Member extends BaseEntity {
 //        this.password = null;
         this.nickname = "탈퇴한 회원_" + uuid;
         this.profileImageUrl = null;
-        this.gender = null;
+        this.gender = Gender.UNKNOWN;
+        this.role = Role.NONE;
+        this.profileInitialized = false;
+    }
+
+    public void updateInitializeInfo() {
+        if (!this.profileInitialized)
+            this.profileInitialized = true;
     }
 }

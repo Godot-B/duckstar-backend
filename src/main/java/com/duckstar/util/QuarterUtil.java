@@ -1,8 +1,5 @@
 package com.duckstar.util;
 
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.WeekHandler;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

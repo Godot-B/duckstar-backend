@@ -39,7 +39,7 @@ public class AnimeVote extends BaseEntity {
     private AnimeCandidate animeCandidate;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
     private BallotType ballotType;    // 보너스 2개 = 1표
 
     @Column(nullable = false)

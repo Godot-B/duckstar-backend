@@ -48,7 +48,7 @@ public class VoteController {
 
     @Operation(summary = "애니메이션 투표 API")
     @PostMapping("/anime")
-    public ApiResponse<VoteReceiptDto> voteAnime(
+    public ApiResponse<Void> voteAnime(
             @Valid @RequestBody AnimeVoteRequest request,
             @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest requestRaw,
@@ -59,13 +59,15 @@ public class VoteController {
         String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
 
-        return ApiResponse.onSuccess(
-                voteService.voteAnime(
-                        request,
-                        memberId,
-                        cookieId,
-                        principalKey
-                )
+        voteService.voteAnime(
+                request,
+                memberId,
+                cookieId,
+                principalKey,
+                requestRaw,
+                responseRaw
         );
+
+        return ApiResponse.onSuccess(null);
     }
 }

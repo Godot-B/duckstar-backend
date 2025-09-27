@@ -26,8 +26,7 @@ public class AnimeVoteRepositoryCustomImpl implements AnimeVoteRepositoryCustom 
                                 animeVote.ballotType,
                                 anime.id,
                                 anime.mainThumbnailUrl,
-                                anime.titleKor,
-                                anime.medium
+                                anime.titleKor
                         )
                 )
                 .from(animeVote)

@@ -52,7 +52,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/home", "/signup", "/css/**",
                                 "/swagger-ui/**", "/v3/api-docs/**",
-                                "/swagger-resources/**", "/webjars/**").permitAll()
+                                "/swagger-resources/**", "/webjars/**",
+
+                                // 🔑 OAuth 엔드포인트 허용
+                                "/login/**", "/oauth2/**"
+                                ).permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/animes/*").authenticated()
 
@@ -79,7 +83,7 @@ public class SecurityConfig {
                                 .successHandler(userLoginSuccessHandler)
                 )
                 // JWT 검증 필터 (모든 요청에서 AccessToken 확인)
-                .addFilterBefore(jwtAuthenticationFilter, BasicAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

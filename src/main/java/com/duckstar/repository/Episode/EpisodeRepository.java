@@ -13,7 +13,5 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
     Optional<Episode> findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(Anime anime, LocalDateTime time1, LocalDateTime time2);
     Optional<Episode> findTopByAnimeOrderByEpisodeNumberDesc(Anime anime);
 
-    List<Episode> findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(LocalDateTime time1, LocalDateTime time2);
-
     List<Episode> findAllByAnime_IdOrderByEpisodeNumberAsc(Long animeId);
 }

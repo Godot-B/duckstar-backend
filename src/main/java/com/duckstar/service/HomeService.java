@@ -24,10 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class HomeService {
-    private final AnimeService animeService;
-
     private final WeekRepository weekRepository;
     private final HomeBannerRepository homeBannerRepository;
+
+    private final AnimeService animeService;
 
     public HomeDto getHome(int size) {
         LocalDateTime now = LocalDateTime.now();

@@ -47,7 +47,7 @@ public class Reply extends BaseEntity {
     private String body;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 15, nullable = false)
+    @Column(columnDefinition = "varchar(15)", nullable = false)
     private CommentStatus status = CommentStatus.NORMAL;
 
     private Integer likeCount = 0;

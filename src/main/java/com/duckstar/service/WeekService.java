@@ -44,8 +44,9 @@ public class WeekService {
     private final QuarterRepository quarterRepository;
     private final AnimeSeasonRepository animeSeasonRepository;
     private final SeasonRepository seasonRepository;
-    private final AnimeService animeService;
     private final EpisodeRepository episodeRepository;
+
+    private final AnimeService animeService;
 
     public Week getCurrentWeek() {
         LocalDateTime now = LocalDateTime.now();
@@ -69,6 +70,7 @@ public class WeekService {
 
     public Map<Integer, List<SeasonType>> getSeasons() {
         return seasonRepository.findAll().stream()
+                .filter(Season::getIsPrepared)
                 .sorted(Comparator.comparing(Season::getYearValue)
                         .thenComparing(Season::getTypeOrder))
                 .collect(Collectors.groupingBy(

@@ -1,21 +1,20 @@
 package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.AuthHandler;
-import com.duckstar.apiPayload.exception.handler.CommentHandler;
-import com.duckstar.apiPayload.exception.handler.LikeHandler;
-import com.duckstar.apiPayload.exception.handler.ReplyHandler;
+import com.duckstar.apiPayload.exception.handler.*;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.CommentLike;
 import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.ReplyLike;
 import com.duckstar.domain.mapping.comment.AnimeComment;
+import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
 import com.duckstar.repository.ReplyLikeRepository;
 import com.duckstar.s3.S3Uploader;
 import com.duckstar.security.MemberPrincipal;
+import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.BoardRequestDto;
 import com.duckstar.web.dto.CommentResponseDto;
 import com.duckstar.web.dto.PageInfo;
@@ -39,16 +38,12 @@ import static com.duckstar.web.dto.CommentResponseDto.*;
 public class ReplyService {
 
     private final ReplyRepository replyRepository;
-    private final CommentService commentService;
-    private final S3Uploader s3Uploader;
     private final AnimeVoteRepository animeVoteRepository;
-    private final MemberService memberService;
     private final ReplyLikeRepository replyLikeRepository;
+    private final MemberRepository memberRepository;
+    private final AnimeCommentRepository animeCommentRepository;
 
-    private Reply findByIdOrThrow(Long replyId) {
-        return replyRepository.findById(replyId).orElseThrow(() ->
-                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
-    }
+    private final S3Uploader s3Uploader;
 
     private ReplyLike findLikeByIdOrThrow(Long replyLikeId) {
         return replyLikeRepository.findById(replyLikeId)
@@ -61,14 +56,16 @@ public class ReplyService {
             ReplyRequestDto request,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = commentService.findByIdOrThrow(commentId);
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
 
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.POST_UNAUTHORIZED);
         }
 
         Long memberId = principal.getId();
-        Member author = memberService.findByIdOrThrow(memberId);
+        Member author = memberRepository.findById(memberId).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         int voteCount = animeVoteRepository
                 .countAllByAnimeCandidate_Anime_IdAndWeekVoteSubmission_Member_Id(
@@ -78,7 +75,8 @@ public class ReplyService {
 
         Long listenerId = request.getListenerId();
         Member listener = listenerId != null ?
-                memberService.findByIdOrThrow(listenerId) :
+                memberRepository.findById(listenerId).orElseThrow(() ->
+                        new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND)) :
                 null;
 
         CommentRequestDto content = request.getCommentRequestDto();
@@ -154,12 +152,14 @@ public class ReplyService {
             Long replyLikeId,
             MemberPrincipal principal
     ) {
-        Reply reply = findByIdOrThrow(replyId);
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
+                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
 
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
-        Member member = memberService.findByIdOrThrow(principal.getId());
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         ReplyLike replyLike = null;
         if (replyLikeId != null) {
@@ -190,12 +190,14 @@ public class ReplyService {
             Long replyLikeId,
             MemberPrincipal principal
     ) {
-        Reply reply = findByIdOrThrow(replyId);
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
+                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
 
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
-        Member member = memberService.findByIdOrThrow(principal.getId());
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         if (replyLikeId == null) {
             throw new AuthHandler(ErrorStatus.LIKE_NOT_FOUND);
@@ -217,7 +219,8 @@ public class ReplyService {
 
     @Transactional
     public DeleteResultDto deleteReply(Long replyId, MemberPrincipal principal) {
-        Reply reply = findByIdOrThrow(replyId);
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
+                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
 
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.DELETE_UNAUTHORIZED);

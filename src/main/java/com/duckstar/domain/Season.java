@@ -44,11 +44,13 @@ public class Season extends BaseEntity {
     private Integer yearValue;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
     private SeasonType type;
 
     @Column(nullable = false)
     private Integer typeOrder;
+
+    private Boolean isPrepared;
 
     protected Season(
             Quarter quarter,

@@ -10,10 +10,10 @@ import java.util.Date;
 @RequiredArgsConstructor
 public enum SeasonType {
 
-    SPRING(1, MonthDay.of(3, 21)),
-    SUMMER(2, MonthDay.of(6, 21)),
-    AUTUMN(3, MonthDay.of(9, 23)),
-    WINTER(4, MonthDay.of(12, 22));
+    SPRING(2, MonthDay.of(3, 21)),
+    SUMMER(3, MonthDay.of(6, 21)),
+    AUTUMN(4, MonthDay.of(9, 23)),
+    WINTER(1, MonthDay.of(12, 22));
 
     private final int order;
     private final MonthDay startDate;

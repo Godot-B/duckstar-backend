@@ -9,6 +9,8 @@ public class MemberRequestDto {
     @Getter
     @Setter
     public static class ProfileRequestDto {
+        Boolean isSkip;
+
         String nickname;
 
         MultipartFile image;

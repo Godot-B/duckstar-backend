@@ -17,7 +17,7 @@ public class Ott extends BaseEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10, nullable = false)
+    @Column(columnDefinition = "varchar(15)", nullable = false)
     private OttType type;
 
     @Column(nullable = false)

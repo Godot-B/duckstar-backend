@@ -22,6 +22,7 @@ public class MemberResponseDto {
         String nickname;
         String profileImageUrl;
         Role role;
+        Boolean isProfileInitialized;
 
         public static MePreviewDto ofEmpty() {
             return MePreviewDto.builder().build();
@@ -33,6 +34,7 @@ public class MemberResponseDto {
                     .nickname(member.getNickname())
                     .profileImageUrl(member.getProfileImageUrl())
                     .role(member.getRole())
+                    .isProfileInitialized(member.getProfileInitialized())
                     .build();
         }
     }

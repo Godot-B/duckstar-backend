@@ -36,7 +36,7 @@ public class Character extends BaseEntity {
     private String cv;  // 성우
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10)
+    @Column(columnDefinition = "varchar(10)")
     private Gender gender;
 
     @Column(length = 1024)

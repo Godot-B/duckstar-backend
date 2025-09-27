@@ -21,10 +21,10 @@ import static com.duckstar.web.dto.SearchResponseDto.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class SearchService {
-
     private final AnimeRepository animeRepository;
-    private final AnimeService animeService;
     private final AnimeOttRepository animeOttRepository;
+
+    private final AnimeService animeService;
 
     public SearchResponseDto searchAnimes(String query) {
         if (query == null || query.trim().isEmpty()) {

@@ -1,6 +1,7 @@
 package com.duckstar.repository.AnimeSeason;
 
 import com.duckstar.domain.*;
+import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QAnimeSeason;
@@ -93,14 +94,16 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                         formatted = time.format(formatter);
                     }
 
-                    String airTime = medium == Medium.MOVIE ?
-                            formatted :  // 영화일 때는 개봉일, 예: "8/22"
+                    AnimeStatus status = t.get(anime.status);
+
+                    String airTime = medium == Medium.MOVIE || status == AnimeStatus.UPCOMING ?
+                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
                             t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
 
                     return AnimePreviewDto.builder()
                             .animeId(animeId)
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
-                            .status(t.get(anime.status))
+                            .status(status)
                             .titleKor(t.get(anime.titleKor))
                             .dayOfWeek(t.get(anime.dayOfWeek))
                             .airTime(airTime)

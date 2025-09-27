@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -26,6 +25,9 @@ public class JwtTokenProvider {
     private String secretKeyRaw;
 
     private Key secretKey;
+
+    @Value("${jwt.issuer}")
+    private String issuer;
 
     private final long accessTokenValidTime = 1000L * 60 * 60; // 1시간
     private final long refreshTokenValidTime = 1000L * 60 * 60 * 24 * 7; // 7일
@@ -50,7 +52,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(String.valueOf(memberId))
                 .claim("role", role.name())
-                .setIssuer("duckstar.kr")
+                .setIssuer(issuer)
                 .claim("typ", type)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
@@ -81,7 +83,7 @@ public class JwtTokenProvider {
 
     private boolean validateClaims(Claims claims) {
         return !claims.getExpiration().before(new Date()) &&
-                "duckstar.kr".equals(claims.getIssuer());
+                issuer.equals(claims.getIssuer());
     }
 
     public boolean isAccessToken(Claims claims) {

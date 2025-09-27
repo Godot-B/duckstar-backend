@@ -33,7 +33,7 @@ public class Week extends BaseEntity {
     private Quarter quarter;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 10)
+    @Column(columnDefinition = "varchar(10)")
     private VoteStatus status;
 
     @Column(nullable = false)
