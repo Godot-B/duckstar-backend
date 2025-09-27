@@ -40,18 +40,16 @@ app:
   cookie:
     same-site: None
     secure: false
+  base-url: http://localhost:3000
 
 jwt:
   secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  issuer: "localhost"
 
 cloud:
   aws:
     s3:
       bucket: img.duckstar.kr
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
 
 logging:
   level:

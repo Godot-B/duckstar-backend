@@ -10,11 +10,10 @@ spring:
     password:
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
-
 
   security:
     oauth2:
@@ -41,15 +40,13 @@ app:
   cookie:
     same-site: None
     secure: false
+  base-url: http://localhost:3000
 
 jwt:
   secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  issuer: "localhost"
 
 cloud:
   aws:
     s3:
       bucket: img.duckstar.kr
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
