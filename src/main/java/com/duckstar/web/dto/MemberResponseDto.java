@@ -1,6 +1,7 @@
 package com.duckstar.web.dto;
 
 import com.duckstar.domain.Member;
+import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.domain.enums.Role;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class MemberResponseDto {
     @Getter
     public static class MePreviewDto {
         Long id;
+        OAuthProvider provider;
         String nickname;
         String profileImageUrl;
         Role role;
@@ -31,6 +33,7 @@ public class MemberResponseDto {
         public static MePreviewDto of(Member member) {
             return MePreviewDto.builder()
                     .id(member.getId())
+                    .provider(member.getProvider())
                     .nickname(member.getNickname())
                     .profileImageUrl(member.getProfileImageUrl())
                     .role(member.getRole())

@@ -2,6 +2,7 @@ package com.duckstar.s3;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.ImageHandler;
+import com.duckstar.utils.GifFrameExtractor;
 import com.sksamuel.scrimage.ImmutableImage;
 import com.sksamuel.scrimage.webp.WebpWriter;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class S3Uploader {
 
     private final S3Client s3Client;
+    private final GifFrameExtractor gifFrameExtractor;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -48,6 +50,46 @@ public class S3Uploader {
                             .acl(ObjectCannedACL.PUBLIC_READ)
                             .build(),
                     RequestBody.fromInputStream(inputStream, file.getSize())
+            );
+        } catch (IOException e) {
+            throw new ImageHandler(ErrorStatus.S3_FILE_UPLOAD_FAILURE);
+        }
+
+        return "https://" + bucket + "/" + fileName;
+    }
+
+    /**
+     * 프로필 사진 업로드용 메서드 - GIF인 경우 첫 번째 프레임을 추출하여 PNG로 변환
+     * @param file - 업로드할 파일
+     * @param dir - S3 디렉토리
+     * @return 업로드된 파일의 URL
+     */
+    public String uploadProfileImage(MultipartFile file, String dir) {
+        MultipartFile processedFile = file;
+        
+        // GIF 파일인 경우 첫 번째 프레임 추출
+        if (gifFrameExtractor.isGifFile(file)) {
+            try {
+                processedFile = gifFrameExtractor.extractFirstFrame(file);
+            } catch (IOException e) {
+                throw new ImageHandler(ErrorStatus.INVALID_IMAGE_FILE);
+            }
+        }
+        
+        validateImageFile(processedFile);
+
+        String ext = FilenameUtils.getExtension(processedFile.getOriginalFilename());
+        String fileName = dir + "/" + UUID.randomUUID() + "_" + ext;
+
+        try (InputStream inputStream = processedFile.getInputStream()) {
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(fileName)
+                            .contentType(processedFile.getContentType())
+                            .acl(ObjectCannedACL.PUBLIC_READ)
+                            .build(),
+                    RequestBody.fromInputStream(inputStream, processedFile.getSize())
             );
         } catch (IOException e) {
             throw new ImageHandler(ErrorStatus.S3_FILE_UPLOAD_FAILURE);

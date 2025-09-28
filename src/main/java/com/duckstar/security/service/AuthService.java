@@ -6,13 +6,19 @@ import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.mapping.WeekVoteSubmission;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.domain.MemberToken;
 import com.duckstar.security.jwt.JwtTokenProvider;
+import com.duckstar.security.providers.google.GoogleApiClient;
+import com.duckstar.security.providers.google.GoogleTokenRequest;
+import com.duckstar.security.providers.google.GoogleTokenResponse;
 import com.duckstar.security.providers.kakao.KakaoApiClient;
+import com.duckstar.security.providers.naver.NaverApiClient;
+import com.duckstar.security.providers.naver.NaverTokenResponse;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.repository.MemberTokenRepository;
 import com.duckstar.web.support.VoteCookieManager;
@@ -48,6 +54,8 @@ public class AuthService {
     private final KakaoApiClient kakaoApiClient;
     private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final VoteCookieManager voteCookieManager;
+    private final GoogleApiClient googleApiClient;
+    private final NaverApiClient naverApiClient;
 
     @Value("${app.cookie.same-site}")
     private String sameSite;
@@ -58,6 +66,18 @@ public class AuthService {
     @Value("${app.kakao.admin-key}")
     private String adminKey;
 
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String googleClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String naverClientSecret;
+
     @Transactional
     public boolean saveTokenAndMigrateVote(
             HttpServletRequest request,
@@ -65,6 +85,9 @@ public class AuthService {
             Member member,
             String refreshToken
     ) {
+        member = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new AuthHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
         // 1. Refresh Token 저장 (회전 고려)
         memberTokenRepository.save(
                 MemberToken.create(
@@ -111,6 +134,8 @@ public class AuthService {
                         member,
                         voteCookieManager.toPrincipalKey(member.getId(), null)
                 );
+
+                member.setGender(submission.getGender());
 
                 isMigrated = true;
             }
@@ -190,10 +215,7 @@ public class AuthService {
 
     @Transactional
     public void withdrawKakao(HttpServletResponse response, Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-
-        member.withdraw();
+        Member member = loadAndWithdrawMember(memberId);
 
         try {
             kakaoApiClient.unlink(
@@ -206,14 +228,88 @@ public class AuthService {
             log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
         }
 
+        cleanupAfterWithdraw(response, memberId);
+    }
+
+    @Transactional
+    public void withdrawGoogle(String code, HttpServletResponse response, Long memberId) {
+        Member member = loadAndWithdrawMember(memberId);
+
+        // code -> token 교환
+        GoogleTokenResponse tokenResponse = googleApiClient.exchangeCode(
+                GoogleTokenRequest.builder()
+                        .code(code)
+                        .client_id(googleClientId)
+                        .client_secret(googleClientSecret)
+                        .redirect_uri("https://duckstar.kr/withdraw/google/callback")
+                        .grant_type("authorization_code")
+                        .build()
+        );
+
+        String refreshToken = tokenResponse.getRefreshToken();
+        try {
+            if (refreshToken != null) {
+                googleApiClient.revoke(refreshToken, "refresh_token");
+            } else {
+                log.info("refresh_token 없음, access_token으로 revoke 시도");
+                googleApiClient.revoke(tokenResponse.getAccessToken(), "access_token");
+            }
+        } catch (FeignException e) {
+            log.warn("구글 unlink 실패 - memberId={}, 이유={}", member.getId(), e.getMessage());
+        }
+
+        cleanupAfterWithdraw(response, member.getId());
+    }
+
+    public void withdrawNaver(String code, String state, HttpServletResponse response, Long memberId) {
+        Member member = loadAndWithdrawMember(memberId);
+
+        // code → token 교환
+        NaverTokenResponse tokenResponse = naverApiClient.exchangeCode(
+                "authorization_code",
+                naverClientId,
+                naverClientSecret,
+                code,
+                state
+        );
+
+        String accessToken = tokenResponse.getAccessToken();
+        try {
+            Map<String, Object> result = naverApiClient.deleteToken(
+                    "delete",
+                    naverClientId,
+                    naverClientSecret,
+                    accessToken,
+                    "NAVER"
+            );
+            if ("success".equals(result.get("result"))) {
+                log.info("✅ 네이버 unlink 성공 - memberId={}", memberId);
+            } else {
+                log.warn("⚠️ 네이버 unlink 실패 - memberId={}, 응답={}", memberId, result);
+            }
+        } catch (FeignException e) {
+            log.warn("❌ 네이버 unlink 실패 - memberId={}, 이유={}", member.getId(), e.getMessage());
+        }
+
+        cleanupAfterWithdraw(response, member.getId());
+    }
+
+    private Member loadAndWithdrawMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        member.withdraw();
+        return member;
+    }
+
+    private void cleanupAfterWithdraw(HttpServletResponse response, Long memberId) {
         memberTokenRepository.deleteAllByMember_Id(memberId);
 
         // 투표 기록에서 회원 정보 삭제
-        List<WeekVoteSubmission> submissions = weekVoteSubmissionRepository.findAllByMember_Id(memberId);
-        submissions.forEach(submission -> {
-            String cookieId = submission.getCookieId();
-            submission.setMember(null, voteCookieManager.toPrincipalKey(null, cookieId));
-        });
+        weekVoteSubmissionRepository.findAllByMember_Id(memberId)
+                .forEach(sub -> {
+                    String cookieId = sub.getCookieId();
+                    sub.setMember(null, voteCookieManager.toPrincipalKey(null, cookieId));
+                });
 
         // 애니 댓글 삭제
         animeCommentRepository.findAllByAuthor_Id(memberId)

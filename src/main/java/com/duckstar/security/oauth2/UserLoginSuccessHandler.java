@@ -109,4 +109,29 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
 
         log.info("✅ 로그인 성공 - memberId={}, role={}", memberId, member.getRole());
     }
+
+    private void handleWithdrawMode(HttpServletRequest request, HttpServletResponse response, Member member) throws IOException {
+        try {
+            // OAuth 제공자에 따라 다른 회원탈퇴 처리
+            String provider = member.getProvider().toString();
+            
+            if ("GOOGLE".equals(provider)) {
+                // 구글 회원탈퇴: OAuth 토큰 revoke 및 회원탈퇴
+                authService.withdrawGoogle("", response, member.getId());
+            } else if ("NAVER".equals(provider)) {
+                // 네이버 회원탈퇴: OAuth 토큰 revoke 및 회원탈퇴
+                authService.withdrawNaver("", "", response, member.getId());
+            } else {
+                // 카카오 회원탈퇴
+                authService.withdrawKakao(response, member.getId());
+            }
+            
+            log.info("✅ 회원탈퇴 완료 - memberId={}, provider={}", member.getId(), provider);
+            response.sendRedirect(baseUrl + "?withdraw=success");
+            
+        } catch (Exception e) {
+            log.error("❌ 회원탈퇴 실패 - memberId={}, error={}", member.getId(), e.getMessage());
+            response.sendRedirect(baseUrl + "?withdraw=error");
+        }
+    }
 }

@@ -16,6 +16,8 @@ public class VoteResponseDto {
     public static class AnimeVoteHistoryDto {
         Boolean hasVoted;
 
+        Long memberId;
+
         String nickName;
 
         Long submissionId;
@@ -32,9 +34,10 @@ public class VoteResponseDto {
 
         List<AnimeBallotDto> animeBallotDtos;
 
-        public static AnimeVoteHistoryDto ofEmpty() {
+        public static AnimeVoteHistoryDto ofEmpty(Long memberId) {
             return AnimeVoteHistoryDto.builder()
                     .hasVoted(false)
+                    .memberId(memberId)
                     .build();
         }
     }
@@ -63,6 +66,8 @@ public class VoteResponseDto {
 
         List<AnimeCandidateDto> animeCandidates;
         Integer candidatesCount;
+
+        Gender memberGender;
 
         public static AnimeCandidateListDto ofEmpty(VoteStatus status) {
             return AnimeCandidateListDto.builder()

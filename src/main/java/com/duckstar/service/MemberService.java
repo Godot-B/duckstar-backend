@@ -69,7 +69,7 @@ public class MemberService {
             MultipartFile reqImage = request.getImage();
             if (reqImage != null && !reqImage.isEmpty()) {
                 s3Uploader.delete(profileImageUrl);
-                profileImageUrl = s3Uploader.uploadWithUUID(reqImage, "members");
+                profileImageUrl = s3Uploader.uploadProfileImage(reqImage, "members");
             }
 
             boolean nicknameChanged = !Objects.equals(member.getNickname(), nickname);

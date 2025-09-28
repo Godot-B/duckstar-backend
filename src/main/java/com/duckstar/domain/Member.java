@@ -126,6 +126,15 @@ public class Member extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
     }
 
+    public void updateInitializeInfo() {
+        if (!this.profileInitialized)
+            this.profileInitialized = true;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
     public void withdraw() {
         this.status = MemberStatus.INACTIVE;
 
@@ -139,10 +148,5 @@ public class Member extends BaseEntity {
         this.gender = Gender.UNKNOWN;
         this.role = Role.NONE;
         this.profileInitialized = false;
-    }
-
-    public void updateInitializeInfo() {
-        if (!this.profileInitialized)
-            this.profileInitialized = true;
     }
 }

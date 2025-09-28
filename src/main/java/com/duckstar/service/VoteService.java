@@ -46,7 +46,7 @@ public class VoteService {
     private final WeekService weekService;
     private final VoteCookieManager voteCookieManager;
 
-    public AnimeCandidateListDto getAnimeCandidateList() {
+    public AnimeCandidateListDto getAnimeCandidateList(Long memberId) {
         Week currentWeek = weekService.getCurrentWeek();
 
         VoteStatus status = currentWeek.getStatus();
@@ -57,20 +57,27 @@ public class VoteService {
         List<AnimeCandidateDto> animeCandidates =
                 animeCandidateRepository.getAnimeCandidateDtosByWeekId(currentWeek.getId());
 
+        Member member = null;
+        if (memberId != null) {
+            member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        }
+
         return AnimeCandidateListDto.builder()
                 .status(status)
                 .weekId(currentWeek.getId())
                 .weekDto(WeekDto.from(currentWeek))
-                .animeCandidates(
-                        animeCandidates
-                )
+                .animeCandidates(animeCandidates)
                 .candidatesCount(animeCandidates.size())
+                .memberGender(member != null ? member.getGender() : Gender.UNKNOWN)
                 .build();
     }
 
-    public AnimeVoteHistoryDto getAnimeVoteHistory(String principalKey) {
+    public AnimeVoteHistoryDto getAnimeVoteHistory(Long memberId, String cookieId) {
+        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+
         if (principalKey == null) {
-            return AnimeVoteHistoryDto.ofEmpty();
+            return AnimeVoteHistoryDto.ofEmpty(memberId);
         }
 
         Week currentWeek = weekService.getCurrentWeek();
@@ -80,7 +87,7 @@ public class VoteService {
 
         Optional<Long> submissionIdOpt = submissionOpt.map(WeekVoteSubmission::getId);
         if (submissionIdOpt.isEmpty()) {
-            return AnimeVoteHistoryDto.ofEmpty();
+            return AnimeVoteHistoryDto.ofEmpty(memberId);
         }
 
         Long submissionId = submissionIdOpt.get();
@@ -97,11 +104,10 @@ public class VoteService {
                 .filter(dto -> dto.getBallotType() == BallotType.NORMAL)
                 .count();
 
-        Member member = submission.getMember();
-
         return AnimeVoteHistoryDto.builder()
                 .hasVoted(true)
-                .nickName(member != null ? member.getNickname() : null)
+                .memberId(memberId)
+                .nickName(memberId != null ? submission.getMember().getNickname() : null)
                 .submissionId(submissionId)
                 .weekDto(WeekDto.from(currentWeek))
                 .category(VoteCategory.ANIME)
@@ -141,6 +147,8 @@ public class VoteService {
                 null;
 
         Gender gender = request.getGender();
+
+        if (member != null) member.setGender(gender);
 
         //=== 중복 투표 방지 ===//
         WeekVoteSubmission submission = WeekVoteSubmission.create(

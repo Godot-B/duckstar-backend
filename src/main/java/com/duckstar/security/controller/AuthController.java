@@ -75,4 +75,45 @@ public class AuthController {
         authService.withdrawKakao(response, memberId);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "구글 회원 탈퇴 API")
+    @PostMapping("/withdraw/google")
+    public ResponseEntity<Void> withdrawGoogle(
+            @RequestBody Map<String, String> body,
+            HttpServletResponse response,
+            @AuthenticationPrincipal MemberPrincipal principal
+    ) {
+        if (principal == null)
+            throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
+
+        Long memberId = principal.getId();
+        if (!rateLimiter.isAllowedByUser(memberId, 10, Duration.ofMinutes(1))) {
+            throw new AuthHandler(ErrorStatus.TOO_MANY_REQUESTS);
+        }
+
+        String code = body.get("code");
+        authService.withdrawGoogle(code, response, memberId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "네이버 회원 탈퇴 API")
+    @PostMapping("/withdraw/naver")
+    public ResponseEntity<Void> withdrawNaver(
+            @RequestBody Map<String, String> body,
+            HttpServletResponse response,
+            @AuthenticationPrincipal MemberPrincipal principal
+    ) {
+        if (principal == null)
+            throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
+
+        Long memberId = principal.getId();
+        if (!rateLimiter.isAllowedByUser(memberId, 10, Duration.ofMinutes(1))) {
+            throw new AuthHandler(ErrorStatus.TOO_MANY_REQUESTS);
+        }
+
+        String code = body.get("code");
+        String state = body.get("state");
+        authService.withdrawNaver(code, state, response, memberId);
+        return ResponseEntity.ok().build();
+    }
 }

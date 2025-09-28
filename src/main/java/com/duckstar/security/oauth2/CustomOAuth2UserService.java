@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -91,9 +92,29 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String extractNickname(String registrationId, Map<String, Object> attributes) {
         return switch (registrationId) {
-            case "kakao" -> ((Map<String, Object>) attributes.get("properties")).get("nickname").toString();
-            case "google" -> (String) attributes.get("name");
-            case "naver" -> (String) ((Map<String, Object>) attributes.get("response")).get("nickname");
+            case "kakao" -> (String) ((Map<String, Object>) attributes.get("properties")).get("nickname");
+            case "google" -> {
+                String name = (String) attributes.get("name");
+                if (name != null && !name.isBlank()) {
+                    yield name;
+                }
+                String email = (String) attributes.get("email");
+                if (email != null && !email.isBlank()) {
+                    yield email.split("@")[0];
+                }
+                yield "user_" + UUID.randomUUID();
+            }
+            case "naver" -> {
+                String nickname = (String) ((Map<String, Object>) attributes.get("response")).get("nickname");
+                if (nickname != null && !nickname.isBlank()) {
+                    yield nickname;
+                }
+                String name = (String) ((Map<String, Object>) attributes.get("response")).get("name");
+                if (name != null && !name.isBlank()) {
+                    yield name;
+                }
+                yield "user_" + UUID.randomUUID();
+            }
             default -> "unknown";
         };
     }

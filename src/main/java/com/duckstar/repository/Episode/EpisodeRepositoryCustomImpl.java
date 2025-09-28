@@ -2,6 +2,7 @@ package com.duckstar.repository.Episode;
 
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QOtt;
+import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QEpisode;
@@ -77,10 +78,14 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         episode.isRescheduled,
                         episode.scheduledAt
                 )
-                .from(episode)
-                .join(episode.anime, anime)
-                .where(episode.scheduledAt.between(weekStart, weekEnd))
-                .orderBy(episode.scheduledAt.asc())
+                .from(anime)
+                .leftJoin(episode).on(episode.anime.id.eq(anime.id))
+                .where(episode.scheduledAt.between(weekStart, weekEnd)
+                        .or(
+                                anime.status.eq(AnimeStatus.NOW_SHOWING)
+                                        .and(anime.medium.eq(Medium.MOVIE))
+                        ))
+                .orderBy(episode.scheduledAt.asc().nullsLast())
                 .fetch();
 
         List<Long> animeIds = tuples.stream()

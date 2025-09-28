@@ -82,8 +82,6 @@ public class WeekService {
 
     public AnimePreviewListDto getWeeklySchedule() {
         LocalDateTime now = LocalDateTime.now();
-        YQWRecord thisWeekRecord = getThisWeekRecord(now);
-        Long quarterId = getQuarterIdByYQ(thisWeekRecord.yearValue(), thisWeekRecord.quarterValue());
 
         Week currentWeek = getWeekByTime(now);
         LocalDateTime weekStart = currentWeek.getStartDateTime();

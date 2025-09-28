@@ -28,9 +28,11 @@ public class VoteController {
 
     @Operation(summary = "애니메이션 후보자 리스트 조회 API")
     @GetMapping("/anime")
-    public ApiResponse<AnimeCandidateListDto> getAnimeCandidateList() {
+    public ApiResponse<AnimeCandidateListDto> getAnimeCandidateList(
+            @AuthenticationPrincipal MemberPrincipal principal) {
+        Long memberId = principal == null ? null : principal.getId();
         return ApiResponse.onSuccess(
-                voteService.getAnimeCandidateList());
+                voteService.getAnimeCandidateList(memberId));
     }
 
     @Operation(summary = "애니 투표 참여 여부에 따른 투표 기록 조회 API")
@@ -40,10 +42,9 @@ public class VoteController {
             @CookieValue(name = "vote_cookie_id", required = false) String cookieId
     ) {
         Long memberId = principal == null ? null : principal.getId();
-        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
 
         return ApiResponse.onSuccess(
-                voteService.getAnimeVoteHistory(principalKey));
+                voteService.getAnimeVoteHistory(memberId, cookieId));
     }
 
     @Operation(summary = "애니메이션 투표 API")
