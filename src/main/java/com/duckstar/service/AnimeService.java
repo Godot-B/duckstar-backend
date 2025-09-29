@@ -1,8 +1,12 @@
 package com.duckstar.service;
 
+import com.duckstar.abroad.aniLab.Anilab;
+import com.duckstar.abroad.aniLab.AnilabRepository;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
+import com.duckstar.abroad.animeTrend.AnimeTrending;
+import com.duckstar.abroad.animeTrend.AnimeTrendingRepository;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
@@ -22,7 +26,6 @@ import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.schedule.ScheduleState;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
-import com.duckstar.web.dto.SearchResponseDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -31,13 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
-import static com.duckstar.web.dto.SearchResponseDto.*;
+import static com.duckstar.web.dto.RankInfoDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,16 +54,42 @@ public class AnimeService {
     private final WeekRepository weekRepository;
 
     private final ScheduleState scheduleState;
+    private final AnimeTrendingRepository animeTrendingRepository;
+    private final AnilabRepository anilabRepository;
 
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
         List<AnimeCandidate> animeCandidates =
-                animeCandidateRepository.getAnimeCandidatesByWeekId(
+                animeCandidateRepository.findCandidatesByWeekOrdered(
                         weekId,
                         PageRequest.of(0, size)
                 );
 
         return animeCandidates.stream()
-                .map(DuckstarRankPreviewDto::from)
+                .map(DuckstarRankPreviewDto::of)
+                .toList();
+    }
+
+    public List<RankPreviewDto> getAnimeTrendingPreviewsByWeekId(Long weekId, int size) {
+        List<AnimeTrending> animeTrendings =
+                animeTrendingRepository.findAllByWeek_Id(
+                        weekId,
+                        PageRequest.of(0, size)
+                );
+
+        return animeTrendings.stream()
+                .map(RankPreviewDto::of)
+                .toList();
+    }
+
+    public List<RankPreviewDto> getAnilabPreviewsByWeekId(Long weekId, int size) {
+        List<Anilab> anilabs =
+                anilabRepository.findAllByWeek_Id(
+                        weekId,
+                        PageRequest.of(0, size)
+                );
+
+        return anilabs.stream()
+                .map(RankPreviewDto::of)
                 .toList();
     }
 
@@ -125,7 +151,7 @@ public class AnimeService {
 
     @Transactional
     public List<Anime> getAnimesForCandidate(boolean isQuarterChanged, Season season, LocalDateTime now) {
-        // 시즌 애니메이션
+        // 예정 제외한 시즌 애니메이션
         List<Anime> seasonAnimes = animeSeasonRepository.findAllBySeason_Id(season.getId()).stream()
                 .map(AnimeSeason::getAnime)
                 .filter(anime -> anime.getStatus() != AnimeStatus.UPCOMING)

@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -27,17 +28,6 @@ public class Member extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-//    // 자체 회원가입
-//    @Column(unique = true)
-//    private String email;
-//    private String password; // BCrypt, nullable if 소셜 로그인
-
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(15)")
-    private OAuthProvider provider; // KAKAO, NAVER, GOOGLE, LOCAL 등
-
-    private String providerId; // 소셜 서비스에서 내려준 고유 ID
 
     @Column(nullable = false)
     private String nickname;
@@ -58,9 +48,32 @@ public class Member extends BaseEntity {
 
     private Boolean profileInitialized = false;
 
-    protected Member(Long id) {
-        this.id = id;
-    }
+
+    /**
+     * 현재는 Member <-> 소셜 계정
+     *  - 1대1 , 소셜 연동 생각 X
+     */
+
+//    // 자체 회원가입
+//    @Column(unique = true)
+//    private String email;
+//    private String password; // BCrypt, nullable if 소셜 로그인
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(15)")
+    private OAuthProvider provider; // KAKAO, NAVER, GOOGLE, LOCAL 등
+
+    private String providerId;  // 소셜 서비스에서 내려준 고유 ID
+
+    /**
+     * 현재는 구글과 네이버만 소셜 리프레시 토큰 저장
+     *  - For 소셜 연동 해제
+     */
+    @Lob
+    private String socialRefreshToken;
+
+    // 혹시나 소셜 API 추가 이용에 대비
+    private LocalDateTime socialRefreshTokenExpiresAt;
 
     @Builder
     protected Member(
@@ -121,6 +134,11 @@ public class Member extends BaseEntity {
         this.role = Role.USER;
     }
 
+    public void setSocialRefreshToken(String socialRefreshToken, LocalDateTime socialRefreshTokenExpiresAt) {
+        this.socialRefreshToken = socialRefreshToken;
+        this.socialRefreshTokenExpiresAt = socialRefreshTokenExpiresAt;
+    }
+
     public void updateProfile(String nickname, String profileImageUrl) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
@@ -148,5 +166,7 @@ public class Member extends BaseEntity {
         this.gender = Gender.UNKNOWN;
         this.role = Role.NONE;
         this.profileInitialized = false;
+        this.socialRefreshToken = null;
+        this.socialRefreshTokenExpiresAt = null;
     }
 }

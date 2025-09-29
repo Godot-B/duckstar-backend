@@ -15,9 +15,9 @@ public class ChartDto {
     public static class AnimeRankSliceDto {
         List<AnimeRankDto> animeRankDtos;
 
-        List<RankPreviewDto> animeTrendRankDtos;
+        List<RankPreviewDto> animeTrendRankPreviews;
 
-        List<RankPreviewDto> aniLabRankDtos;
+        List<RankPreviewDto> aniLabRankPreviews;
 
         PageInfo pageInfo;
     }
@@ -27,7 +27,7 @@ public class ChartDto {
     public static class CharacterRankSliceDto {
         List<CharacterRankDto> characterRankDtos;
 
-        List<RankPreviewDto> crawlerRankDtos;
+        List<RankPreviewDto> abroadRankPreviews;
 
         PageInfo pageInfo;
     }

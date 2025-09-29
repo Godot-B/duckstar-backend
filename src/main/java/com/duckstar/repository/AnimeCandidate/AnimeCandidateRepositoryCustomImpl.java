@@ -2,6 +2,7 @@ package com.duckstar.repository.AnimeCandidate;
 
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
+import com.duckstar.domain.enums.ContentType;
 import com.duckstar.domain.mapping.QAnimeCandidate;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.domain.vo.RankInfo;
@@ -132,6 +133,8 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                     Long animeId = t.get(anime.id);
 
                     RankPreviewDto rankPreviewDto = RankPreviewDto.builder()
+                            .type(ContentType.ANIME)
+                            .contentId(animeId)
                             .rank(t.get(animeCandidate.rankInfo.rank))
                             .rankDiff(t.get(animeCandidate.rankInfo.rankDiff))
                             .consecutiveWeeksAtSameRank(t.get(animeCandidate.rankInfo.consecutiveWeeksAtSameRank))
@@ -160,7 +163,6 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                             .build();
 
                     return AnimeRankDto.builder()
-                            .animeId(animeId)
                             .rankPreviewDto(rankPreviewDto)
                             .medalPreviews(medalPreviews)
                             .animeStatDto(animeStatDto)

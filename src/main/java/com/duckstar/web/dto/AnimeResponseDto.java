@@ -36,8 +36,6 @@ public class AnimeResponseDto {
     @Builder
     @Getter
     public static class AnimeRankDto {
-        Long animeId;
-
         RankPreviewDto rankPreviewDto;
 
         @MedalTypeSubset(anyOf = {

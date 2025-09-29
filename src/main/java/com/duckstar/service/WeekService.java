@@ -109,7 +109,7 @@ public class WeekService {
         }
 
         return AnimePreviewListDto.builder()
-                .weekDto(WeekDto.from(currentWeek))
+                .weekDto(WeekDto.of(currentWeek))
                 .schedule(schedule)
                 .build();
     }
@@ -177,8 +177,8 @@ public class WeekService {
 
         return AnimeRankSliceDto.builder()
                 .animeRankDtos(rows)
-                .animeTrendRankDtos(null)
-                .aniLabRankDtos(null)
+                .animeTrendRankPreviews(null)
+                .aniLabRankPreviews(null)
                 .pageInfo(pageInfo)
                 .build();
     }

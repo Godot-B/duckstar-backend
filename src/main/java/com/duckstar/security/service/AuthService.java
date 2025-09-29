@@ -3,10 +3,8 @@ package com.duckstar.security.service;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
-import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
-import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.mapping.WeekVoteSubmission;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
@@ -14,8 +12,6 @@ import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.domain.MemberToken;
 import com.duckstar.security.jwt.JwtTokenProvider;
 import com.duckstar.security.providers.google.GoogleApiClient;
-import com.duckstar.security.providers.google.GoogleTokenRequest;
-import com.duckstar.security.providers.google.GoogleTokenResponse;
 import com.duckstar.security.providers.kakao.KakaoApiClient;
 import com.duckstar.security.providers.naver.NaverApiClient;
 import com.duckstar.security.providers.naver.NaverTokenResponse;
@@ -35,9 +31,10 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -215,7 +212,8 @@ public class AuthService {
 
     @Transactional
     public void withdrawKakao(HttpServletResponse response, Long memberId) {
-        Member member = loadAndWithdrawMember(memberId);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         try {
             kakaoApiClient.unlink(
@@ -228,77 +226,77 @@ public class AuthService {
             log.warn("카카오 unlink 실패 - memberId={}, 이유={}", memberId, e.getMessage());
         }
 
+        member.withdraw();
         cleanupAfterWithdraw(response, memberId);
     }
 
     @Transactional
-    public void withdrawGoogle(String code, HttpServletResponse response, Long memberId) {
-        Member member = loadAndWithdrawMember(memberId);
+    public void withdrawGoogle(HttpServletResponse response, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // code -> token 교환
-        GoogleTokenResponse tokenResponse = googleApiClient.exchangeCode(
-                GoogleTokenRequest.builder()
-                        .code(code)
-                        .client_id(googleClientId)
-                        .client_secret(googleClientSecret)
-                        .redirect_uri("https://duckstar.kr/withdraw/google/callback")
-                        .grant_type("authorization_code")
-                        .build()
-        );
-
-        String refreshToken = tokenResponse.getRefreshToken();
+        String refreshToken = member.getSocialRefreshToken();
         try {
             if (refreshToken != null) {
-                googleApiClient.revoke(refreshToken, "refresh_token");
+                MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+                body.add("token", refreshToken);
+                body.add("token_type_hint", "refresh_token");
+
+                googleApiClient.revoke(body);
+                log.info("✅ 구글 계정 연결 해제 성공 - memberId={}", memberId);
             } else {
-                log.info("refresh_token 없음, access_token으로 revoke 시도");
-                googleApiClient.revoke(tokenResponse.getAccessToken(), "access_token");
+                log.info("❌ refresh_token 없음");
             }
         } catch (FeignException e) {
             log.warn("구글 unlink 실패 - memberId={}, 이유={}", member.getId(), e.getMessage());
         }
 
+        member.withdraw();
         cleanupAfterWithdraw(response, member.getId());
     }
 
-    public void withdrawNaver(String code, String state, HttpServletResponse response, Long memberId) {
-        Member member = loadAndWithdrawMember(memberId);
-
-        // code → token 교환
-        NaverTokenResponse tokenResponse = naverApiClient.exchangeCode(
-                "authorization_code",
-                naverClientId,
-                naverClientSecret,
-                code,
-                state
-        );
-
-        String accessToken = tokenResponse.getAccessToken();
-        try {
-            Map<String, Object> result = naverApiClient.deleteToken(
-                    "delete",
-                    naverClientId,
-                    naverClientSecret,
-                    accessToken,
-                    "NAVER"
-            );
-            if ("success".equals(result.get("result"))) {
-                log.info("✅ 네이버 unlink 성공 - memberId={}", memberId);
-            } else {
-                log.warn("⚠️ 네이버 unlink 실패 - memberId={}, 응답={}", memberId, result);
-            }
-        } catch (FeignException e) {
-            log.warn("❌ 네이버 unlink 실패 - memberId={}, 이유={}", member.getId(), e.getMessage());
-        }
-
-        cleanupAfterWithdraw(response, member.getId());
-    }
-
-    private Member loadAndWithdrawMember(Long memberId) {
+    @Transactional
+    public void withdrawNaver(HttpServletResponse response, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        String accessToken;
+        String refreshToken = member.getSocialRefreshToken();
+        if (refreshToken != null) {
+            // code → token 교환
+            NaverTokenResponse tokenResponse = naverApiClient.refreshCode(
+                    "refresh_token",
+                    naverClientId,
+                    naverClientSecret,
+                    refreshToken
+            );
+            accessToken = tokenResponse.getAccess_token();
+        } else {
+            log.info("❌ refresh_token 없음");
+            accessToken = null;
+        }
+
+        if (accessToken != null) {
+            try {
+                Map<String, Object> result = naverApiClient.deleteToken(
+                        "delete",
+                        naverClientId,
+                        naverClientSecret,
+                        accessToken,
+                        "NAVER"
+                );
+                if ("success".equals(result.get("result"))) {
+                    log.info("✅ 네이버 unlink 성공 - memberId={}", memberId);
+                } else {
+                    log.warn("⚠️ 네이버 unlink 실패 - memberId={}, 응답={}", memberId, result);
+                }
+            } catch (FeignException e) {
+                log.warn("❌ 네이버 unlink 실패 - memberId={}, 이유={}", member.getId(), e.getMessage());
+            }
+        }
+
         member.withdraw();
-        return member;
+        cleanupAfterWithdraw(response, member.getId());
     }
 
     private void cleanupAfterWithdraw(HttpServletResponse response, Long memberId) {

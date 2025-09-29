@@ -34,31 +34,31 @@ public class WeeklyChartController {
         return ApiResponse.onSuccess(
                 weekService.getAnimeRankSliceDto(weekId, pageable));
     }
-
-    @Operation(summary = "주차별 남캐 차트 슬라이스 조회 API (with Anime Trend)",
-            description = "path variable 해당 주차 남캐, Anime Trend 커서 기반 무한 스크롤")
-    @GetMapping("/{year}/{quarter}/{week}/hero")
-    public ApiResponse<CharacterRankSliceDto> getWeeklyHeroChart(
-            @PathVariable Integer year,
-            @PathVariable Integer quarter,
-            @PathVariable Integer week,
-            @ParameterObject @PageableDefault(size = 20) Pageable pageable
-    ) {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
-
-        return ApiResponse.onSuccess(null);
-    }
-    @Operation(summary = "주차별 여캐 차트 슬라이스 조회 API (with Anime Trend)",
-            description = "path variable 해당 주차 여캐, Anime Trend 커서 기반 무한 스크롤")
-    @GetMapping("/{year}/{quarter}/{week}/heroine")
-    public ApiResponse<CharacterRankSliceDto> getWeeklyHeroineChart(
-            @PathVariable Integer year,
-            @PathVariable Integer quarter,
-            @PathVariable Integer week,
-            @ParameterObject @PageableDefault(size = 20) Pageable pageable
-    ) {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
-
-        return ApiResponse.onSuccess(null);
-    }
+//
+//    @Operation(summary = "주차별 남캐 차트 슬라이스 조회 API (with Anime Trend)",
+//            description = "path variable 해당 주차 남캐, Anime Trend 커서 기반 무한 스크롤")
+//    @GetMapping("/{year}/{quarter}/{week}/hero")
+//    public ApiResponse<CharacterRankSliceDto> getWeeklyHeroChart(
+//            @PathVariable Integer year,
+//            @PathVariable Integer quarter,
+//            @PathVariable Integer week,
+//            @ParameterObject @PageableDefault(size = 20) Pageable pageable
+//    ) {
+//        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
+//
+//        return ApiResponse.onSuccess(null);
+//    }
+//    @Operation(summary = "주차별 여캐 차트 슬라이스 조회 API (with Anime Trend)",
+//            description = "path variable 해당 주차 여캐, Anime Trend 커서 기반 무한 스크롤")
+//    @GetMapping("/{year}/{quarter}/{week}/heroine")
+//    public ApiResponse<CharacterRankSliceDto> getWeeklyHeroineChart(
+//            @PathVariable Integer year,
+//            @PathVariable Integer quarter,
+//            @PathVariable Integer week,
+//            @ParameterObject @PageableDefault(size = 20) Pageable pageable
+//    ) {
+//        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
+//
+//        return ApiResponse.onSuccess(null);
+//    }
 }

@@ -1,4 +1,4 @@
-package com.duckstar.crawler;
+package com.duckstar.abroad;
 
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;

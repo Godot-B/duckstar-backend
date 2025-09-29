@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -121,17 +122,31 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                     Long animeId = t.get(anime.id);
                     List<OttDto> ottDtos = ottDtosMap.getOrDefault(animeId, List.of());
 
+                    Medium medium = t.get(anime.medium);
+                    LocalDateTime time = t.get(anime.premiereDateTime);
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
+                    String formatted = null;
+                    if (time != null) {
+                        formatted = time.format(formatter);
+                    }
+                    AnimeStatus status = t.get(anime.status);
+
+                    String airTime = medium == Medium.MOVIE || status == AnimeStatus.UPCOMING ?
+                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
+                            t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
+
                     return AnimePreviewDto.builder()
                             .animeId(animeId)
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
-                            .status(t.get(anime.status))
+                            .status(status)
                             .isBreak(t.get(episode.isBreak))
                             .titleKor(t.get(anime.titleKor))
                             .dayOfWeek(t.get(anime.dayOfWeek))
                             .scheduledAt(t.get(episode.scheduledAt))
                             .isRescheduled(t.get(episode.isRescheduled))
+                            .airTime(airTime)
                             .genre(t.get(anime.genre))
-                            .medium(t.get(anime.medium))
+                            .medium(medium)
                             .ottDtos(ottDtos)
                             .build();
                 })

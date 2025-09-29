@@ -8,6 +8,7 @@ import com.duckstar.security.domain.enums.MemberStatus;
 import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
@@ -28,29 +30,34 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        // 1. 카카오/구글/네이버에서 사용자 정보 가져오기
-        OAuth2User oAuth2User = super.loadUser(userRequest);
+        try {
+            // 1. 카카오/구글/네이버에서 사용자 정보 가져오기
+            OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        String registrationId = userRequest.getClientRegistration().getRegistrationId(); // kakao, google, naver
-        Map<String, Object> attributes = oAuth2User.getAttributes();
+            String registrationId = userRequest.getClientRegistration().getRegistrationId(); // kakao, google, naver
+            Map<String, Object> attributes = oAuth2User.getAttributes();
+            
+            // 2. providerId 추출 (서비스별 key 다름)
+            String providerId = extractProviderId(registrationId, attributes);
 
-        // 2. providerId 추출 (서비스별 key 다름)
-        String providerId = extractProviderId(registrationId, attributes);
+            // 3. 닉네임/프로필 등 기본값 추출
+            String nickname = extractNickname(registrationId, attributes);
+            String profileImageUrl = extractProfileImageUrl(registrationId, attributes);
 
-        // 3. 닉네임/프로필 등 기본값 추출
-        String nickname = extractNickname(registrationId, attributes);
-        String profileImageUrl = extractProfileImageUrl(registrationId, attributes);
+            // 4. DB 조회
+            Member member = findOrCreateMember(
+                    registrationId,
+                    providerId,
+                    nickname,
+                    profileImageUrl
+            );
 
-        // 4. DB 조회
-        Member member = findOrCreateMember(
-                registrationId,
-                providerId,
-                nickname,
-                profileImageUrl
-        );
-
-        // 5. SecurityContext 에 넣을 Principal 리턴
-        return MemberPrincipal.of(member);
+            // 5. SecurityContext 에 넣을 Principal 리턴
+            return MemberPrincipal.of(member);
+        } catch (Exception e) {
+            log.error("OAuth2 사용자 정보 로드 실패", e);
+            throw e;
+        }
     }
 
     private Member findOrCreateMember(String provider, String providerId, String nickname, String profileImageUrl) {

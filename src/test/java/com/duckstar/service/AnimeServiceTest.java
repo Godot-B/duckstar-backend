@@ -26,13 +26,13 @@ public class AnimeServiceTest {
     @Transactional
     public void testCandidates() {
         Season season = seasonRepository.findById(2L).get();
-        List<String> animeTitles = animeService.getAnimesForCandidate(
-                true, season, LocalDateTime.of(2025, 9, 28, 22, 0))
-                .stream().map(Anime::getTitleKor).toList();
+        List<Anime> animes = animeService.getAnimesForCandidate(
+                true, season, LocalDateTime.of(2025, 9, 28, 22, 0)
+        );
 
-        System.out.println("후보 수: " + animeTitles.size());
-        for (String animeTitle : animeTitles) {
-            System.out.println(animeTitle);
+        System.out.println("후보 수: " + animes.size());
+        for (Anime anime : animes) {
+            System.out.println("animeTitle: " + anime.getTitleKor() + " 첫 방영일: " + anime.getPremiereDateTime());
         }
     }
 }

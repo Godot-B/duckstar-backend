@@ -1,9 +1,13 @@
-package com.duckstar.crawler.reader;
+package com.duckstar.abroad.reader;
 
-import com.duckstar.domain.Anime;
+import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.WeekHandler;
+import com.duckstar.abroad.aniLab.Anilab;
+import com.duckstar.abroad.aniLab.AnilabRepository;
+import com.duckstar.abroad.animeTrend.AnimeTrending;
+import com.duckstar.abroad.animeTrend.AnimeTrendingRepository;
+import com.duckstar.domain.*;
 import com.duckstar.domain.Character;
-import com.duckstar.domain.Quarter;
-import com.duckstar.domain.Season;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.AnimeCharacter;
 import com.duckstar.domain.mapping.AnimeSeason;
@@ -15,8 +19,8 @@ import com.duckstar.repository.CharacterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SeasonRepository;
+import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.s3.S3Uploader;
-import com.duckstar.web.dto.admin.CsvRequestDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sksamuel.scrimage.ImmutableImage;
@@ -47,6 +51,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.duckstar.web.dto.admin.CsvRequestDto.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -60,6 +66,9 @@ public class CsvImportService {
     private final QuarterRepository quarterRepository;
     private final SeasonRepository seasonRepository;
     private final AnimeSeasonRepository animeSeasonRepository;
+    private final WeekRepository weekRepository;
+    private final AnimeTrendingRepository animeTrendingRepository;
+    private final AnilabRepository anilabRepository;
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -69,7 +78,167 @@ public class CsvImportService {
         System.out.println("지원하는 포맷: " + Arrays.toString(formats));
     }
 
-    public void importNewSeason(Integer year, Integer quarter, CsvRequestDto request) throws IOException {
+    public void importAbroad(Long weekId, AbroadRequestDto request) throws IOException {
+        Week week = weekRepository.findWeekById(weekId)
+                .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+
+        importAnimeTrending(week, request.getAnimeTrendingCsv());
+        importAnilab(week, request.getAnilabCsv());
+    }
+
+    private void importAnimeTrending(Week week, MultipartFile animeTrendingCsv) throws IOException {
+        if (animeTrendingCsv == null || animeTrendingCsv.isEmpty()) {
+            return;
+        }
+
+        Reader reader = new InputStreamReader(animeTrendingCsv.getInputStream(), StandardCharsets.UTF_8);
+        CSVFormat format = CSVFormat.Builder
+                .create()
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .build();
+        CSVParser parser = new CSVParser(reader, format);
+
+        Map<String, Anime> idToTitleMap = animeRepository.findAll().stream()
+                .filter(a -> a.getTitleEng() != null)
+                .collect(Collectors.toMap(
+                        Anime::getTitleEng,
+                        a -> a,
+                        (a1, a2) -> a1
+                ));
+
+        for (CSVRecord record : parser) {
+            String titleEng = record.get("title");
+            Anime anime = idToTitleMap.getOrDefault(titleEng, null);
+            String mainThumbnailUrl;
+            if (anime == null) {
+                mainThumbnailUrl = record.get("mainThumbnailUrl");
+            } else {
+                mainThumbnailUrl = anime.getMainThumbnailUrl();
+            }
+
+            Integer rank;
+            try {
+                rank = Integer.parseInt(record.get("rank"));
+            } catch (NumberFormatException e) {
+                rank = null;
+            }
+
+            Integer rankDiff;
+            try {
+                rankDiff = Integer.parseInt(record.get("rankDiff"));
+            } catch (NumberFormatException e) {
+                rankDiff = null;
+            }
+
+            Integer consecutiveWeeksAtSameRank;
+            try {
+                consecutiveWeeksAtSameRank = Integer.parseInt(record.get("consecutiveWeeksAtSameRank"));
+            } catch (NumberFormatException e) {
+                consecutiveWeeksAtSameRank = null;
+            }
+
+            AnimeTrending animeTrending = AnimeTrending.builder()
+                    .week(week)
+                    .anime(anime)
+                    .mainThumbnailUrl(mainThumbnailUrl)
+                    .title(titleEng)
+                    .corp(record.get("corp"))
+                    .rank(rank)
+                    .rankDiff(rankDiff == null ? 0 : rankDiff)
+                    .consecutiveWeeksAtSameRank(
+                            consecutiveWeeksAtSameRank == null ? 0 : consecutiveWeeksAtSameRank)
+                    .build();
+
+            animeTrendingRepository.save(animeTrending);
+        }
+    }
+
+    private void importAnilab(Week week, MultipartFile anilabCsv) throws IOException {
+        if (anilabCsv == null || anilabCsv.isEmpty()) {
+            return;
+        }
+
+        Reader reader = new InputStreamReader(anilabCsv.getInputStream(), StandardCharsets.UTF_8);
+        CSVFormat format = CSVFormat.Builder
+                .create()
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .build();
+        CSVParser parser = new CSVParser(reader, format);
+
+        Map<String, Anime> idToTitleMap = animeRepository.findAll().stream()
+                .filter(a -> a.getTitleOrigin() != null)
+                .collect(Collectors.toMap(
+                        Anime::getTitleOrigin,
+                        a -> a,
+                        (a1, a2) -> a1
+                ));
+
+        for (CSVRecord record : parser) {
+            String titleOrigin = record.get("title");
+            Anime anime = idToTitleMap.getOrDefault(titleOrigin, null);
+            String mainThumbnailUrl;
+            if (anime == null) {
+                mainThumbnailUrl = record.get("mainThumbnailUrl");
+            } else {
+                mainThumbnailUrl = anime.getMainThumbnailUrl();
+            }
+
+            Integer rank;
+            try {
+                rank = Integer.parseInt(record.get("rank"));
+            } catch (NumberFormatException e) {
+                rank = null;
+            }
+
+            Integer rankDiff;
+            try {
+                rankDiff = Integer.parseInt(record.get("rankDiff"));
+            } catch (NumberFormatException e) {
+                rankDiff = null;
+            }
+
+            Anilab anilab = Anilab.builder()
+                    .week(week)
+                    .anime(anime)
+                    .mainThumbnailUrl(mainThumbnailUrl)
+                    .title(titleOrigin)
+                    .rank(rank)
+                    .rankDiff(rankDiff == null ? 0 : rankDiff)
+                    .consecutiveWeeksAtSameRank(
+                            null  // 덕스타에서 세팅
+                    )
+                    .build();
+
+            anilabRepository.save(anilab);
+        }
+    }
+
+    private File downloadImage(String imageUrl, File tempDir, String name) throws IOException {
+        // 1. 확장자 추출 (없으면 기본 jpg)
+        String extension = "jpg";
+        String path = new URL(imageUrl).getPath();
+        int dotIdx = path.lastIndexOf('.');
+        if (dotIdx != -1) {
+            String ext = path.substring(dotIdx + 1).toLowerCase();
+            if (List.of("jpg", "jpeg", "png", "webp").contains(ext)) {
+                extension = ext;
+            }
+        }
+
+        // 2. 저장 파일 경로
+        File outputFile = new File(tempDir, name + "." + extension);
+
+        // 3. 단순 다운로드
+        try (InputStream in = new URL(imageUrl).openStream()) {
+            Files.copy(in, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        return outputFile;
+    }
+
+    public void importNewSeason(Integer year, Integer quarter, NewSeasonRequestDto request) throws IOException {
         Quarter savedQuarter = quarterRepository.save(Quarter.create(year, quarter));
         Season savedSeason = seasonRepository.save(Season.create(savedQuarter, year));
 
@@ -96,14 +265,13 @@ public class CsvImportService {
         CSVParser parser = new CSVParser(reader, format);
         for (CSVRecord record : parser) {
             Integer episodeNumber;
-
             try {
                 episodeNumber = Integer.valueOf(record.get("episode_number"));
             } catch (NumberFormatException e) {
                 episodeNumber = null;
             }
-            LocalDateTime scheduledAt;
 
+            LocalDateTime scheduledAt;
             try {
                 scheduledAt = LocalDateTime.parse(record.get("scheduled_at"));
             } catch (IllegalArgumentException e) {
@@ -245,7 +413,10 @@ public class CsvImportService {
         }
     }
 
-    private File downloadAndConvertToWebp(String imageUrl, File tempDir, String name) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, KeyManagementException {
+    private File downloadAndConvertToWebp(
+            String imageUrl, File tempDir, String name
+    ) throws IOException, KeyStoreException, CertificateException,
+            NoSuchAlgorithmException, KeyManagementException {
         // 1. Truststore 로딩
         char[] password = "secret".toCharArray();
         KeyStore trustStore = KeyStore.getInstance("PKCS12");

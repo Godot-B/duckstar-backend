@@ -27,9 +27,12 @@ public class HomeDto {
     @Builder
     @Getter
     public static class WeeklyTopDto {
+        Boolean isPrepared;
+
         List<DuckstarRankPreviewDto> duckstarRankPreviews;
 
-        List<RankPreviewDto> crawlerRankDtos;
+        List<RankPreviewDto> animeTrendingRankPreviews;
+        List<RankPreviewDto> anilabRankPreviews;
     }
 
     @Builder
@@ -39,6 +42,8 @@ public class HomeDto {
 
         ContentType contentType;
 
+        Long contentId;
+
         String mainTitle;
 
         String subTitle;
@@ -47,10 +52,11 @@ public class HomeDto {
 
         String characterImageUrl;
 
-        public static HomeBannerDto from(HomeBanner banner) {
+        public static HomeBannerDto of(HomeBanner banner) {
             return HomeBannerDto.builder()
                     .bannerType(banner.getBannerType())
                     .contentType(banner.getContentType())
+                    .contentId(banner.getContentId())
                     .mainTitle(banner.getMainTitle())
                     .subTitle(banner.getSubTitle())
                     .animeImageUrl(banner.getAnimeImageUrl())

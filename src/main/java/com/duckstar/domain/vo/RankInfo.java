@@ -87,7 +87,7 @@ public class RankInfo {
 
         if (notNew) {
             Integer lastRank = lastRankInfo.getRank();
-            rankInfo.rankDiff = rank - lastRank;
+            rankInfo.rankDiff = lastRank - rank;
 
             if (rankInfo.rankDiff == 0)
                 rankInfo.consecutiveWeeksAtSameRank = lastRankInfo.getConsecutiveWeeksAtSameRank() + 1;

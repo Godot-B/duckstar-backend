@@ -1,6 +1,7 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
+import com.duckstar.service.AnimeService;
 import com.duckstar.service.HomeService;
 import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.HomeDto;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/home")
 @RequiredArgsConstructor
@@ -22,85 +25,66 @@ public class HomeController {
     private final HomeService homeService;
     private final WeekService weekService;
 
-    // caffeinate 필요 ?
     @Operation(summary = "홈페이지 초기 데이터 조회 API", description =
             """
                     투표가 완료된 지난 주차
-                    1. 애니 & Anime Trend TOP N개
+                    1. 애니 & Anilab TOP N개
                     2. Hot 급상승 애니/캐릭터 리스트 (각 최소 2개, 합 최대 6개)
                     3. 드롭다운용 최근 12주""")
     @GetMapping("")
     public ApiResponse<HomeDto> getHome(
-            @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50) int size
-    ) {
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size) {
+
         return ApiResponse.onSuccess(homeService.getHome(size));
     }
 
-    @Operation(summary = "주차별 애니메이션 TOP N개 조회 API (with Anime Trend)", description =
+    @Operation(summary = "주차별 덕스타 애니메이션 TOP N개 조회 API (with 해외 순위)", description =
             """
                     path variable 해당 주차
-                    애니 & Anime Trend TOP N개""")
+                    애니 & Anime Trending TOP N개""")
     @GetMapping("/{year}/{quarter}/{week}/anime")
-    public ApiResponse<WeeklyTopDto> getAnimeTopNByWeek(
+    public ApiResponse<WeeklyTopDto> getWeeklyDuckstar(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week,
-            @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50) int size
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
     ) {
         Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
         return ApiResponse.onSuccess(
-                homeService.getAnimeWeeklyTopDto(weekId, size));
+                homeService.getAnimeWeeklyTop(weekId, size));
     }
 
-    @Operation(summary = "주차별 AniLab TOP N개 조회 API",
-            description = "프론트 탭 전환용: path variable 해당 주차 AniLab TOP N개")
-    @GetMapping("/{year}/{quarter}/{week}/anime/with-lab")
-    public ApiResponse<RankPreviewDto> getWeeklyAniLab(
-            @PathVariable Integer year,
-            @PathVariable Integer quarter,
-            @PathVariable Integer week,
-            @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50) int size
-    ) {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
-
-        return ApiResponse.onSuccess(null);
-    }
-
-    @Operation(summary = "주차별 남캐 TOP N개 조회 API (with Anime Trend)", description =
-            """
-                    path variable 해당 주차
-                    남캐 & Anime Trend TOP N개""")
-    @GetMapping("/{year}/{quarter}/{week}/hero")
-    public ApiResponse<WeeklyTopDto> getHeroTopNByWeek(
-            @PathVariable Integer year,
-            @PathVariable Integer quarter,
-            @PathVariable Integer week,
-            @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50) int size
-    ) {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
-
-        return ApiResponse.onSuccess(null);
-    }
-
-    @Operation(summary = "주차별 여캐 TOP N개 조회 API (with Anime Trend)", description =
-            """
-                    path variable 해당 주차
-                    여캐 & Anime Trend TOP N개""")
-    @GetMapping("/{year}/{quarter}/{week}/heroine")
-    public ApiResponse<WeeklyTopDto> getHeroineTopNByWeek(
-            @PathVariable Integer year,
-            @PathVariable Integer quarter,
-            @PathVariable Integer week,
-            @RequestParam(defaultValue = "10")
-            @Min(1) @Max(50) int size
-    ) {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
-
-        return ApiResponse.onSuccess(null);
-    }
+//
+//    @Operation(summary = "주차별 남캐 TOP N개 조회 API (with Anime Trending)", description =
+//            """
+//                    path variable 해당 주차
+//                    남캐 & Anime Trending TOP N개""")
+//    @GetMapping("/{year}/{quarter}/{week}/hero")
+//    public ApiResponse<WeeklyTopDto> getHeroTopNByWeek(
+//            @PathVariable Integer year,
+//            @PathVariable Integer quarter,
+//            @PathVariable Integer week,
+//            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+//    ) {
+//        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
+//
+//        return ApiResponse.onSuccess(null);
+//    }
+//
+//    @Operation(summary = "주차별 여캐 TOP N개 조회 API (with Anime Trending)", description =
+//            """
+//                    path variable 해당 주차
+//                    여캐 & Anime Trending TOP N개""")
+//    @GetMapping("/{year}/{quarter}/{week}/heroine")
+//    public ApiResponse<WeeklyTopDto> getHeroineTopNByWeek(
+//            @PathVariable Integer year,
+//            @PathVariable Integer quarter,
+//            @PathVariable Integer week,
+//            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+//    ) {
+//        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
+//
+//        return ApiResponse.onSuccess(null);
+//    }
 }

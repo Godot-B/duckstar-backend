@@ -5,6 +5,7 @@ import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.domain.Member;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
+import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.jwt.JwtTokenProvider;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.service.AuthService;
@@ -17,12 +18,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 
 @Component
@@ -31,9 +38,12 @@ import java.util.Base64;
 public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final MemberRepository memberRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final AuthService authService;
     private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
+
+    private final AuthService authService;
+
+    private final OAuth2AuthorizedClientService authorizedClientService;
+    private final JwtTokenProvider jwtTokenProvider;
     private final VoteCookieManager voteCookieManager;
 
     @Value("${app.cookie.secure}")
@@ -57,6 +67,36 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AuthHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // *** NAVER, GOOGLE 은 회원 탈퇴를 위해 소셜 리프레시 토큰 저장 ***
+        if (member.getProvider() == OAuthProvider.NAVER ||
+                member.getProvider() == OAuthProvider.GOOGLE) {
+            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+
+            // 👉 여기서 AuthorizedClient 를 꺼내면 소셜 리프레시 토큰이 들어있음
+            OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
+                    oauthToken.getAuthorizedClientRegistrationId(),
+                    oauthToken.getName()
+            );
+
+            if (client != null && client.getRefreshToken() != null &&
+                member.getSocialRefreshToken() == null) {  // 이미 저장된 소셜 토큰 없을 때만
+
+                String refreshToken = client.getRefreshToken().getTokenValue();
+                Instant expiresAt = client.getRefreshToken().getExpiresAt();
+
+                LocalDateTime socialExpiresAt = expiresAt != null
+                        ? LocalDateTime.ofInstant(expiresAt, ZoneId.systemDefault())
+                        : null;
+
+                // DB에 저장
+                member.setSocialRefreshToken(
+                        refreshToken,
+                        socialExpiresAt
+                );
+                memberRepository.save(member);
+            }
+        }
 
         // 2. JWT 발급
         String accessToken = jwtTokenProvider.createAccessToken(memberId, member.getRole());
@@ -108,30 +148,5 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
         response.sendRedirect(baseUrl); // "/login/oauth2/code/kakao" 등 그대로 두지 않도록 안전 redirect
 
         log.info("✅ 로그인 성공 - memberId={}, role={}", memberId, member.getRole());
-    }
-
-    private void handleWithdrawMode(HttpServletRequest request, HttpServletResponse response, Member member) throws IOException {
-        try {
-            // OAuth 제공자에 따라 다른 회원탈퇴 처리
-            String provider = member.getProvider().toString();
-            
-            if ("GOOGLE".equals(provider)) {
-                // 구글 회원탈퇴: OAuth 토큰 revoke 및 회원탈퇴
-                authService.withdrawGoogle("", response, member.getId());
-            } else if ("NAVER".equals(provider)) {
-                // 네이버 회원탈퇴: OAuth 토큰 revoke 및 회원탈퇴
-                authService.withdrawNaver("", "", response, member.getId());
-            } else {
-                // 카카오 회원탈퇴
-                authService.withdrawKakao(response, member.getId());
-            }
-            
-            log.info("✅ 회원탈퇴 완료 - memberId={}, provider={}", member.getId(), provider);
-            response.sendRedirect(baseUrl + "?withdraw=success");
-            
-        } catch (Exception e) {
-            log.error("❌ 회원탈퇴 실패 - memberId={}, error={}", member.getId(), e.getMessage());
-            response.sendRedirect(baseUrl + "?withdraw=error");
-        }
     }
 }
