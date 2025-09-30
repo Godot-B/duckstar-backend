@@ -52,29 +52,29 @@ public class ScheduleHandler {
         scheduleState.startRunning();
 
         try {
-            LocalDateTime now = LocalDateTime.of(LocalDate.now(), LocalTime.of(22, 0));
-            runSchedule(now);
+            LocalDateTime weekEndAt = LocalDateTime.of(LocalDate.now(), LocalTime.of(22, 0));
+            runSchedule(weekEndAt);
         } finally {
             scheduleState.stopRunning();
         }
     }
 
-    public void runSchedule(LocalDateTime now) {
-        log.info("✈️ 주간 마무리 작업 시작 - {}", now.format(FORMATTER));
+    public void runSchedule(LocalDateTime weekEndAt) {
+        log.info("✈️ 주간 마무리 작업 시작 - {}", weekEndAt.format(FORMATTER));
         try {
             Week lastWeek = weekRepository.findFirstByOrderByStartDateTimeDesc();
             Long lastWeekId = lastWeek.getId();
-            YQWRecord record = getThisWeekRecord(now);
-            weekService.setupWeeklyVote(now, lastWeekId, record);  // 1. 새로운 주 생성
+            YQWRecord newWeekRecord = getThisWeekRecord(weekEndAt);
+            weekService.setupWeeklyVote(weekEndAt, lastWeekId, newWeekRecord);  // 1. 새로운 주 생성
 
-            Week secondLastWeek = weekRepository.findSecondByOrderByStartDateTimeDesc();
-            chartService.buildDuckstars(now, lastWeekId, secondLastWeek.getId());  // 2. 지난 주 덕스타 결과 분석
+            Week secondLastWeek = weekService.getWeekByTime(weekEndAt.minusWeeks(1));
+            chartService.buildDuckstars(weekEndAt, lastWeekId, secondLastWeek.getId());  // 2. 지난 주 덕스타 결과 분석
 
             //TODO 3. 해외 순위 수집
 
-            log.info("✅ 주간 마무리 작업 완료 - {}", now.format(FORMATTER));
+            log.info("✅ 주간 마무리 작업 완료 - {}", weekEndAt.format(FORMATTER));
         } catch (Exception e) {
-            log.error("❌ 주간 마무리 작업 실패 - {}", now.format(FORMATTER), e);
+            log.error("❌ 주간 마무리 작업 실패 - {}", weekEndAt.format(FORMATTER), e);
         }
     }
 }

@@ -5,6 +5,7 @@ import com.duckstar.apiPayload.exception.handler.RankHandler;
 import com.duckstar.domain.enums.MedalType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,7 +33,7 @@ public class RankInfo {
 
     private Integer rankDiff;  // 이전 기록 없을 때 null 이며 NEW
 
-    private Integer consecutiveWeeksAtSameRank = 0;
+    private Integer consecutiveWeeksAtSameRank;
 
     private Integer peakRank;
 
@@ -40,6 +41,7 @@ public class RankInfo {
 
     private Integer weeksOnTop10;
 
+    @Builder
     protected RankInfo(
             MedalType type,
             Integer rank,
@@ -65,49 +67,50 @@ public class RankInfo {
             throw new RankHandler(ErrorStatus.RANK_VALUE_NOT_VALID);
         }
 
-        boolean isPrized = false;
-        boolean isTop10 = false;
-        if (rank <= 3) {
-            isPrized = true;
-            isTop10 = true;
-        } else if (rank <= 10) {
-            isTop10 = true;
-        }
+        boolean isPrized = rank <= 3;
+        boolean isTop10 = rank <= 10;
 
         int medalIdx = isPrized ? rank - 1 : 3;
-        RankInfo rankInfo = new RankInfo(
-                MedalType.values()[medalIdx],
-                rank,
-                votePercent,
-                malePercent,
-                isTop10 ? 1 : 0
-        );
+        RankInfo newRankInfo = RankInfo.builder()
+                .type(
+                        MedalType.values()[medalIdx]
+                )
+                .rank(rank)
+                .votePercent(votePercent)
+                .malePercent(malePercent)
+                .weeksOnTop10(isTop10 ? 1 : 0)
+                .build();
 
-        boolean notNew = lastRankInfo != null;
+        boolean notNew = lastRankInfo != null && lastRankInfo.getRank() >= 1;
 
         if (notNew) {
             Integer lastRank = lastRankInfo.getRank();
-            rankInfo.rankDiff = lastRank - rank;
+            newRankInfo.rankDiff = lastRank - rank;
 
-            if (rankInfo.rankDiff == 0)
-                rankInfo.consecutiveWeeksAtSameRank = lastRankInfo.getConsecutiveWeeksAtSameRank() + 1;
+            if (newRankInfo.rankDiff == 0) {
+                newRankInfo.consecutiveWeeksAtSameRank = lastRankInfo.getConsecutiveWeeksAtSameRank() + 1;
+            } else {
+                newRankInfo.consecutiveWeeksAtSameRank = 1;
+            }
 
-            if (isTop10)
-                rankInfo.weeksOnTop10 = lastRankInfo.getWeeksOnTop10() + 1;
+            if (isTop10) {
+                newRankInfo.weeksOnTop10 = lastRankInfo.getWeeksOnTop10() + 1;
+            }
 
             Integer peakRank = lastRankInfo.getPeakRank();
             if (rank < peakRank) {
-                rankInfo.peakRank = rank;
-                rankInfo.peakDate = today;
+                newRankInfo.peakRank = rank;
+                newRankInfo.peakDate = today;
             } else {
-                rankInfo.peakRank = peakRank;
-                rankInfo.peakDate = lastRankInfo.getPeakDate();
+                newRankInfo.peakRank = peakRank;
+                newRankInfo.peakDate = lastRankInfo.getPeakDate();
             }
         } else {
-            rankInfo.peakRank = rank;
-            rankInfo.peakDate = today;
+            newRankInfo.peakRank = rank;
+            newRankInfo.peakDate = today;
+            newRankInfo.consecutiveWeeksAtSameRank = 1;
         }
 
-        return rankInfo;
+        return newRankInfo;
     }
 }

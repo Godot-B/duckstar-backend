@@ -9,6 +9,7 @@ import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.jwt.JwtTokenProvider;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.service.AuthService;
+import com.duckstar.service.WeekService;
 import com.duckstar.web.support.VoteCookieManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,6 +46,7 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final JwtTokenProvider jwtTokenProvider;
     private final VoteCookieManager voteCookieManager;
+    private final WeekService weekService;
 
     @Value("${app.cookie.secure}")
     private boolean secureCookie;
@@ -106,7 +108,8 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
         boolean isMigrated = authService.saveTokenAndMigrateVote(request, response, member, refreshToken);
 
         // 3-2. UX 쿠키 보조 세팅
-        if (weekVoteSubmissionRepository.existsByMember_Id(memberId)) {
+        Long weekId = weekService.getCurrentWeek().getId();
+        if (weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(weekId, memberId)) {
             voteCookieManager.markVotedThisWeek(request, response);
         }
 

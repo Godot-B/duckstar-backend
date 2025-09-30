@@ -58,13 +58,11 @@ public class VoteController {
         Long memberId = principal == null ? null : principal.getId();
 
         String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
-        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
 
         voteService.voteAnime(
                 request,
                 memberId,
                 cookieId,
-                principalKey,
                 requestRaw,
                 responseRaw
         );

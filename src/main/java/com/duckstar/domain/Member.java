@@ -75,6 +75,15 @@ public class Member extends BaseEntity {
     // 혹시나 소셜 API 추가 이용에 대비
     private LocalDateTime socialRefreshTokenExpiresAt;
 
+    /**
+     * 최장 투표 기간
+     * 현재 스트릭
+     */
+
+    private Integer bestStreak = 0;
+
+    private Integer currentStreak = 0;
+
     @Builder
     protected Member(
 //            String email,
@@ -151,6 +160,15 @@ public class Member extends BaseEntity {
 
     public void setGender(Gender gender) {
         this.gender = gender;
+    }
+
+    public void updateStreak(boolean isConsecutive) {
+        if (isConsecutive) {
+            currentStreak += 1;
+        } else {
+            currentStreak = 1;
+        }
+        bestStreak = Math.max(bestStreak, currentStreak);
     }
 
     public void withdraw() {

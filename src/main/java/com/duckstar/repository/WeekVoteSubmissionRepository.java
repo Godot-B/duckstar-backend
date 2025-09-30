@@ -7,13 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WeekVoteSubmissionRepository extends JpaRepository<WeekVoteSubmission, Long> {
-    Optional<WeekVoteSubmission> findByWeekIdAndPrincipalKey(Long weekId, String principalKey);
+    Optional<WeekVoteSubmission> findByWeek_IdAndPrincipalKey(Long weekId, String principalKey);
+    Optional<WeekVoteSubmission> findByWeek_IdAndMember_Id(Long weekIdm, Long memberId);
+    Optional<WeekVoteSubmission> findByWeek_IdAndCookieId(Long weekId, String cookieId);
 
-    Optional<WeekVoteSubmission> findByPrincipalKey(String principalKey);
-
-    Optional<WeekVoteSubmission> findByMember_Id(Long memberId);
-
-    boolean existsByMember_Id(Long memberId);
+    boolean existsByWeek_IdAndMember_Id(Long weekId, Long memberId);
 
     List<WeekVoteSubmission> findAllByMember_Id(Long memberId);
 }

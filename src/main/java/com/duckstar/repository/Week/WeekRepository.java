@@ -17,5 +17,5 @@ public interface WeekRepository extends JpaRepository<Week, Long>, WeekRepositor
 
     Week findFirstByOrderByStartDateTimeDesc();
 
-    Week findSecondByOrderByStartDateTimeDesc();
+    Week findThirdByOrderByStartDateTimeDesc();
 }

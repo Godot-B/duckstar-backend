@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         indexes = {
-                @Index(name = "idx_submission_p",
-                        columnList = "principal_key"),
-                @Index(name = "idx_submission_w",
-                        columnList = "week_id")
+                @Index(name = "idx_submission_wp",
+                        columnList = "week_id, principal_key"),
+                @Index(name = "idx_submission_wm",
+                        columnList = "week_id, member_id")
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_submission_wpc",

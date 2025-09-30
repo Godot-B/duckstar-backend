@@ -36,4 +36,17 @@ public class MemberController {
         return ApiResponse.onSuccess(
                 memberService.updateProfile(request, principal));
     }
+
+    @Operation(summary = "참여한 투표 주차 조회 API")
+    @GetMapping("/me/anime/weeks")
+    public ApiResponse<Void> getParticipatedWeeks() {
+
+        return ApiResponse.onSuccess(null);
+    }
+
+    @Operation(summary = "특정 주차의 투표 기록 조회 API")
+    @GetMapping("/me/anime/weeks/{weekId}")
+    public ApiResponse<Void> getHistoryByWeek(@PathVariable Long weekId) {
+        return ApiResponse.onSuccess(null);
+    }
 }

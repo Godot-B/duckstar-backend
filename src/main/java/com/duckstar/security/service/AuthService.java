@@ -17,6 +17,7 @@ import com.duckstar.security.providers.naver.NaverApiClient;
 import com.duckstar.security.providers.naver.NaverTokenResponse;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.repository.MemberTokenRepository;
+import com.duckstar.service.WeekService;
 import com.duckstar.web.support.VoteCookieManager;
 import feign.FeignException;
 import io.jsonwebtoken.Claims;
@@ -53,6 +54,7 @@ public class AuthService {
     private final VoteCookieManager voteCookieManager;
     private final GoogleApiClient googleApiClient;
     private final NaverApiClient naverApiClient;
+    private final WeekService weekService;
 
     @Value("${app.cookie.same-site}")
     private String sameSite;
@@ -110,9 +112,9 @@ public class AuthService {
             return false;
         }
 
-        String principalKey = voteCookieManager.toPrincipalKey(null, voteCookieId);
+        Long weekId = weekService.getCurrentWeek().getId();
         Optional<WeekVoteSubmission> localSubmissionOpt =
-                weekVoteSubmissionRepository.findByPrincipalKey(principalKey);
+                weekVoteSubmissionRepository.findByWeek_IdAndCookieId(weekId, voteCookieId);
         if (localSubmissionOpt.isEmpty()) {
             // 비로그인 투표 기록 없는 경우 스킵
             return false;
@@ -123,7 +125,7 @@ public class AuthService {
         if (submission.getMember() == null) {
 
             Optional<WeekVoteSubmission> memberSubmissionOpt =
-                    weekVoteSubmissionRepository.findByMember_Id(member.getId());
+                    weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(weekId, member.getId());
             //Case 1. 비로그인 투표 기록 ⭕️ -> 투표하지 않은 멤버 로그인
             if (memberSubmissionOpt.isEmpty()) {
                 // ** 마이그레이션 ** //

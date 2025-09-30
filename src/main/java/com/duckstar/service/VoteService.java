@@ -28,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.duckstar.web.dto.VoteResponseDto.*;
@@ -83,7 +84,7 @@ public class VoteService {
         Week currentWeek = weekService.getCurrentWeek();
 
         Optional<WeekVoteSubmission> submissionOpt =
-                weekVoteSubmissionRepository.findByWeekIdAndPrincipalKey(currentWeek.getId(), principalKey);
+                weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(currentWeek.getId(), principalKey);
 
         Optional<Long> submissionIdOpt = submissionOpt.map(WeekVoteSubmission::getId);
         if (submissionIdOpt.isEmpty()) {
@@ -123,7 +124,6 @@ public class VoteService {
             AnimeVoteRequest request,
             Long memberId,
             String cookieId,
-            String principalKey,
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
@@ -148,14 +148,22 @@ public class VoteService {
 
         Gender gender = request.getGender();
 
-        if (member != null) member.setGender(gender);
+        boolean isConsecutive = false;
+        if (member != null) {
+            member.setGender(gender);
+            LocalDateTime lastWeekStartedAt = ballotWeek.getStartDateTime().minusWeeks(1);
+            Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
+
+            isConsecutive = weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(
+                    lastWeek.getId(), member.getId());
+        }
 
         //=== 중복 투표 방지 ===//
         WeekVoteSubmission submission = WeekVoteSubmission.create(
                 currentWeek,
                 member,
                 cookieId,
-                principalKey,
+                voteCookieManager.toPrincipalKey(memberId, cookieId),
                 gender,
                 VoteCategory.ANIME
         );
@@ -201,6 +209,7 @@ public class VoteService {
         }
 
         animeVoteRepository.saveAll(rows);
+        if (member != null) member.updateStreak(isConsecutive);
 
         voteCookieManager.markVotedThisWeek(requestRaw, responseRaw);
     }

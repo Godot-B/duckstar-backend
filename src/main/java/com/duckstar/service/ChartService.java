@@ -27,7 +27,7 @@ public class ChartService {
     private final WeekRepository weekRepository;
 
     @Transactional
-    public void buildDuckstars(LocalDateTime now, Long lastWeekId, Long secondLastWeekId) {
+    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
         Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
@@ -85,36 +85,36 @@ public class ChartService {
 
         for (Map.Entry<Integer, List<AnimeCandidate>> entry : chart.entrySet()) {
             int rank = entry.getKey();
-            for (AnimeCandidate ac : entry.getValue()) {  // 동점자 각각 처리
+            for (AnimeCandidate candidate : entry.getValue()) {  // 동점자 각각 처리
                 double votePercent = totalVotes != 0 ?
-                        ((double) ac.getVotes() / totalVotes) * 100 :
+                        ((double) candidate.getVotes() / totalVotes) * 100 :
                         0;
 
-                int votes = ac.getVotes();
+                int votes = candidate.getVotes();
                 Double malePercent = votes != 0 ?  // 보너스 투표 하나만 있는 경우, 성비 제공 X
-                        ((double) ac.getMaleCount() / ac.getVoterCount()) * 100 :
+                        ((double) candidate.getMaleCount() / candidate.getVoterCount()) * 100 :
                         null;
 
-                Long animeId = ac.getAnime().getId();
+                Long animeId = candidate.getAnime().getId();
                 RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
 
                 RankInfo rankInfo = RankInfo.create(
                         lastRankInfo,
-                        now.toLocalDate(),
+                        lastWeekEndAt.toLocalDate(),
                         rank,
                         votePercent,
                         malePercent
                 );
 
-                ac.setRankInfo(lastRankInfo, rankInfo);
+                candidate.setRankInfo(lastRankInfo, rankInfo);
             }
         }
     }
 
     private Map<Integer, List<AnimeCandidate>> buildChart(List<AnimeCandidate> candidates) {
-        candidates.sort(Comparator.comparing(AnimeCandidate::getVotes).reversed()
-                .thenComparing(AnimeCandidate::getVoterCount)
-                .thenComparing(ac -> ac.getAnime().getTitleKor()));
+        candidates.sort(Comparator.comparing(AnimeCandidate::getVotes).reversed()  // 투표 수 정렬
+                .thenComparing(AnimeCandidate::getVoterCount)  // 투표자 수 정렬
+                .thenComparing(ac -> ac.getAnime().getTitleKor()));  // 가나다 순
 
         Map<Integer, List<AnimeCandidate>> chart = new LinkedHashMap<>();
         int rank = 1;
@@ -129,7 +129,7 @@ public class ChartService {
                 chart.put(i + 1, animeCandidates);
                 rank = i + 1;
             } else {
-                chart.get(rank).add(candidate);
+                chart.get(rank).add(candidate);  // 동일 순위 처리
             }
 
             prevVotes = votes;
