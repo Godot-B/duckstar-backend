@@ -1,10 +1,12 @@
 package com.duckstar.repository.AnimeVote;
 
 import com.duckstar.domain.mapping.AnimeVote;
+import com.duckstar.domain.mapping.WeekVoteSubmission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface AnimeVoteRepository extends JpaRepository<AnimeVote, Long>, AnimeVoteRepositoryCustom {
@@ -18,4 +20,8 @@ public interface AnimeVoteRepository extends JpaRepository<AnimeVote, Long>, Ani
         WHERE w.id = :weekId
     """)
     List<AnimeVote> findAllByWeekId(@Param("weekId") Long weekId);
+
+    List<AnimeVote> findAllByWeekVoteSubmission_IdAndAnimeCandidate_IdIn(Long submissionId, List<Long> candidateIds);
+
+    void deleteAllByWeekVoteSubmission_IdAndAnimeCandidate_IdIn(Long submissionId, List<Long> candidateIds);
 }

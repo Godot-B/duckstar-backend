@@ -2,7 +2,7 @@ package com.duckstar.repository.AnimeOtt;
 
 import com.duckstar.domain.QOtt;
 import com.duckstar.domain.mapping.QAnimeOtt;
-import com.duckstar.web.dto.AnimeResponseDto;
+import com.duckstar.web.dto.OttDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

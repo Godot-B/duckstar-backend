@@ -38,12 +38,15 @@ public class QuarterUtil {
     // 비즈니스 규칙에 맞는 연도, 분기, 주차 계산
     public static YQWRecord getThisWeekRecord(LocalDateTime time) {
         LocalDate weekStartDate;
-        LocalDate weekEndDate;
+        if (time.getDayOfWeek() == SUNDAY && time.getHour() < 22) {
+            // 일요일 22시 전이라면 계산 편의를 위해 토요일로 간주 (아직 주차 변경 안 됨)
+            weekStartDate = time.toLocalDate().minusDays(1);
+        } else {
+            weekStartDate = time.toLocalDate();
+        }
 
-        // 주 시작(일요일)과 종료(토요일)
-        // 여기서는 분기 변경 계산을 위해 종료일을 토요일로 간주
-        weekStartDate = time.toLocalDate();
-        weekEndDate = weekStartDate.plusDays(6);
+        // 여기서는 '분기 변경 여부' 계산을 위해 종료일을 토요일로 간주
+        LocalDate weekEndDate = weekStartDate.plusDays(6);
 
         int startQuarterValue = getQuarterValue(weekStartDate);
         int endQuarterValue = getQuarterValue(weekEndDate);

@@ -6,7 +6,7 @@ import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QAnimeSeason;
 import com.duckstar.domain.mapping.QEpisode;
-import com.duckstar.web.dto.AnimeResponseDto.OttDto;
+import com.duckstar.web.dto.OttDto;
 import com.duckstar.web.dto.AnimeResponseDto.SeasonDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;

@@ -240,7 +240,7 @@ public class CsvImportService {
 
     public void importNewSeason(Integer year, Integer quarter, NewSeasonRequestDto request) throws IOException {
         Quarter savedQuarter = quarterRepository.save(Quarter.create(year, quarter));
-        Season savedSeason = seasonRepository.save(Season.create(savedQuarter, year));
+        Season savedSeason = seasonRepository.save(Season.create(year, savedQuarter));
 
         Map<Integer, Long> animeIdMap = importAnimes(savedSeason, request.getAnimeCsv());
         Map<Integer, Long> characterIdMap = importCharacters(request.getCharactersCsv());
@@ -454,16 +454,27 @@ public class CsvImportService {
             Files.copy(in, original.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
 
-        // 4. WebP 변환
-        ImmutableImage image = ImmutableImage.loader().fromFile(original);
-        File webpFile = new File(tempDir, name + ".webp");
-        WebpWriter writer = WebpWriter.DEFAULT.withQ(80);  // 품질 80%
-        image.output(writer, webpFile);
-
+        // 4. WebP 변환,
         // 5. 원본 삭제
-        original.delete();
+        return convertToWebpAndGet(tempDir, name, original);
+    }
 
-        return webpFile;
+    private static File convertToWebpAndGet(File tempDir, String name, File original) throws IOException {
+        try {
+            ImmutableImage image = ImmutableImage.loader().fromFile(original);
+            File webpFile = new File(tempDir, name + ".webp");
+            WebpWriter writer = WebpWriter.DEFAULT.withQ(80);  // 품질 80%
+            image.output(writer, webpFile);
+            return webpFile;
+        } finally {
+            original.delete();
+        }
+    }
+
+    public static File convertToWebpAndGet(File tempDir, String name, InputStream in) throws IOException {
+        File original = new File(tempDir, name + ".tmp");
+        Files.copy(in, original.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        return convertToWebpAndGet(tempDir, name, original);
     }
 
     public Map<Integer, Long> importAnimes(Season season, MultipartFile animeCsv) throws IOException {
@@ -574,31 +585,52 @@ public class CsvImportService {
         return idMap;
     }
 
-    private Long uploadAndUpdateAnime(String image, Anime anime) throws IOException {
+    private Long uploadAndUpdateAnime(String imageUrl, Anime anime) throws IOException {
         File tempDir = Files.createTempDirectory("anime").toFile();
         try {
-            File mainWebp = downloadAndConvertToWebp(image, tempDir, "main");
+            // 메인 webp 변환
+            File mainWebp = downloadAndConvertToWebp(imageUrl, tempDir, "main");
 
-            // 3. 썸네일 생성 (320x350 박스 안, 비율 유지)
+            // 썸네일 생성 (320x350 박스 안, 비율 유지)
             File thumbWebp = s3Uploader.createThumbnail(mainWebp, 320, 350);
 
-            // 4. S3 업로드
-            Long newId = anime.getId();
-
-            String mainS3Key = "animes/" + newId + "/main.webp";
-            String thumbS3Key = "animes/" + newId + "/thumb.webp";
-
-            String mainUrl = s3Uploader.uploadWithKey(mainWebp, mainS3Key);
-            String thumbUrl = s3Uploader.uploadWithKey(thumbWebp, thumbS3Key);
-
-            anime.updateImage(mainUrl, thumbUrl);
-
-            return newId;
+            return uploadAnimeImages(anime, mainWebp, thumbWebp);
 
         } catch (CertificateException | KeyStoreException | NoSuchAlgorithmException | KeyManagementException e) {
             throw new RuntimeException(e);
         } finally {
             FileSystemUtils.deleteRecursively(tempDir);
         }
+    }
+
+    public void uploadAndUpdateAnime(MultipartFile file, Anime anime) throws IOException {
+        File tempDir = Files.createTempDirectory("anime").toFile();
+        try {
+            // 메인 webp 변환
+            File mainWebp = convertToWebpAndGet(tempDir, "main", file.getInputStream());
+
+            // 썸네일 생성 (320x350 박스 안, 비율 유지)
+            File thumbWebp = s3Uploader.createThumbnail(mainWebp, 320, 350);
+
+            uploadAnimeImages(anime, mainWebp, thumbWebp);
+
+        } finally {
+            FileSystemUtils.deleteRecursively(tempDir);
+        }
+    }
+
+    private Long uploadAnimeImages(Anime anime, File mainWebp, File thumbWebp) {
+        // S3 업로드
+        Long newId = anime.getId();
+
+        String mainS3Key = "animes/" + newId + "/main.webp";
+        String thumbS3Key = "animes/" + newId + "/thumb.webp";
+
+        String mainUrl = s3Uploader.uploadWithKey(mainWebp, mainS3Key);
+        String thumbUrl = s3Uploader.uploadWithKey(thumbWebp, thumbS3Key);
+
+        anime.updateImage(mainUrl, thumbUrl);
+
+        return newId;
     }
 }

@@ -4,7 +4,6 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeRepository;
-import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.util.ChosungUtil;
 import com.duckstar.web.dto.SearchResponseDto;
 import lombok.RequiredArgsConstructor;

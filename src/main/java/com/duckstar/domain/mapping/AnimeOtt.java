@@ -3,6 +3,7 @@ package com.duckstar.domain.mapping;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Ott;
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.web.dto.OttDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -29,4 +30,14 @@ public class AnimeOtt extends BaseEntity {
 
     @Column(length = 512)
     private String watchUrl;
+
+    protected AnimeOtt(Anime anime, Ott ott, String watchUrl) {
+        this.anime = anime;
+        this.ott = ott;
+        this.watchUrl = watchUrl;
+    }
+
+    public static AnimeOtt create(Anime anime, Ott ott, String watchUrl) {
+        return new AnimeOtt(anime, ott, watchUrl);
+    }
 }

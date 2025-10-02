@@ -24,9 +24,11 @@ public class AnimeVoteRepositoryCustomImpl implements AnimeVoteRepositoryCustom 
                         Projections.constructor(
                                 AnimeBallotDto.class,
                                 animeVote.ballotType,
+                                animeVote.animeCandidate.id,
                                 anime.id,
                                 anime.mainThumbnailUrl,
-                                anime.titleKor
+                                anime.titleKor,
+                                anime.totalEpisodes
                         )
                 )
                 .from(animeVote)

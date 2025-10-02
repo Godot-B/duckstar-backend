@@ -48,11 +48,16 @@ public class VoteResponseDto {
     public static class AnimeBallotDto {
         BallotType ballotType;
 
+        Long animeCandidateId;
+
         Long animeId;
 
         String mainThumbnailUrl;
 
         String titleKor;
+
+        // 투표 결과 화면 - 에피소드 별 댓글 남기기 기능을 위해
+        Integer totalEpisodes;
     }
 
     @Builder

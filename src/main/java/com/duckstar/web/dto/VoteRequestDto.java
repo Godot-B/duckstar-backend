@@ -34,4 +34,17 @@ public class VoteRequestDto {
         @NotNull
         BallotType ballotType;
     }
+
+    @Getter
+    public static class AnimeRevoteRequest {
+        @NotNull
+        Long weekId;
+
+        @NotNull
+        Gender gender;
+
+        List<BallotRequestDto> added;
+        List<BallotRequestDto> removed;
+        List<BallotRequestDto> updated;
+    }
 }

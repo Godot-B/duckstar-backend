@@ -4,14 +4,10 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.SeasonType;
-import com.duckstar.domain.mapping.AnimeSeason;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -64,7 +60,7 @@ public class Season extends BaseEntity {
         this.typeOrder = typeOrder;
     }
 
-    public static Season create(Quarter quarter, Integer yearValue) {
+    public static Season create(Integer yearValue, Quarter quarter) {
 
         SeasonType type;
         switch (quarter.getQuarterValue()) {
@@ -79,7 +75,7 @@ public class Season extends BaseEntity {
                 quarter,
                 yearValue,
                 type,
-                type.getOrder()
+                type.getQuarter()
         );
     }
 }

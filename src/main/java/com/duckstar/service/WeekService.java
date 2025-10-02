@@ -41,12 +41,12 @@ public class WeekService {
 
     private final WeekRepository weekRepository;
     private final AnimeCandidateRepository animeCandidateRepository;
-    private final QuarterRepository quarterRepository;
     private final AnimeSeasonRepository animeSeasonRepository;
     private final SeasonRepository seasonRepository;
     private final EpisodeRepository episodeRepository;
 
     private final AnimeService animeService;
+    private final SeasonService seasonService;
 
     public Week getCurrentWeek() {
         LocalDateTime now = LocalDateTime.now();
@@ -197,8 +197,8 @@ public class WeekService {
         //=== 분기, 시즌 찾기(or 생성) & 주 생성 ===//
         boolean isQuarterChanged = lastWeekQuarterValue != thisQuarterValue;
 
-        Quarter quarter = getOrCreateQuarter(isQuarterChanged, record);
-        Season season = getOrCreateSeason(isQuarterChanged, quarter);
+        Quarter quarter = seasonService.getOrCreateQuarter(isQuarterChanged, record.yearValue(), thisQuarterValue);
+        Season season = seasonService.getOrCreateSeason(isQuarterChanged, quarter);
 
         Week newWeek = Week.create(
                 quarter,
@@ -219,50 +219,5 @@ public class WeekService {
 
         //=== 새로운 주의 투표 오픈 ===//
         newWeek.openVote();
-    }
-
-
-    // CSV 리더 설계 이후 다시 돌아와 아래 로직들 검증
-
-    private Quarter getOrCreateQuarter(boolean isQuarterChanged, YQWRecord record) {
-        int thisYearValue = record.yearValue();
-        int thisQuarterValue = record.quarterValue();
-        int thisWeekValue = record.weekValue();
-
-        Optional<Quarter> quarterOpt =
-                quarterRepository.findByYearValueAndQuarterValue(thisYearValue, thisQuarterValue);
-
-        Quarter quarter;
-        if (quarterOpt.isPresent()) {
-            quarter = quarterOpt.get();
-
-        // 분기 변경 주 && DB에 없을 때
-        } else if (isQuarterChanged) {
-            quarter = Quarter.create(thisQuarterValue, thisWeekValue);
-            quarter = quarterRepository.save(quarter);
-        } else {
-            throw new QuarterHandler(ErrorStatus.QUARTER_NOT_FOUND);
-        }
-        return quarter;
-    }
-
-    private Season getOrCreateSeason(boolean isChangedQuarter, Quarter quarter) {
-        int thisYearValue = quarter.getYearValue();
-        int thisQuarterValue = quarter.getQuarterValue();
-
-        Optional<Season> seasonOpt =
-                seasonRepository.findByYearValueAndQuarter_QuarterValue(thisYearValue, thisQuarterValue);
-        Season season;
-        if (seasonOpt.isPresent()) {
-            season = seasonOpt.get();
-
-        // 분기 변경 주 && DB에 없을 때
-        } else if (isChangedQuarter) {
-            season = Season.create(quarter, thisYearValue);
-            season = seasonRepository.save(season);
-        } else {
-            throw new QuarterHandler(ErrorStatus.SEASON_NOT_FOUND);
-        }
-        return season;
     }
 }

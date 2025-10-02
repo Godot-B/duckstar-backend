@@ -2,6 +2,7 @@ package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.domain.enums.CommentSortType;
+import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.AnimeService;
 import com.duckstar.service.CommentService;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.duckstar.web.dto.EpisodeResponseDto.*;
+
 @RestController
 @RequestMapping("/api/v1/animes")
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class AnimeController {
 
     private final AnimeService animeService;
     private final CommentService commentService;
+    private final EpisodeRepository episodeRepository;
 
     @Operation(summary = "애니메이션 댓글 조회 API")
     @GetMapping("/{animeId}/comments")
@@ -68,6 +72,13 @@ public class AnimeController {
     public ApiResponse<AnimeHomeDto> getAnimeHomeById(@PathVariable Long animeId) {
         return ApiResponse.onSuccess(
                 animeService.getAnimeHomeDtoById(animeId));
+    }
+
+    @Operation(summary = "애니메이션 에피소드 조회 API")
+    @GetMapping("/{animeId}/episodes")
+    public ApiResponse<List<EpisodeDto>> getEpisodesByAnime(@PathVariable Long animeId) {
+        return ApiResponse.onSuccess(
+                episodeRepository.getEpisodeDtosByAnimeId(animeId));
     }
 
 //    @Operation(summary = "애니메이션 등장인물 전체 조회 API")

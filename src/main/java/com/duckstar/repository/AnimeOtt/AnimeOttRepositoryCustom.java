@@ -1,6 +1,6 @@
 package com.duckstar.repository.AnimeOtt;
 
-import com.duckstar.web.dto.AnimeResponseDto.OttDto;
+import com.duckstar.web.dto.OttDto;
 
 import java.util.List;
 

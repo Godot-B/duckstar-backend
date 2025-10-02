@@ -117,14 +117,6 @@ public class AnimeResponseDto {
     @Builder
     @Getter
     @AllArgsConstructor
-    public static class OttDto {
-        OttType ottType;
-        String watchUrl;
-    }
-    
-    @Builder
-    @Getter
-    @AllArgsConstructor
     public static class CastPreviewDto {
         String mainThumbnailUrl;
 

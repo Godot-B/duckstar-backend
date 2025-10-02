@@ -1,6 +1,5 @@
 package com.duckstar.abroad.reader;
 
-import com.duckstar.web.dto.admin.CsvRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

@@ -7,6 +7,7 @@ import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.web.dto.AnimeResponseDto;
+import com.duckstar.web.dto.OttDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;

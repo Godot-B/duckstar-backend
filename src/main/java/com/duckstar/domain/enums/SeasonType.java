@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.MonthDay;
-import java.util.Date;
 
 @Getter
 @RequiredArgsConstructor
@@ -15,6 +14,6 @@ public enum SeasonType {
     AUTUMN(4, MonthDay.of(9, 23)),
     WINTER(1, MonthDay.of(12, 22));
 
-    private final int order;
+    private final int quarter;
     private final MonthDay startDate;
 }
