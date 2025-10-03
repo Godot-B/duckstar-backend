@@ -2,7 +2,6 @@ package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.service.AnimeService;
-import com.duckstar.web.dto.admin.AnimeRequestDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
+import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,9 +35,16 @@ public class AdminController {
         return ApiResponse.onSuccess(animeService.setUnknown(animeId));
     }
 
-    @Operation(summary = "애니메이션 추가 API")
+    @Operation(summary = "애니메이션 등록 API")
     @PostMapping("/animes")
-    public ApiResponse<Long> addAnime(@Valid @ModelAttribute AnimeRequestDto request) throws IOException {
+    public ApiResponse<Long> addAnime(@Valid @ModelAttribute PostRequestDto request) throws IOException {
         return ApiResponse.onSuccess(animeService.addAnime(request));
+    }
+
+    @Operation(summary = "애니메이션 메인 이미지 수정 API")
+    @PostMapping("/animes/{animeId}")
+    public ApiResponse<Long> updateAnimeImage(@PathVariable Long animeId,
+                                      @ModelAttribute ImageRequestDto request) throws IOException {
+        return ApiResponse.onSuccess(animeService.updateAnimeImage(animeId, request));
     }
 }

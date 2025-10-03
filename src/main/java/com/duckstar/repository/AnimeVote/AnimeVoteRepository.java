@@ -24,4 +24,10 @@ public interface AnimeVoteRepository extends JpaRepository<AnimeVote, Long>, Ani
     List<AnimeVote> findAllByWeekVoteSubmission_IdAndAnimeCandidate_IdIn(Long submissionId, List<Long> candidateIds);
 
     void deleteAllByWeekVoteSubmission_IdAndAnimeCandidate_IdIn(Long submissionId, List<Long> candidateIds);
+
+    List<AnimeVote> findAllByAnimeCandidate_Id(Long animeCandidateId);
+
+    void deleteAllByAnimeCandidate_Id(Long animeCandidateId);
+
+    void deleteAllByWeekVoteSubmission_Id(Long weekVoteSubmissionId);
 }

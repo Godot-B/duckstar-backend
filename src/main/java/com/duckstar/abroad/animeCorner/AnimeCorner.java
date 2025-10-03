@@ -1,4 +1,4 @@
-package com.duckstar.abroad.animeTrend;
+package com.duckstar.abroad.animeCorner;
 
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Week;
@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor
-public class AnimeTrending extends BaseEntity {
+public class AnimeCorner extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,8 +29,6 @@ public class AnimeTrending extends BaseEntity {
     private String mainThumbnailUrl;
 
     private String title;
-
-    private String corp;
 
     // 순위 정보
     @Column(name = "`rank`")

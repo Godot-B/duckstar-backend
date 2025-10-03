@@ -8,6 +8,8 @@ import com.duckstar.web.dto.VoteRequestDto;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
 import com.duckstar.web.dto.VoteResponseDto.AnimeCandidateListDto;
 import com.duckstar.web.dto.VoteResponseDto.AnimeVoteHistoryDto;
+import com.duckstar.web.support.IpExtractor;
+import com.duckstar.web.support.IpHasher;
 import com.duckstar.web.support.VoteCookieManager;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +29,8 @@ public class VoteController {
 
     private final VoteService voteService;
     private final VoteCookieManager voteCookieManager;
+    private final IpHasher ipHasher;
+    private final IpExtractor ipExtractor;
 
     @Operation(summary = "애니메이션 후보자 리스트 조회 API")
     @GetMapping("/anime")
@@ -61,10 +65,14 @@ public class VoteController {
 
         String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
 
+        String clientIp = ipExtractor.extract(requestRaw);
+        String ipHash = ipHasher.hash(clientIp);
+
         voteService.voteAnime(
                 request,
                 memberId,
                 cookieId,
+                ipHash,
                 requestRaw,
                 responseRaw
         );

@@ -26,7 +26,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -82,15 +84,15 @@ public class WeekService {
 
     public AnimePreviewListDto getWeeklySchedule() {
         LocalDateTime now = LocalDateTime.now();
-
-        Week currentWeek = getWeekByTime(now);
-        LocalDateTime weekStart = currentWeek.getStartDateTime();
-        LocalDateTime weekEnd = currentWeek.getEndDateTime();
+        LocalDateTime lastSunday = now
+                .with(TemporalAdjusters.previous(DayOfWeek.SUNDAY))
+                .withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endSunday = lastSunday.plusDays(7);
 
         List<AnimePreviewDto> animePreviews =
                 episodeRepository.getAnimePreviewsByWeek(
-                        weekStart,
-                        weekEnd
+                        lastSunday,
+                        endSunday
                 );
 
         Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
@@ -109,7 +111,6 @@ public class WeekService {
         }
 
         return AnimePreviewListDto.builder()
-                .weekDto(WeekDto.of(currentWeek))
                 .schedule(schedule)
                 .build();
     }
@@ -134,13 +135,9 @@ public class WeekService {
             schedule.putIfAbsent(key, List.of());
         }
 
-        WeekDto quarterData = WeekDto.builder()
+        return AnimePreviewListDto.builder()
                 .year(year)
                 .quarter(quarter)
-                .build();
-
-        return AnimePreviewListDto.builder()
-                .weekDto(quarterData)
                 .schedule(schedule)
                 .build();
     }
@@ -154,6 +151,11 @@ public class WeekService {
                 size + 1,
                 pageable.getSort()
         );
+
+        Week week = weekRepository.findById(weekId)
+                .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+
+        if (!week.getAnnouncePrepared()) throw new WeekHandler(ErrorStatus.ANNOUNCEMENT_NOT_PREPARED);
 
         List<AnimeRankDto> rows =
                 animeCandidateRepository.getAnimeRankDtosByWeekId(weekId, overFetch);
@@ -208,7 +210,7 @@ public class WeekService {
         Week savedWeek = weekRepository.save(newWeek);
 
         //=== 애니 후보군 생성 ===//
-        List<Anime> nowShowingAnimes = animeService.getAnimesForCandidate(isQuarterChanged, season, now);
+        List<Anime> nowShowingAnimes = animeService.getAnimesForCandidate(season, now);
 
         List<AnimeCandidate> animeCandidates = nowShowingAnimes.stream()
                 .map(anime -> AnimeCandidate.create(savedWeek, anime))

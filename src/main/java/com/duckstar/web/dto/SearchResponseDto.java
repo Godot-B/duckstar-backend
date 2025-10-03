@@ -24,7 +24,9 @@ public class SearchResponseDto {
     @Builder
     @Getter
     public static class AnimePreviewListDto {
-        WeekDto weekDto;
+        Integer year;
+
+        Integer quarter;
 
         Map<DayOfWeekShort, List<AnimePreviewDto>> schedule;
     }

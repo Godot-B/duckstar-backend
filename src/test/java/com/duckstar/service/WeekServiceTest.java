@@ -34,7 +34,7 @@ public class WeekServiceTest {
     @Transactional
     public void buildChartTest() throws Exception {
         //given
-        LocalDateTime time = LocalDateTime.of(2025, 9, 21, 22, 0);
+        LocalDateTime time = LocalDateTime.of(2025, 9, 19, 19, 0);
         Week lastWeek = weekRepository.findFirstByOrderByStartDateTimeDesc();
         YQWRecord record = getThisWeekRecord(time);
 
@@ -45,7 +45,7 @@ public class WeekServiceTest {
         Week thisWeek = weekRepository.findFirstByOrderByStartDateTimeDesc();
         Assertions.assertThat(thisWeek.getQuarter().getYearValue()).isEqualTo(2025);
         Assertions.assertThat(thisWeek.getQuarter().getQuarterValue()).isEqualTo(3);
-        Assertions.assertThat(thisWeek.getWeekValue()).isEqualTo(13);
+        Assertions.assertThat(thisWeek.getWeekValue()).isEqualTo(12);
 
         List<AnimeCandidate> animeCandidates = animeCandidateRepository.findAllByWeek_Id(thisWeek.getId());
         Map<AnimeStatus, List<AnimeCandidate>> statusMap = animeCandidates.stream()

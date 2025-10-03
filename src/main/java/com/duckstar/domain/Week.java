@@ -57,6 +57,8 @@ public class Week extends BaseEntity {
     @Column(nullable = false)
     private Integer characterVoterCount = 0;
 
+    private Boolean announcePrepared = false;
+
     protected Week(
             Quarter quarter,
             VoteStatus status,

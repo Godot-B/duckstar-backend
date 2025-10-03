@@ -25,6 +25,7 @@ public enum ErrorStatus implements BaseErrorCode {
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
     ROTATION_POLICY_VIOLATION(HttpStatus.BAD_REQUEST, "WEEK4002", "초기화 시간 정책을 준수해주세요."),
     SCHEDULE_RUNNING(HttpStatus.BAD_REQUEST, "WEEK4003", "주간 초기화 작업이 진행 중입니다. 나중에 시도해 주세요."),
+    ANNOUNCEMENT_NOT_PREPARED(HttpStatus.BAD_REQUEST, "WEEK4004", "해당 주차의 발표는 준비되지 않았습니다."),
 
     // 순위 정보
     MEDAL_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "RANK4001", "허용되지 않는 메달 타입입니다."),
@@ -52,6 +53,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_VOTED_YET(HttpStatus.BAD_REQUEST, "VOTE4010", "아직 투표에 참여하지 않았습니다."),
     VOTER_GENDER_REQUIRED(HttpStatus.BAD_REQUEST, "VOTE40011", "투표에서 성별 정보는 필수입니다."),
     SUBMISSION_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40012", "존재하지 않는 제출 정보입니다."),
+    HASH_IP_FAILED(HttpStatus.BAD_REQUEST, "VOTE40013", "해싱할 수 없는 IP 주소입니다."),
 
     VOTE_HISTORY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "VOTE4031", "다른 사람의 투표 내역은 확인할 수 없습니다."),
 

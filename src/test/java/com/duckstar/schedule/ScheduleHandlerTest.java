@@ -4,9 +4,12 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.mapping.AnimeCandidate;
+import com.duckstar.domain.mapping.WeekVoteSubmission;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
+import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
+import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.service.AnimeService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.WeekService;
@@ -22,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @SpringBootTest
-@Disabled("로컬 개발용 테스트")
+//@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("test-db")
 public class ScheduleHandlerTest {
 
@@ -38,20 +41,26 @@ public class ScheduleHandlerTest {
     private ChartService chartService;
     @Autowired
     private WeekService weekService;
+    @Autowired
+    private AnimeVoteRepository animeVoteRepository;
+    @Autowired
+    private WeekVoteSubmissionRepository weekVoteSubmissionRepository;
+    @Autowired
+    private ScheduleHandler scheduleHandler;
 
     @Test
     @Transactional
     @Rollback(false)
-    public void scheduler() throws Exception {
+    public void saveCandidates() throws Exception {
 //        long start = System.nanoTime();
 
         //given
-        LocalDateTime time = LocalDateTime.of(2025, 9, 28, 22, 0);
-        Season season = seasonRepository.findById(2L).get();
-        Week week = weekRepository.findWeekByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(time, time).get();
+        LocalDateTime time = LocalDateTime.of(2025, 9, 26, 19, 0);
+        Season season = seasonRepository.findById(1L).get();
+        Week week = weekRepository.findWeekById(18L).get();
 
         //when
-        List<Anime> thisWeekCandidates = animeService.getAnimesForCandidate(true, season, time);
+        List<Anime> thisWeekCandidates = animeService.getAnimesForCandidate(season, time);
 
         List<AnimeCandidate> animeCandidates = thisWeekCandidates.stream()
                 .map(anime -> AnimeCandidate.create(week, anime))
@@ -83,5 +92,12 @@ public class ScheduleHandlerTest {
         long end = System.nanoTime();
         double elapsedSeconds = (end - start) / 1_000_000_000.0;
         System.out.println("⏱ Execution time: " + elapsedSeconds + " seconds");
+    }
+
+
+    @Test
+    @Rollback(false)
+    public void schduleTest() throws Exception {
+        scheduleHandler.runSchedule(LocalDateTime.of(2025, 10, 3, 19, 0));
     }
 }

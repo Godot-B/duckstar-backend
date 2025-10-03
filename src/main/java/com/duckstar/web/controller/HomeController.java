@@ -41,7 +41,7 @@ public class HomeController {
     @Operation(summary = "주차별 덕스타 애니메이션 TOP N개 조회 API (with 해외 순위)", description =
             """
                     path variable 해당 주차
-                    애니 & Anime Trending TOP N개""")
+                    애니 & Anime Corner TOP N개""")
     @GetMapping("/{year}/{quarter}/{week}/anime")
     public ApiResponse<WeeklyTopDto> getWeeklyDuckstar(
             @PathVariable Integer year,
@@ -56,10 +56,10 @@ public class HomeController {
     }
 
 //
-//    @Operation(summary = "주차별 남캐 TOP N개 조회 API (with Anime Trending)", description =
+//    @Operation(summary = "주차별 남캐 TOP N개 조회 API (with Anime Corner)", description =
 //            """
 //                    path variable 해당 주차
-//                    남캐 & Anime Trending TOP N개""")
+//                    남캐 & Anime Corner TOP N개""")
 //    @GetMapping("/{year}/{quarter}/{week}/hero")
 //    public ApiResponse<WeeklyTopDto> getHeroTopNByWeek(
 //            @PathVariable Integer year,
@@ -72,10 +72,10 @@ public class HomeController {
 //        return ApiResponse.onSuccess(null);
 //    }
 //
-//    @Operation(summary = "주차별 여캐 TOP N개 조회 API (with Anime Trending)", description =
+//    @Operation(summary = "주차별 여캐 TOP N개 조회 API (with Anime Corner)", description =
 //            """
 //                    path variable 해당 주차
-//                    여캐 & Anime Trending TOP N개""")
+//                    여캐 & Anime Corner TOP N개""")
 //    @GetMapping("/{year}/{quarter}/{week}/heroine")
 //    public ApiResponse<WeeklyTopDto> getHeroineTopNByWeek(
 //            @PathVariable Integer year,

@@ -19,13 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
-
-import static com.duckstar.web.dto.RankInfoDto.*;
 
 
 @Service
@@ -48,8 +42,10 @@ public class HomeService {
                 ).stream()
                 .toList();
 
+        Week currentWeek = nowToPast12Weeks.get(0);
+
         List<Week> pastWeeks = nowToPast12Weeks.stream()
-                .filter(week -> week.getStatus() == VoteStatus.CLOSED)
+                .filter(week -> week.getStatus() == VoteStatus.CLOSED && week.getAnnouncePrepared())
                 .toList();
         Week lastWeek = pastWeeks.stream()
                 .findFirst()
@@ -58,7 +54,7 @@ public class HomeService {
         List<HomeBanner> homeBanners =
                 homeBannerRepository.getHomeBannersByWeekIdOrderByBannerNumberAsc(lastWeek.getId());
 
-        if (homeBanners.isEmpty()) {
+        if (homeBanners.isEmpty() && pastWeeks.size() >= 2) {
             Week secondLastWeek = pastWeeks.get(1);
             if (secondLastWeek != null) {
                 homeBanners =
@@ -70,7 +66,7 @@ public class HomeService {
                 .map(HomeBannerDto::of)
                 .toList();
 
-        List<WeekDto> weekDtos = nowToPast12Weeks.stream()
+        List<WeekDto> weekDtos = pastWeeks.stream()
                 .map(WeekDto::of)
                 .toList();
 
@@ -79,11 +75,17 @@ public class HomeService {
                         getAnimeWeeklyTop(lastWeek.getId(), size)
                 )
                 .homeBannerDtos(homeBannerDtos)
-                .weekDtos(weekDtos)
+                .currentWeekDto(WeekDto.of(currentWeek))
+                .pastWeekDtos(weekDtos)
                 .build();
     }
 
     public WeeklyTopDto getAnimeWeeklyTop(Long weekId, int size) {
+        Week week = weekRepository.findById(weekId)
+                .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+
+        if (!week.getAnnouncePrepared()) throw new WeekHandler(ErrorStatus.ANNOUNCEMENT_NOT_PREPARED);
+
         List<DuckstarRankPreviewDto> duckstarRankPreviews = animeService.getAnimeRankPreviewsByWeekId(weekId, size);
         boolean isPrepared;
         if (!duckstarRankPreviews.isEmpty()) {
@@ -116,8 +118,8 @@ public class HomeService {
                 .anilabRankPreviews(
                         animeService.getAnilabPreviewsByWeekId(weekId, size)
                 )
-                .animeTrendingRankPreviews(
-                        animeService.getAnimeTrendingPreviewsByWeekId(weekId, size)
+                .animeCornerRankPreviews(
+                        animeService.getAnimeCornerPreviewsByWeekId(weekId, size)
                 )
                 .build();
     }

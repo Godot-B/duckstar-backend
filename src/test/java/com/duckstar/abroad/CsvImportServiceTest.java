@@ -85,7 +85,7 @@ public class CsvImportServiceTest {
                 thumb.output(writer, thumbFile);
 
                 // 3. S3 업로드 (mainThumbnailUrl 갱신 or 기존 덮어쓰기)
-                String newThumbUrl = s3Uploader.uploadWithKey(thumbFile, "animes/" + animeId + "/thumb_v3.webp");
+                String newThumbUrl = s3Uploader.uploadWithKey(thumbFile, "animes/" + animeId + "/thumb.webp");
                 anime.updateImage(mainImageUrl, newThumbUrl);
 
                 animeRepository.save(anime);

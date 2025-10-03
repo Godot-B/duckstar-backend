@@ -14,4 +14,6 @@ public interface WeekVoteSubmissionRepository extends JpaRepository<WeekVoteSubm
     boolean existsByWeek_IdAndMember_Id(Long weekId, Long memberId);
 
     List<WeekVoteSubmission> findAllByMember_Id(Long memberId);
+
+    List<WeekVoteSubmission> findAllByWeek_Id(Long weekId);
 }

@@ -21,8 +21,10 @@ public class HomeDto {
 
     List<HomeBannerDto> homeBannerDtos;
 
+    WeekDto currentWeekDto;
+
     @Size(max = 12, message = "드롭다운용 weeks 리스트는 최대 12개까지입니다.")
-    List<WeekDto> weekDtos;
+    List<WeekDto> pastWeekDtos;
 
     @Builder
     @Getter
@@ -31,7 +33,7 @@ public class HomeDto {
 
         List<DuckstarRankPreviewDto> duckstarRankPreviews;
 
-        List<RankPreviewDto> animeTrendingRankPreviews;
+        List<RankPreviewDto> animeCornerRankPreviews;
         List<RankPreviewDto> anilabRankPreviews;
     }
 

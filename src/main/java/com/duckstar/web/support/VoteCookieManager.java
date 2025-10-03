@@ -93,17 +93,17 @@ public class VoteCookieManager {
     }
 
     private LocalDateTime getNextWeekEndDate(LocalDateTime time) {
-        // 이번 주 일요일 22시
-        LocalDateTime thisSunday = time
-                .with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
-                .withHour(22).withMinute(0).withSecond(0).withNano(0);
+        // 이번 주 금요일 19시
+        LocalDateTime thisFriday = time
+                .with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY))
+                .withHour(19).withMinute(0).withSecond(0).withNano(0);
 
-        // 이미 일요일 22시를 지났다면 → 다음 주 일요일 22시
-        if (time.isAfter(thisSunday)) {
-            thisSunday = thisSunday.plusWeeks(1);
+        // 이미 금요일 19시를 지났다면 → 다음 주 금요일 19시
+        if (time.isAfter(thisFriday)) {
+            thisFriday = thisFriday.plusWeeks(1);
         }
 
-        return thisSunday;
+        return thisFriday;
     }
 
     public String toPrincipalKey(Long memberId, String cookieId) {

@@ -11,12 +11,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_home_banner_b",
-                columnNames = { "banner_number" })
-        }
-)
 public class HomeBanner extends BaseEntity {
 
     @Id

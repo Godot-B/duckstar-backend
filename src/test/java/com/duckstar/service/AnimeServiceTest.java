@@ -27,7 +27,7 @@ public class AnimeServiceTest {
     public void testCandidates() {
         Season season = seasonRepository.findById(2L).get();
         List<Anime> animes = animeService.getAnimesForCandidate(
-                true, season, LocalDateTime.of(2025, 9, 28, 22, 0)
+                season, LocalDateTime.of(2025, 10, 3, 19, 0)
         );
 
         System.out.println("후보 수: " + animes.size());

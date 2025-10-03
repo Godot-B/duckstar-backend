@@ -2,8 +2,8 @@ package com.duckstar.abroad;
 
 import com.duckstar.abroad.aniLab.Anilab;
 import com.duckstar.abroad.aniLab.AnilabRepository;
-import com.duckstar.abroad.animeTrend.AnimeTrending;
-import com.duckstar.abroad.animeTrend.AnimeTrendingRepository;
+import com.duckstar.abroad.animeCorner.AnimeCorner;
+import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.Week;
@@ -25,12 +25,12 @@ import java.util.Comparator;
 import java.util.List;
 
 @SpringBootTest
-@Disabled("로컬 개발용 테스트")
+//@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("test-db")
 public class AbroadTest {
 
     @Autowired
-    private AnimeTrendingRepository animeTrendingRepository;
+    private AnimeCornerRepository animeCornerRepository;
     @Autowired
     private WeekService weekService;
     @Autowired
@@ -43,20 +43,20 @@ public class AbroadTest {
     @Test
     @Transactional
     @Rollback(false)
-    public void testAnimeTrending() throws Exception {
+    public void testAnimeCorner() throws Exception {
         Long weekId = weekService.getWeekIdByYQW(2025, 3, 12);
         Week week = weekRepository.findWeekById(weekId).get();
-        List<AnimeTrending> animeTrendings = new java.util.ArrayList<>(animeTrendingRepository.findAllByWeek_Id(weekId)
+        List<AnimeCorner> animeCorners = new java.util.ArrayList<>(animeCornerRepository.findAllByWeek_Id(weekId)
                 .stream()
-                .filter(a -> a.getRankDiff() >= 2 && a.getRank() <= 19)
+                .filter(a -> a.getRankDiff() >= 2 && a.getRank() <= 10)
                 .toList());
 
-        animeTrendings.sort(Comparator.comparing(AnimeTrending::getRankDiff).reversed()
-                .thenComparing(AnimeTrending::getRank));
+        animeCorners.sort(Comparator.comparing(AnimeCorner::getRankDiff).reversed()
+                .thenComparing(AnimeCorner::getRank));
 
-        for (AnimeTrending animeTrending : animeTrendings) {
-            System.out.println("rank: " + animeTrending.getRank() +
-                    " title: " + animeTrending.getTitle() + " rankDiff: " + animeTrending.getRankDiff());
+        for (AnimeCorner animeCorner : animeCorners) {
+            System.out.println("rank: " + animeCorner.getRank() +
+                    " title: " + animeCorner.getTitle() + " rankDiff: " + animeCorner.getRankDiff());
         }
 
         //=== 배너 생성 ===//
@@ -65,15 +65,15 @@ public class AbroadTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
         String formatted = endDateTime.format(formatter);
 
-        for (AnimeTrending at : animeTrendings) {
-            Anime anime = at.getAnime();
+        for (int i = 0; i < 3; i++) {
+            Anime anime = animeCorners.get(i).getAnime();
             if (anime != null) {
                 homeBannerRepository.save(HomeBanner.createByAnime(
                                 week,
                                 bannerNumber,
                                 BannerType.HOT,
                                 anime,
-                                "Anime Trending, " + formatted + " 기준"
+                                "Anime Corner, " + formatted + " 기준"
                         )
                 );
             }

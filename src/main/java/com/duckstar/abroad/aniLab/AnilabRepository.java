@@ -1,6 +1,5 @@
 package com.duckstar.abroad.aniLab;
 
-import com.duckstar.abroad.animeTrend.AnimeTrending;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 

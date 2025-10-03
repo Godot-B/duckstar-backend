@@ -27,7 +27,7 @@ public class CsvRequestDto {
     @Setter
     public static class AbroadRequestDto {
         @Schema(type = "string", format = "binary")
-        MultipartFile animeTrendingCsv;
+        MultipartFile animeCornerCsv;
 
         @Schema(type = "string", format = "binary")
         MultipartFile anilabCsv;

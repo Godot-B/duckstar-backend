@@ -34,6 +34,9 @@ spring:
       indent_output: true
 
   security:
+    ip-hash:
+      key: ${SECURITY_IP_HASH_KEY}
+      use-hex: true
     oauth2:
       client:
         registration:

@@ -1,13 +1,15 @@
 package com.duckstar.web.dto;
 
 import com.duckstar.abroad.aniLab.Anilab;
-import com.duckstar.abroad.animeTrend.AnimeTrending;
+import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.enums.ContentType;
 import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.domain.mapping.AnimeCandidate;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.Objects;
 
 public class RankInfoDto {
 
@@ -30,18 +32,22 @@ public class RankInfoDto {
 
         String subTitle;
 
-        public static RankPreviewDto of(AnimeTrending animeTrending) {
-            Anime anime = animeTrending.getAnime();
+        public static RankPreviewDto of(AnimeCorner animeCorner) {
+            Anime anime = animeCorner.getAnime();
+            String thumbImage = animeCorner.getMainThumbnailUrl();
+            if (thumbImage == null && anime != null) {
+                thumbImage = anime.getMainThumbnailUrl();
+            }
 
             return RankPreviewDto.builder()
                     .type(ContentType.ANIME)
                     .contentId(anime != null ? anime.getId() : null)
-                    .rank(animeTrending.getRank())
-                    .rankDiff(animeTrending.getRankDiff())
-                    .consecutiveWeeksAtSameRank(animeTrending.getConsecutiveWeeksAtSameRank())
-                    .mainThumbnailUrl(animeTrending.getMainThumbnailUrl())
-                    .title(animeTrending.getTitle())
-                    .subTitle(animeTrending.getCorp())
+                    .rank(animeCorner.getRank())
+                    .rankDiff(animeCorner.getRankDiff())
+                    .consecutiveWeeksAtSameRank(animeCorner.getConsecutiveWeeksAtSameRank())
+                    .mainThumbnailUrl(thumbImage)
+                    .title(animeCorner.getTitle())
+                    .subTitle(anime != null ? anime.getCorp() : null)
                     .build();
         }
 

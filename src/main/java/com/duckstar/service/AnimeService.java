@@ -6,8 +6,8 @@ import com.duckstar.abroad.reader.CsvImportService;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
-import com.duckstar.abroad.animeTrend.AnimeTrending;
-import com.duckstar.abroad.animeTrend.AnimeTrendingRepository;
+import com.duckstar.abroad.animeCorner.AnimeCorner;
+import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
 import com.duckstar.domain.*;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.AnimeCandidate;
@@ -24,11 +24,11 @@ import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.OttRepository;
 import com.duckstar.repository.Week.WeekRepository;
+import com.duckstar.s3.S3Uploader;
 import com.duckstar.schedule.ScheduleState;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.OttDto;
 import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
-import com.duckstar.web.dto.admin.AnimeRequestDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.RankInfoDto.*;
+import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -62,12 +64,13 @@ public class AnimeService {
     private final WeekRepository weekRepository;
 
     private final ScheduleState scheduleState;
-    private final AnimeTrendingRepository animeTrendingRepository;
+    private final AnimeCornerRepository animeCornerRepository;
     private final AnilabRepository anilabRepository;
 
     private final CsvImportService csvImportService;
     private final SeasonService seasonService;
     private final OttRepository ottRepository;
+    private final S3Uploader s3Uploader;
 
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
         List<AnimeCandidate> animeCandidates =
@@ -81,14 +84,14 @@ public class AnimeService {
                 .toList();
     }
 
-    public List<RankPreviewDto> getAnimeTrendingPreviewsByWeekId(Long weekId, int size) {
-        List<AnimeTrending> animeTrendings =
-                animeTrendingRepository.findAllByWeek_Id(
+    public List<RankPreviewDto> getAnimeCornerPreviewsByWeekId(Long weekId, int size) {
+        List<AnimeCorner> animeCorners =
+                animeCornerRepository.findAllByWeek_Id(
                         weekId,
                         PageRequest.of(0, size)
                 );
 
-        return animeTrendings.stream()
+        return animeCorners.stream()
                 .map(RankPreviewDto::of)
                 .toList();
     }
@@ -162,7 +165,7 @@ public class AnimeService {
     }
 
     @Transactional
-    public List<Anime> getAnimesForCandidate(boolean isQuarterChanged, Season season, LocalDateTime now) {
+    public List<Anime> getAnimesForCandidate(Season season, LocalDateTime now) {
         // 예정 제외한 시즌 애니메이션
         List<Anime> seasonAnimes = animeSeasonRepository.findAllBySeason_Id(season.getId()).stream()
                 .map(AnimeSeason::getAnime)
@@ -176,11 +179,6 @@ public class AnimeService {
         List<Anime> combinedList = new ArrayList<>();
         combinedList.addAll(seasonAnimes);
         combinedList.addAll(thisWeekComingAnimes);
-
-        // 바뀐 주차까지만 NOW_SHOWING 합집합
-        if (isQuarterChanged) {
-            combinedList.addAll(animeRepository.findAllByStatus(AnimeStatus.NOW_SHOWING));
-        }
 
         // 마지막에만 distinct 처리
         return combinedList.stream()
@@ -239,7 +237,7 @@ public class AnimeService {
     }
 
     @Transactional
-    public Long addAnime(AnimeRequestDto request) throws IOException {
+    public Long addAnime(PostRequestDto request) throws IOException {
         LocalDateTime premiereDateTime = request.getPremiereDateTime();
 
         Integer totalEpisodes = request.getTotalEpisodes();
@@ -302,11 +300,7 @@ public class AnimeService {
         Anime saved = animeRepository.save(anime);
 
         //=== webp 변환, s3 업로드, DB UPDATE ===//
-        try {
-            csvImportService.uploadAndUpdateAnime(request.getMainImage(), saved);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        csvImportService.uploadAnimeMain(request.getMainImage(), saved);
 
         if (premiereDateTime != null) {
             //=== 시즌 연관관계 생성 ===//
@@ -326,13 +320,16 @@ public class AnimeService {
             if (isTVA) {
                 //=== 에피소드 생성 ===//
                 List<Episode> episodes = new ArrayList<>();
+                LocalDateTime scheduledAt = premiereDateTime;
                 for (int i = 0; i < totalEpisodes; i++) {
+                    LocalDateTime nextEpScheduledAt = scheduledAt.plusWeeks(1);
                     episodes.add(Episode.create(
                             saved,
                             i + 1,
-                            premiereDateTime,
-                            premiereDateTime.plusWeeks(1)
+                            scheduledAt,
+                            nextEpScheduledAt
                     ));
+                    scheduledAt = nextEpScheduledAt;
                 }
                 episodeRepository.saveAll(episodes);
             }
@@ -345,7 +342,7 @@ public class AnimeService {
                     .stream()
                     .collect(Collectors.toMap(
                             Ott::getType,
-                                    ott -> ott
+                            ott -> ott
                             )
                     );
             ottDtos.forEach(ottDto ->
@@ -358,7 +355,44 @@ public class AnimeService {
                     ));
         }
 
+
+
         return saved.getId();
+    }
+
+    @Transactional
+    public Long updateAnimeImage(Long animeId, ImageRequestDto request) throws IOException {
+        Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
+                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
+
+        String mainUrl = anime.getMainImageUrl();
+        int oldMainVer = extractVersion("main", mainUrl);
+        String thumbUrl = anime.getMainThumbnailUrl();
+        int oldThumbVer = extractVersion("thumb", thumbUrl);
+
+        MultipartFile reqMain = request.getMainImage();
+        if (reqMain != null) {
+            csvImportService.updateAnimeMain(reqMain, Math.max(oldMainVer, oldThumbVer) + 1, anime);
+
+            s3Uploader.delete(mainUrl);
+            s3Uploader.delete(thumbUrl);
+
+            return anime.getId();
+        } else {
+            return null;
+        }
+    }
+
+    private int extractVersion(String type, String imageUrl) {
+        // ".webp" 제거
+        String noExt = imageUrl.replaceFirst("\\.webp$", "");
+        // "main" 뒷부분 추출
+        String versionString = noExt.substring(noExt.lastIndexOf(type) + type.length());
+
+        if (versionString.startsWith("_v")) {
+            return Integer.parseInt(versionString.substring(2));
+        }
+        return 2; // 기본값
     }
 
     @Transactional

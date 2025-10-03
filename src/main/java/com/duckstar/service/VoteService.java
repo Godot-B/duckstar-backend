@@ -239,6 +239,7 @@ public class VoteService {
             AnimeVoteRequest request,
             Long memberId,
             String cookieId,
+            String ipHash,
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
@@ -278,6 +279,7 @@ public class VoteService {
                 currentWeek,
                 member,
                 cookieId,
+                ipHash,
                 voteCookieManager.toPrincipalKey(memberId, cookieId),
                 gender,
                 VoteCategory.ANIME

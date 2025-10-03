@@ -47,12 +47,12 @@ public class ScheduleHandler {
     }
 
     // 매주 일요일 22시
-    @Scheduled(cron = "0 0 22 * * SUN")
+    @Scheduled(cron = "0 0 19 * * FRI")
     public void handleWeeklySchedule() {
         scheduleState.startRunning();
 
         try {
-            LocalDateTime weekEndAt = LocalDateTime.of(LocalDate.now(), LocalTime.of(22, 0));
+            LocalDateTime weekEndAt = LocalDateTime.of(LocalDate.now(), LocalTime.of(19, 0));
             runSchedule(weekEndAt);
         } finally {
             scheduleState.stopRunning();

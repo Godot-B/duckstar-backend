@@ -46,7 +46,7 @@ public class Season extends BaseEntity {
     @Column(nullable = false)
     private Integer typeOrder;
 
-    private Boolean isPrepared;
+    private Boolean isPrepared = false;
 
     protected Season(
             Quarter quarter,

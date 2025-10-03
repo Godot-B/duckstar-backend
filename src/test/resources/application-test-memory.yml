@@ -16,6 +16,9 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
 
   security:
+    ip-hash:
+      key: local-secret-key-1234567890
+      use-hex: true
     oauth2:
       client:
         registration:
