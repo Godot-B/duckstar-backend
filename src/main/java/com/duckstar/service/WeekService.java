@@ -84,15 +84,15 @@ public class WeekService {
 
     public AnimePreviewListDto getWeeklySchedule() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastSunday = now
-                .with(TemporalAdjusters.previous(DayOfWeek.SUNDAY))
+        LocalDateTime lastMonday = now
+                .with(TemporalAdjusters.previous(DayOfWeek.MONDAY))
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime endSunday = lastSunday.plusDays(7);
+        LocalDateTime endMonday = lastMonday.plusDays(7);
 
         List<AnimePreviewDto> animePreviews =
                 episodeRepository.getAnimePreviewsByWeek(
-                        lastSunday,
-                        endSunday
+                        lastMonday,
+                        endMonday
                 );
 
         Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
