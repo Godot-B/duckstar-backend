@@ -1,13 +1,17 @@
 package com.duckstar.util;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
+@Disabled("로컬 개발용 테스트")
+@ActiveProfiles("test-db")
 public class QuarterUtilTest {
 
     @Test

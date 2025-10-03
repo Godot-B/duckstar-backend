@@ -55,9 +55,9 @@ public class ScheduleHandlerTest {
 //        long start = System.nanoTime();
 
         //given
-        LocalDateTime time = LocalDateTime.of(2025, 9, 26, 19, 0);
-        Season season = seasonRepository.findById(1L).get();
-        Week week = weekRepository.findWeekById(18L).get();
+        LocalDateTime time = LocalDateTime.of(2025, 10, 3, 19, 0);
+        Season season = seasonRepository.findById(2L).get();
+        Week week = weekRepository.findWeekById(20L).get();
 
         //when
         List<Anime> thisWeekCandidates = animeService.getAnimesForCandidate(season, time);
