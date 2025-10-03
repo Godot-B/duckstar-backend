@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @SpringBootTest
-//@Disabled("로컬 개발용 테스트")
+@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("test-db")
 public class ScheduleHandlerTest {
 
