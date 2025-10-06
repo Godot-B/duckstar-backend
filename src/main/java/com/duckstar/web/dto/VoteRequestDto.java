@@ -4,13 +4,23 @@ import com.duckstar.domain.enums.BallotType;
 import com.duckstar.domain.enums.Gender;
 import com.duckstar.validation.annotation.AnimeVoteConstraint;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 
 import java.util.List;
 
 public class VoteRequestDto {
+
+    @Getter
+    public static class StarRequestDto {
+        @NotNull
+        Long episodeId;
+
+        @NotNull
+        @Min(1)
+        @Max(10)
+        Integer starScore;
+    }
 
     @AnimeVoteConstraint
     @Getter

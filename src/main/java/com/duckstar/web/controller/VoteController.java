@@ -1,10 +1,8 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
-import com.duckstar.apiPayload.exception.GeneralException;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.VoteService;
-import com.duckstar.web.dto.VoteRequestDto;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
 import com.duckstar.web.dto.VoteResponseDto.AnimeCandidateListDto;
 import com.duckstar.web.dto.VoteResponseDto.AnimeVoteHistoryDto;
@@ -53,7 +51,32 @@ public class VoteController {
                 voteService.getAnimeVoteHistory(memberId, cookieId));
     }
 
-    @Operation(summary = "애니메이션 투표 API")
+    @Operation(summary = "별점 투표/수정 API", description = "TVA 투표: Episode 기반, 방송 후 36시간 동안 오픈")
+    @PostMapping("/star")
+    public ApiResponse<StarDistributionDto> voteOrUpdateStar(
+            @Valid @RequestBody StarRequestDto request,
+            @AuthenticationPrincipal MemberPrincipal principal,
+            HttpServletRequest requestRaw,
+            HttpServletResponse responseRaw
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+
+        String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
+
+        String clientIp = ipExtractor.extract(requestRaw);
+        String ipHash = ipHasher.hash(clientIp);
+
+        return ApiResponse.onSuccess(voteService.voteOrUpdateStar(
+                request,
+                memberId,
+                cookieId,
+                ipHash,
+                requestRaw,
+                responseRaw
+        ));
+    }
+
+    @Operation(summary = "애니메이션 투표 (단일 방식) API")
     @PostMapping("/anime")
     public ApiResponse<Void> voteAnime(
             @Valid @RequestBody AnimeVoteRequest request,

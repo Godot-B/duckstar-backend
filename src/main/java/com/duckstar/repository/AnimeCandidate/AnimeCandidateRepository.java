@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AnimeCandidateRepository extends JpaRepository<AnimeCandidate, Long>, AnimeCandidateRepositoryCustom {
     @Query("""
@@ -24,4 +25,6 @@ public interface AnimeCandidateRepository extends JpaRepository<AnimeCandidate, 
     List<AnimeCandidate> findAllRandomByWeekId(@Param("weekId") Long weekId, Pageable pageable);
 
     boolean existsByAnime_Id(Long animeId);
+
+    Optional<AnimeCandidate> findByAnime_IdAndWeek_Id(Long animeId, Long weekId);
 }

@@ -34,14 +34,14 @@ public class AnimeCandidate extends BaseEntity {
     @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
 
-    @Column(nullable = false)
-    private Integer votes = 0;  // bonus 점수는 소수점 탈락
-
-    private Integer voterCount = 0;
+    private Integer voterCount = 0;  // 투표 수 (또는 투표자 수)
 
     private Integer maleCount = 0;
 
     private Integer femaleCount = 0;
+
+    // [단일 방식]
+    private Integer votes = 0;  // [단일 투표 모드] bonus 점수는 소수점 탈락
 
     @Embedded
     private RankInfo rankInfo;

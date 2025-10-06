@@ -10,10 +10,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-
-import static com.duckstar.web.dto.SearchResponseDto.*;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -31,7 +30,8 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
 
     @Operation(summary = "금주의 분류된 편성표 조회 API", description =
             """
-                    분기 신작 애니는 많아도 100개 이하 -> 전체 조회
+                    - 조회 주차 구분의 시작점은 월요일 + offset 시간.
+                    - 분기 신작 애니는 많아도 100개 이하 -> 전체 조회
                     
                     -서버 역할
                     1. 정렬 - airTime asc
@@ -43,9 +43,10 @@ public class SearchController {  // ⚠️ 분기 2개째 되면: 애니메이�
                     2. 기본 AnimeStatus 표시
                     3. 오늘과 같은 요일이고 && NOW_SHOWING && 아직 방영안한 애니들만: 방영까지 남은 시간 표시""")
     @GetMapping
-    public ApiResponse<AnimePreviewListDto> getWeeklySchedule() {
+    public ApiResponse<AnimePreviewListDto> getWeeklySchedule(
+            @RequestParam Integer hour, @RequestParam Integer minute) {
         return ApiResponse.onSuccess(
-                weekService.getWeeklySchedule());
+                weekService.getWeeklyScheduleFromOffset(LocalTime.of(hour, minute)));
     }
 
     @Operation(summary = "특정 시즌의 분류된 편성표 조회 API")

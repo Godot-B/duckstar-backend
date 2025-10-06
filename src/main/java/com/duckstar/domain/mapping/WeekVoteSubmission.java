@@ -50,8 +50,7 @@ public class WeekVoteSubmission extends BaseEntity {
     private String principalKey;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Gender gender;
+    private Gender gender;  // 단일 방식에서 필요
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)

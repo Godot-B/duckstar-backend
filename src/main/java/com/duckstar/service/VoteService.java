@@ -1,6 +1,7 @@
 package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.domain.Member;
@@ -9,15 +10,15 @@ import com.duckstar.domain.enums.BallotType;
 import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.enums.VoteCategory;
 import com.duckstar.domain.enums.VoteStatus;
-import com.duckstar.domain.mapping.AnimeCandidate;
-import com.duckstar.domain.mapping.AnimeVote;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.*;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
+import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
+import com.duckstar.repository.Episode.EpisodeRepository;
+import com.duckstar.repository.EpisodeStarRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.repository.WeekVoteSubmissionRepository;
 import com.duckstar.security.repository.MemberRepository;
-import com.duckstar.web.dto.VoteRequestDto;
 import com.duckstar.web.dto.VoteRequestDto.BallotRequestDto;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
 import com.duckstar.web.dto.WeekResponseDto.WeekDto;
@@ -47,10 +48,14 @@ public class VoteService {
     private final AnimeVoteRepository animeVoteRepository;
     private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final MemberRepository memberRepository;
+    private final AnimeRepository animeRepository;
 
     private final WeekService weekService;
     private final VoteCookieManager voteCookieManager;
+    private final EpisodeRepository episodeRepository;
+    private final EpisodeStarRepository episodeStarRepository;
 
+    // 단일 방식
     public AnimeCandidateListDto getAnimeCandidateList(Long memberId) {
         Week currentWeek = weekService.getCurrentWeek();
 
@@ -234,6 +239,89 @@ public class VoteService {
         submission.setUpdatedAt(LocalDateTime.now());
     }
 
+    public StarDistributionDto voteOrUpdateStar(
+            StarRequestDto request,
+            Long memberId,
+            String cookieId,
+            String ipHash,
+            HttpServletRequest requestRaw,
+            HttpServletResponse responseRaw
+    ) {
+        //=== 투표 유효성(월요일이거나 방영시간으로부터 36시간 이내인지) ===//
+        Long episodeId = request.getEpisodeId();
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime scheduledAt = episode.getScheduledAt();
+                                                        // 유효 투표 조건: 방송 이후 36시간 동안
+        boolean isValid = !now.isBefore(scheduledAt) && now.isBefore(scheduledAt.plusHours(36)) &&
+                // 그리고 휴방 아님
+                !episode.getIsBreak();
+
+        if (!isValid) {
+            throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
+        }
+
+        //=== 멤버 찾기 ===//
+        Member member = memberId != null ?
+                memberRepository.findById(memberId).orElseThrow(() ->
+                        new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND)) :
+                null;
+
+        boolean isConsecutive = false;
+        Week currentWeek = weekService.getCurrentWeek();
+        if (member != null) {
+            LocalDateTime lastWeekStartedAt = currentWeek.getStartDateTime().minusWeeks(1);
+            Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
+
+            isConsecutive = weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(
+                    lastWeek.getId(), member.getId());
+        }
+
+        //=== 제출 정보 찾기 ===//
+        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+        Optional<WeekVoteSubmission> submissionOpt =
+                weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(currentWeek.getId(), principalKey);
+
+        WeekVoteSubmission submission = submissionOpt.orElseGet(() -> weekVoteSubmissionRepository.save(WeekVoteSubmission.create(
+                currentWeek,
+                member,
+                cookieId,
+                ipHash,
+                voteCookieManager.toPrincipalKey(memberId, cookieId),
+                null,
+                VoteCategory.ANIME
+        )));
+
+        //=== 별점 반영 ===//
+        Integer starScore = request.getStarScore();
+
+        Optional<EpisodeStar> episodeStarOpt = episodeStarRepository
+                .findByEpisode_IdAndWeekVoteSubmission_Id(episodeId, submission.getId());
+
+        if (episodeStarOpt.isPresent()) {
+            episodeStarOpt.get().updateStarScore(starScore);
+        } else {
+            episodeStarRepository.save(
+                    EpisodeStar.create(
+                            submission,
+                            episode,
+                            starScore
+                    )
+            );
+        }
+
+        //=== 마무리 작업 ===//
+        // 멤버 연속 기록 반영
+        if (member != null) member.updateStreak(isConsecutive);
+
+        // 투표 여부 쿠키 생성
+        voteCookieManager.markVotedThisWeek(requestRaw, responseRaw);
+
+        return StarDistributionDto.of(episode);
+    }
+
     @Transactional
     public void voteAnime(
             AnimeVoteRequest request,
@@ -243,6 +331,11 @@ public class VoteService {
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
+        /**
+         * request 에서 week 빼고,
+         * candidate 의 week 유효성 검사만 하는 것으로 추후 수정
+         */
+
         //=== 투표 주차 유효성 검사 ===//
         Long ballotWeekId = request.getWeekId();
         Week ballotWeek = weekRepository.findWeekById(ballotWeekId).orElseThrow(() ->

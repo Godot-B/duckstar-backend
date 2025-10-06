@@ -1,7 +1,6 @@
 package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,6 +38,21 @@ public class Episode extends BaseEntity {
 
     private LocalDateTime nextEpScheduledAt;
 
+    // [별점 방식]
+    private Integer voterCount = 0;  // 투표 수 (또는 투표자 수)
+
+    // 추후 StarDistribution 테이블 분리
+    private Integer star_0_5 = 0;
+    private Integer star_1_0 = 0;
+    private Integer star_1_5 = 0;
+    private Integer star_2_0 = 0;
+    private Integer star_2_5 = 0;
+    private Integer star_3_0 = 0;
+    private Integer star_3_5 = 0;
+    private Integer star_4_0 = 0;
+    private Integer star_4_5 = 0;
+    private Integer star_5_0 = 0;
+
     protected Episode(
             Anime anime,
             Integer episodeNumber,
@@ -69,5 +83,58 @@ public class Episode extends BaseEntity {
                 scheduledAt,
                 nextEpScheduledAt
         );
+    }
+
+    public void addVoterCount() {
+        voterCount += 1;
+    }
+
+    public void addStar(int starScore) {
+        switch (starScore) {
+            case 1 -> this.star_0_5++;
+            case 2 -> this.star_1_0++;
+            case 3 -> this.star_1_5++;
+            case 4 -> this.star_2_0++;
+            case 5 -> this.star_2_5++;
+            case 6 -> this.star_3_0++;
+            case 7 -> this.star_3_5++;
+            case 8 -> this.star_4_0++;
+            case 9 -> this.star_4_5++;
+            case 10 -> this.star_5_0++;
+        }
+    }
+
+    public void updateStar(int originalScore, int newScore) {
+        switch (originalScore) {
+            case 1 -> this.star_0_5--;
+            case 2 -> this.star_1_0--;
+            case 3 -> this.star_1_5--;
+            case 4 -> this.star_2_0--;
+            case 5 -> this.star_2_5--;
+            case 6 -> this.star_3_0--;
+            case 7 -> this.star_3_5--;
+            case 8 -> this.star_4_0--;
+            case 9 -> this.star_4_5--;
+            case 10 -> this.star_5_0--;
+        }
+
+        addStar(newScore);
+    }
+
+    public double getWeightedSum() {
+        return 0.5 * star_0_5 +
+                1.0 * star_1_0 +
+                1.5 * star_1_5 +
+                2.0 * star_2_0 +
+                2.5 * star_2_5 +
+                3.0 * star_3_0 +
+                3.5 * star_3_5 +
+                4.0 * star_4_0 +
+                4.5 * star_4_5 +
+                5.0 * star_5_0;
+    }
+
+    public double getStarAverage() {
+        return (voterCount == 0) ? 0.0 : getWeightedSum() / (double) voterCount;
     }
 }

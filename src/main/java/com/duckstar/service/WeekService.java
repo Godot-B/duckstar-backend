@@ -13,7 +13,6 @@ import com.duckstar.domain.mapping.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
-import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
@@ -28,13 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.web.dto.SearchResponseDto.*;
-import static com.duckstar.web.dto.WeekResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -82,11 +81,12 @@ public class WeekService {
                 ));
     }
 
-    public AnimePreviewListDto getWeeklySchedule() {
+    public AnimePreviewListDto getWeeklyScheduleFromOffset(LocalTime offset) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime lastMonday = now
                 .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                .withHour(0).withMinute(0).withSecond(0).withNano(0);
+                .withHour(offset.getHour()).withMinute(offset.getMinute())
+                .withSecond(0).withNano(0);
         LocalDateTime endMonday = lastMonday.plusDays(7);
 
         List<AnimePreviewDto> animePreviews =
