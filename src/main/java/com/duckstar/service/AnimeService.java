@@ -181,9 +181,9 @@ public class AnimeService {
         combinedList.addAll(thisWeekComingAnimes);
 
         // 마지막에만 distinct 처리
+        Set<Long> ids = new HashSet<>();
         return combinedList.stream()
-                .filter(Objects::nonNull)
-                .distinct()
+                .filter(anime -> ids.add(anime.getId()))
                 .toList();
     }
 

@@ -65,7 +65,12 @@ public class ScheduleHandlerTest {
         List<AnimeCandidate> animeCandidates = thisWeekCandidates.stream()
                 .map(anime -> AnimeCandidate.create(week, anime))
                 .toList();
-        animeCandidateRepository.saveAll(animeCandidates);
+//        animeCandidateRepository.saveAll(animeCandidates);
+
+        System.out.println("size: " + animeCandidates.size());
+        for (AnimeCandidate animeCandidate : animeCandidates) {
+            System.out.println("Anime Candidate: " + animeCandidate.getAnime().getTitleKor());
+        }
 
         //then
 

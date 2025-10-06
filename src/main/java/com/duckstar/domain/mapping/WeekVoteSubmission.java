@@ -40,10 +40,10 @@ public class WeekVoteSubmission extends BaseEntity {
     private Member member;
 
     @Column(length = 64)
-    private String ipHash;
+    private String cookieId;
 
     @Column(length = 64)
-    private String cookieId;
+    private String ipHash;
 
     // 인덱스
     @Column(length = 80, nullable = false)
