@@ -2,6 +2,7 @@ package com.duckstar.web.dto;
 
 import com.duckstar.domain.enums.MedalType;
 import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -23,6 +24,7 @@ public class MedalDto {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class MedalPreviewDto {
         MedalType type;
 

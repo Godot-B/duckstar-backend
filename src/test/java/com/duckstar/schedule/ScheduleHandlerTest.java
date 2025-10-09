@@ -3,8 +3,7 @@ package com.duckstar.schedule;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.mapping.AnimeCandidate;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.SeasonRepository;
@@ -50,7 +49,7 @@ public class ScheduleHandlerTest {
 
     @Test
     @Transactional
-    @Rollback(false)
+//    @Rollback(false)
     public void saveCandidates() throws Exception {
 //        long start = System.nanoTime();
 
@@ -80,7 +79,7 @@ public class ScheduleHandlerTest {
     }
 
     @Test
-    @Rollback(false)
+//    @Rollback(false)
     public void buildChartTest() throws Exception {
         long start = System.nanoTime();
 
@@ -101,7 +100,7 @@ public class ScheduleHandlerTest {
 
 
     @Test
-    @Rollback(false)
+//    @Rollback(false)
     public void schduleTest() throws Exception {
         scheduleHandler.runSchedule(LocalDateTime.of(2025, 10, 3, 19, 0));
     }

@@ -35,7 +35,7 @@ public class Member extends BaseEntity {
     private String profileImageUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(15)", nullable = false)
+    @Column(columnDefinition = "varchar(15)")
     private Gender gender = Gender.UNKNOWN;
 
     @Enumerated(EnumType.STRING)

@@ -1,7 +1,6 @@
-package com.duckstar.domain.mapping;
+package com.duckstar.domain.mapping.legacy_vote;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
@@ -65,6 +64,6 @@ public class AnimeCandidate extends BaseEntity {
 
     public void setRankInfo(RankInfo lastRankInfo, RankInfo rankInfo) {
         this.rankInfo = rankInfo;
-        this.anime.updateRankInfo(lastRankInfo, rankInfo);
+        this.anime.updateRankInfo_legacy(lastRankInfo, rankInfo);
     }
 }

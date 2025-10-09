@@ -96,7 +96,7 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
                         refreshToken,
                         socialExpiresAt
                 );
-                memberRepository.save(member);
+                member = memberRepository.save(member);
             }
         }
 
@@ -107,11 +107,12 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
         // 3-1. 토큰 회전, 비회원 투표 마이그레이션
         boolean isMigrated = authService.saveTokenAndMigrateVote(request, response, member, refreshToken);
 
-        // 3-2. UX 쿠키 보조 세팅
-        Long weekId = weekService.getCurrentWeek().getId();
-        if (weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(weekId, memberId)) {
-            voteCookieManager.markVotedThisWeek(request, response);
-        }
+                //  * 10/9 프론트가, 투표한 후보 id 리스트를 브라우저에 저장하는 것으로 변경
+//        // 3-2. UX 쿠키 보조 세팅
+//        Long weekId = weekService.getCurrentWeek().getId();
+//        if (weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(weekId, memberId)) {
+//            voteCookieManager.markVotedThisWeek(request, response);
+//        }
 
         // 4. 쿠키 설정 (SPA & 보안 설정)
         ResponseCookie accessCookie = ResponseCookie.from("ACCESS_TOKEN", accessToken)

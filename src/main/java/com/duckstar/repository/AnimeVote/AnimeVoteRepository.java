@@ -1,12 +1,10 @@
 package com.duckstar.repository.AnimeVote;
 
-import com.duckstar.domain.mapping.AnimeVote;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.legacy_vote.AnimeVote;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface AnimeVoteRepository extends JpaRepository<AnimeVote, Long>, AnimeVoteRepositoryCustom {

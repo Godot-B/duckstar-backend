@@ -1,7 +1,7 @@
 package com.duckstar.repository.AnimeVote;
 
 import com.duckstar.domain.QAnime;
-import com.duckstar.domain.mapping.QAnimeVote;
+import com.duckstar.domain.mapping.legacy_vote.QAnimeVote;
 import com.duckstar.web.dto.VoteResponseDto.AnimeBallotDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;

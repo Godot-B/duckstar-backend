@@ -113,6 +113,22 @@ public class Anime extends BaseEntity {
         this.peakDate = date;
     }
 
+    public void updateRankInfo_legacy(
+            com.duckstar.domain.mapping.legacy_vote.RankInfo lastRankInfo,
+            com.duckstar.domain.mapping.legacy_vote.RankInfo rankInfo
+    ) {
+        this.weeksOnTop10 = rankInfo.getWeeksOnTop10();
+
+        Integer rank = rankInfo.getPeakRank();
+        LocalDate date = rankInfo.getPeakDate();
+        if (lastRankInfo == null) {
+            this.debutRank = rank;
+            this.debutDate = date;
+        }
+        this.peakRank = rank;
+        this.peakDate = date;
+    }
+
     public void updateImage(String mainImageUrl, String mainThumbnailUrl) {
         this.mainImageUrl = mainImageUrl;
         this.mainThumbnailUrl = mainThumbnailUrl;

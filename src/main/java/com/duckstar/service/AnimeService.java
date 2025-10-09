@@ -10,7 +10,7 @@ import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
 import com.duckstar.domain.*;
 import com.duckstar.domain.enums.*;
-import com.duckstar.domain.mapping.AnimeCandidate;
+import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
 import com.duckstar.domain.mapping.AnimeOtt;
 import com.duckstar.domain.mapping.AnimeSeason;
 import com.duckstar.domain.mapping.Episode;
@@ -73,13 +73,13 @@ public class AnimeService {
     private final S3Uploader s3Uploader;
 
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
-        List<AnimeCandidate> animeCandidates =
-                animeCandidateRepository.findCandidatesByWeekOrdered(
+        List<Episode> episodes =
+                episodeRepository.findEpisodesByWeekOrdered(
                         weekId,
                         PageRequest.of(0, size)
                 );
 
-        return animeCandidates.stream()
+        return episodes.stream()
                 .map(DuckstarRankPreviewDto::of)
                 .toList();
     }

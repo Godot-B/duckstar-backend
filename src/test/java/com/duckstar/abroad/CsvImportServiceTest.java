@@ -40,7 +40,7 @@ public class CsvImportServiceTest {
 
     @Test
     @Transactional
-    @Rollback(false)
+//    @Rollback(false)
     public void seasonTag() throws Exception {
         Season season = seasonRepository.findById(2L).get();
         List<Anime> animes = animeRepository.findAllByIdGreaterThanEqual(66L);
@@ -52,7 +52,7 @@ public class CsvImportServiceTest {
 
     @Test
     @Transactional
-    @Rollback(false)
+//    @Rollback(false)
     public void uploadThumbnails() throws Exception {
         List<Anime> animes = animeSeasonRepository.findAllBySeason_Id(2L)
                 .stream().map(AnimeSeason::getAnime)

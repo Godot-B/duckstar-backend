@@ -64,4 +64,12 @@ public class EpisodeStar extends BaseEntity {
         episode.updateStar(this.starScore, newScore);
         this.starScore = newScore;
     }
+
+    public void setWeekVoteSubmission(WeekVoteSubmission weekVoteSubmission) {
+        this.weekVoteSubmission = weekVoteSubmission;
+    }
+
+    public void setStarScore(int starScore) {
+        this.starScore = starScore;
+    }
 }

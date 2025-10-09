@@ -42,7 +42,7 @@ public class AbroadTest {
 
     @Test
     @Transactional
-    @Rollback(false)
+//    @Rollback(false)
     public void testAnimeCorner() throws Exception {
         Long weekId = weekService.getWeekIdByYQW(2025, 3, 12);
         Week week = weekRepository.findWeekById(weekId).get();
@@ -83,7 +83,7 @@ public class AbroadTest {
 
     @Test
     @Transactional
-    @Rollback(false)
+//    @Rollback(false)
     public void testAnilab() throws Exception {
         Long weekId = weekService.getWeekIdByYQW(2025, 3, 13);
         Week week = weekRepository.findWeekById(weekId).get();

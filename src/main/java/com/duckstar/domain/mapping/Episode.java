@@ -1,7 +1,9 @@
 package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.Anime;
+import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.domain.vo.RankInfo;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +27,10 @@ public class Episode extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "anime_id", nullable = false)
     private Anime anime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "week_id")
+    private Week week;  // 순위 결정 시점에 셋팅
 
     private Integer episodeNumber;
 
@@ -52,6 +58,11 @@ public class Episode extends BaseEntity {
     private Integer star_4_0 = 0;
     private Integer star_4_5 = 0;
     private Integer star_5_0 = 0;
+
+    private Double bayesScore = 0.0;
+
+    @Embedded
+    private RankInfo rankInfo;
 
     protected Episode(
             Anime anime,
@@ -136,5 +147,39 @@ public class Episode extends BaseEntity {
 
     public double getStarAverage() {
         return (voterCount == 0) ? 0.0 : getWeightedSum() / (double) voterCount;
+    }
+
+    public void setStats(Integer voterCount, int[] scores) {
+        this.voterCount = voterCount;
+        this.star_0_5 = scores[0];
+        this.star_1_0 = scores[1];
+        this.star_1_5 = scores[2];
+        this.star_2_0 = scores[3];
+        this.star_2_5 = scores[4];
+        this.star_3_0 = scores[5];
+        this.star_3_5 = scores[6];
+        this.star_4_0 = scores[7];
+        this.star_4_5 = scores[8];
+        this.star_5_0 = scores[9];
+    }
+
+    public void calculateBayesScore(int m, double C) {
+        int v = voterCount;
+        if (voterCount == 0) {
+            this.bayesScore = 0.0;
+            return;
+        }
+
+        double R = getStarAverage();
+
+        this.bayesScore =
+                (double) v / (v + m) * R +
+                (double) m / (v + m) * C;
+    }
+
+    public void setRankInfo(Week week, RankInfo lastRankInfo, RankInfo rankInfo) {
+        this.week = week;
+        this.rankInfo = rankInfo;
+        this.anime.updateRankInfo(lastRankInfo, rankInfo);
     }
 }

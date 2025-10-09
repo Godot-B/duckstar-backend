@@ -25,7 +25,6 @@ public class SearchResponseDto {
     @Getter
     public static class AnimePreviewListDto {
         Integer year;
-
         Integer quarter;
 
         Map<DayOfWeekShort, List<AnimePreviewDto>> schedule;

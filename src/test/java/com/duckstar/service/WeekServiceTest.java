@@ -2,7 +2,7 @@ package com.duckstar.service;
 
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.AnimeStatus;
-import com.duckstar.domain.mapping.AnimeCandidate;
+import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import org.assertj.core.api.Assertions;
@@ -39,7 +39,7 @@ public class WeekServiceTest {
         YQWRecord record = getThisWeekRecord(time);
 
         //when
-        weekService.setupWeeklyVote(time, lastWeek.getId(), record);
+        weekService.setupWeeklyVote(lastWeek.getId(), time, record);
 
         //then
         Week thisWeek = weekRepository.findFirstByOrderByStartDateTimeDesc();

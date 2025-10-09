@@ -3,10 +3,9 @@ package com.duckstar.repository.AnimeCandidate;
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.enums.ContentType;
-import com.duckstar.domain.mapping.QAnimeCandidate;
 import com.duckstar.domain.mapping.QEpisode;
-import com.duckstar.domain.vo.RankInfo;
-import com.duckstar.web.dto.AnimeResponseDto.AnimeRankDto;
+import com.duckstar.domain.mapping.legacy_vote.QAnimeCandidate;
+import com.duckstar.web.dto.AnimeResponseDto.AnimeRank_legacyDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.MedalDto.RackUnitDto;
@@ -24,10 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.duckstar.web.dto.VoteResponseDto.*;
 
@@ -77,7 +74,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
     }
 
     @Override
-    public List<AnimeRankDto> getAnimeRankDtosByWeekId(Long weekId, Pageable pageable) {
+    public List<AnimeRank_legacyDto> getAnimeRankDtosByWeekId(Long weekId, Pageable pageable) {
         int pageSize = pageable.getPageSize();
 
         List<Tuple> tuples = queryFactory.select(
@@ -162,7 +159,7 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
                             .femalePercent(100.0 - malePercent)
                             .build();
 
-                    return AnimeRankDto.builder()
+                    return AnimeRank_legacyDto.builder()
                             .rankPreviewDto(rankPreviewDto)
                             .medalPreviews(medalPreviews)
                             .animeStatDto(animeStatDto)

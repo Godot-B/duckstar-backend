@@ -2,8 +2,8 @@ package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.service.WeekService;
-import com.duckstar.web.dto.ChartDto.AnimeRankSliceDto;
-import com.duckstar.web.dto.ChartDto.CharacterRankSliceDto;
+import com.duckstar.web.dto.ChartDto;
+import com.duckstar.web.dto.ChartDto.AnimeRankSlice_legacyDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import static com.duckstar.web.dto.ChartDto.*;
 
 @RestController
 @RequestMapping("/api/v1/chart")

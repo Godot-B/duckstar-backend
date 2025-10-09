@@ -21,16 +21,11 @@ public class QuarterUtil {
         return LocalDate.of(year, month, 1);
     }
 
-    /** 분기 앵커: 첫날이 토 → 이전 금 19:00, 그 외 → 다음(또는 같은) 금 19:00 */
+    /** 분기 앵커: 분기 첫날이 포함된 주의 월요일 18:00 (첫날 이전 또는 같은 월요일) */
     private static LocalDateTime anchorForQuarter(int year, int quarter) {
-        LocalDate first = firstDayOfQuarter(year, quarter);
-        DayOfWeek dow = first.getDayOfWeek();
-
-        LocalDate anchorDate = (dow == SATURDAY)
-                ? first.with(TemporalAdjusters.previous(FRIDAY))      // 토요일이면 전날 금요일
-                : first.with(TemporalAdjusters.nextOrSame(FRIDAY));   // 그 외는 다음/같은 금요일
-
-        return LocalDateTime.of(anchorDate, LocalTime.of(19, 0));
+        LocalDate first = firstDayOfQuarter(year, quarter); // 1,4,7,10월 1일
+        LocalDate anchorDate = first.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        return LocalDateTime.of(anchorDate, LocalTime.of(18, 0));
     }
 
     /**
@@ -46,30 +41,32 @@ public class QuarterUtil {
         int nextY = (q == 4) ? y + 1 : y;
         LocalDateTime nextAnchor = anchorForQuarter(nextY, nextQ);
 
-        if (!time.isBefore(nextAnchor)) { // time >= nextAnchor → 다음 분기
-            return new AnchorInfo(nextY, nextQ, nextAnchor);
-        }
-        if (time.isBefore(currAnchor)) {  // time < 현재 분기 앵커 → 이전 분기
+        if (time.isBefore(currAnchor)) {
             int prevQ = (q == 1) ? 4 : q - 1;
             int prevY = (q == 1) ? y - 1 : y;
             LocalDateTime prevAnchor = anchorForQuarter(prevY, prevQ);
             return new AnchorInfo(prevY, prevQ, prevAnchor);
         }
-        return new AnchorInfo(y, q, currAnchor); // currAnchor ≤ time < nextAnchor
+        if (time.isBefore(nextAnchor)) {
+            return new AnchorInfo(y, q, currAnchor);
+        }
+        return new AnchorInfo(nextY, nextQ, nextAnchor);
     }
 
-    /** 분기 주차: 앵커 기준 7일 단위, 1부터 시작 */
+    /** 분기 주차: 앵커 기준 7일(=168시간) 단위, 1부터 시작 */
     private static int weekOfQuarter(LocalDateTime time, LocalDateTime anchor) {
-        long days = ChronoUnit.DAYS.between(anchor, time);
-        return (int)(days / 7) + 1;
+        long hours = ChronoUnit.HOURS.between(anchor, time);
+        return (int)(hours / (7 * 24)) + 1; // 168시간 단위
     }
 
     // ---- Public API ----
     public static YQWRecord getThisWeekRecord(LocalDateTime time) {
         AnchorInfo ai = resolveAnchor(time);
         int week = weekOfQuarter(time, ai.anchorStart());
-        // 분기 "연도"는 항상 firstDayOfQuarter의 연도로 정의 (앵커가 전월일 수 있으므로 주의)
-        int quarterYear = firstDayOfQuarter(ai.year(), ai.quarter()).getYear();
+
+        // ✅ 분기 연도를 앵커 연도로 정의
+        int quarterYear = ai.anchorStart().getYear();
+
         return new YQWRecord(quarterYear, ai.quarter(), week);
     }
 }

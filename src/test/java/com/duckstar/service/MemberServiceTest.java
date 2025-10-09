@@ -20,7 +20,7 @@ public class MemberServiceTest {
 
     @Test
     @Transactional
-    @Rollback(false)
+//    @Rollback(false)
     public void testMember() {
         Member member = memberRepository.findById(2L).get();
         member.withdraw();

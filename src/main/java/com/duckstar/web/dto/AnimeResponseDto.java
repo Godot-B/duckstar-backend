@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
+import static com.duckstar.web.dto.VoteResponseDto.*;
 
 public class AnimeResponseDto {
 
@@ -32,10 +33,28 @@ public class AnimeResponseDto {
 
         List<CastPreviewDto> castPreviews;
     }
-    
+
+
     @Builder
     @Getter
     public static class AnimeRankDto {
+        RankPreviewDto rankPreviewDto;
+
+        @MedalTypeSubset(anyOf = {
+                MedalType.GOLD,
+                MedalType.SILVER,
+                MedalType.BRONZE
+        })
+        List<MedalPreviewDto> medalPreviews;
+
+        AnimeStatDto animeStatDto;
+
+        StarInfoDto starInfoDto;
+    }
+
+    @Builder
+    @Getter
+    public static class AnimeRank_legacyDto {
         RankPreviewDto rankPreviewDto;
 
         @MedalTypeSubset(anyOf = {

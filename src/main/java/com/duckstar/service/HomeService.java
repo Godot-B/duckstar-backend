@@ -30,8 +30,6 @@ public class HomeService {
     private final HomeBannerRepository homeBannerRepository;
 
     private final AnimeService animeService;
-    private final AnimeCandidateRepository animeCandidateRepository;
-    private final WeekService weekService;
 
     public HomeDto getHome(int size) {
         LocalDateTime now = LocalDateTime.now();
@@ -86,32 +84,13 @@ public class HomeService {
 
         if (!week.getAnnouncePrepared()) throw new WeekHandler(ErrorStatus.ANNOUNCEMENT_NOT_PREPARED);
 
-        List<DuckstarRankPreviewDto> duckstarRankPreviews = animeService.getAnimeRankPreviewsByWeekId(weekId, size);
-        boolean isPrepared;
-        if (!duckstarRankPreviews.isEmpty()) {
-            Integer rank = duckstarRankPreviews.stream()
-                    .findFirst().get()
-                    .getRankPreviewDto()
-                    .getRank();
-
-            isPrepared = rank != null && rank > 0;  // 첫 번째 아이템의 순위가 존재할 때만 true
-        } else {
-            isPrepared = false;
-        }
-
-        // 준비되지 않았다면 현재 주차 후보들 랜덤 순서로 전송
-        if (!isPrepared) {
-            duckstarRankPreviews = animeCandidateRepository.findAllRandomByWeekId(
-                    weekService.getCurrentWeek().getId(),
-                            PageRequest.of(0, size)
-                    )
-                    .stream()
-                    .map(DuckstarRankPreviewDto::of)
-                    .toList();
-        }
+        List<DuckstarRankPreviewDto> duckstarRankPreviews =
+                animeService.getAnimeRankPreviewsByWeekId(
+                        weekId,
+                        size
+                );
 
         return WeeklyTopDto.builder()
-                .isPrepared(isPrepared)
                 .duckstarRankPreviews(
                         duckstarRankPreviews
                 )

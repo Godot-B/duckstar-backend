@@ -46,35 +46,36 @@ public class ScheduleHandler {
         animeService.updateAnimeStatusByMinute();
     }
 
-    // 매주 일요일 22시
-    @Scheduled(cron = "0 0 19 * * FRI")
+    // 매주 월요일 18시
+    @Scheduled(cron = "0 0 18 * * MON")
     public void handleWeeklySchedule() {
         scheduleState.startRunning();
 
         try {
-            LocalDateTime weekEndAt = LocalDateTime.of(LocalDate.now(), LocalTime.of(19, 0));
-            runSchedule(weekEndAt);
+            LocalDateTime newWeekStartAt = LocalDateTime.of(LocalDate.now(), LocalTime.of(18, 0));
+            runSchedule(newWeekStartAt);
         } finally {
             scheduleState.stopRunning();
         }
     }
 
-    public void runSchedule(LocalDateTime weekEndAt) {
-        log.info("✈️ 주간 마무리 작업 시작 - {}", weekEndAt.format(FORMATTER));
+    public void runSchedule(LocalDateTime newWeekStartAt) {
+        log.info("✈️ 주간 마무리 작업 시작 - {}", newWeekStartAt.format(FORMATTER));
         try {
-            Week lastWeek = weekRepository.findFirstByOrderByStartDateTimeDesc();
+            Week lastWeek = weekService.getWeekByTime(newWeekStartAt.minusWeeks(1));
             Long lastWeekId = lastWeek.getId();
-            YQWRecord newWeekRecord = getThisWeekRecord(weekEndAt);
-            weekService.setupWeeklyVote(weekEndAt, lastWeekId, newWeekRecord);  // 1. 새로운 주 생성
 
-            Week secondLastWeek = weekService.getWeekByTime(weekEndAt.minusWeeks(1));
-            chartService.buildDuckstars(weekEndAt, lastWeekId, secondLastWeek.getId());  // 2. 지난 주 덕스타 결과 분석
+            YQWRecord newWeekRecord = getThisWeekRecord(newWeekStartAt);
+            weekService.setupWeeklyVote(lastWeekId, newWeekStartAt, newWeekRecord);  // 1. 새로운 주 생성
+
+            Week secondLastWeek = weekService.getWeekByTime(newWeekStartAt.minusWeeks(2));
+            chartService.buildDuckstars(newWeekStartAt, lastWeekId, secondLastWeek.getId());  // 2. 지난 주 덕스타 결과 분석
 
             //TODO 3. 해외 순위 수집
 
-            log.info("✅ 주간 마무리 작업 완료 - {}", weekEndAt.format(FORMATTER));
+            log.info("✅ 주간 마무리 작업 완료 - {}", newWeekStartAt.format(FORMATTER));
         } catch (Exception e) {
-            log.error("❌ 주간 마무리 작업 실패 - {}", weekEndAt.format(FORMATTER), e);
+            log.error("❌ 주간 마무리 작업 실패 - {}", newWeekStartAt.format(FORMATTER), e);
         }
     }
 }
