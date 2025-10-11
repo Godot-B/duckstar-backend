@@ -40,8 +40,6 @@ public class AnimeServiceTest {
     private WeekRepository weekRepository;
     @Autowired
     private AnimeRepository animeRepository;
-    @Autowired
-    private TempRepository tempRepository;
 
     @Test
     @Transactional
