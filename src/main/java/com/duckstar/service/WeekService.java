@@ -10,12 +10,14 @@ import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.SeasonType;
+import com.duckstar.domain.enums.VoteStatus;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.PageInfo;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
+import com.duckstar.web.dto.WeekResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,7 @@ import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.ChartDto.*;
 import static com.duckstar.web.dto.SearchResponseDto.*;
+import static com.duckstar.web.dto.WeekResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -71,8 +74,8 @@ public class WeekService {
     public Map<Integer, List<SeasonType>> getSeasons() {
         return seasonRepository.findAll().stream()
                 .filter(Season::getIsPrepared)
-                .sorted(Comparator.comparing(Season::getYearValue)
-                        .thenComparing(Season::getTypeOrder))
+                .sorted(Comparator.comparing(Season::getYearValue).reversed()
+                        .thenComparing(Season::getTypeOrder).reversed())
                 .collect(Collectors.groupingBy(
                         Season::getYearValue,
                         LinkedHashMap::new, // 순서 보장
@@ -231,5 +234,13 @@ public class WeekService {
 
         //=== 새로운 주의 투표 오픈 ===//
         newWeek.openVote();
+    }
+
+    public List<WeekDto> getAllWeeks() {
+        return weekRepository.findAll().stream()
+                .filter(week -> week.getStatus() == VoteStatus.CLOSED && week.getAnnouncePrepared())
+                .sorted(Comparator.comparing(Week::getStartDateTime))
+                .map(WeekDto::of)
+                .toList();
     }
 }

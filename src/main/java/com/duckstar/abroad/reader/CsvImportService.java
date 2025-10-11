@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
@@ -91,12 +92,14 @@ public class CsvImportService {
             return;
         }
 
-        Reader reader = new InputStreamReader(animeCornerCsv.getInputStream(), StandardCharsets.UTF_8);
-        CSVFormat format = CSVFormat.Builder
-                .create()
-                .setHeader()
-                .setSkipHeaderRecord(true)
-                .build();
+        Reader reader = new InputStreamReader(
+                new BOMInputStream(animeCornerCsv.getInputStream()), StandardCharsets.UTF_8);
+
+        CSVFormat format = CSVFormat.DEFAULT
+                .withFirstRecordAsHeader()   // 첫 줄을 헤더로 인식
+                .withTrim()                  // 공백 제거
+                .withIgnoreEmptyLines();     // 빈 줄 무시
+
         CSVParser parser = new CSVParser(reader, format);
 
         Map<String, Anime> idToTitleMap = animeRepository.findAll().stream()
@@ -124,28 +127,28 @@ public class CsvImportService {
                 rank = null;
             }
 
-            Integer rankDiff;
-            try {
-                rankDiff = Integer.parseInt(record.get("rank_diff"));
-            } catch (NumberFormatException e) {
-                rankDiff = null;
-            }
+//            Integer rankDiff;
+//            try {
+//                rankDiff = Integer.parseInt(record.get("rank_diff"));
+//            } catch (NumberFormatException e) {
+//                rankDiff = null;
+//            }
 
-            Integer consecutiveWeeksAtSameRank;
-            try {
-                consecutiveWeeksAtSameRank = Integer.parseInt(record.get("consecutive_weeks_at_same_rank"));
-            } catch (NumberFormatException e) {
-                consecutiveWeeksAtSameRank = null;
-            }
+//            Integer consecutiveWeeksAtSameRank;
+//            try {
+//                consecutiveWeeksAtSameRank = Integer.parseInt(record.get("consecutive_weeks_at_same_rank"));
+//            } catch (NumberFormatException e) {
+//                consecutiveWeeksAtSameRank = null;
+//            }
 
             AnimeCorner animeCorner = AnimeCorner.builder()
                     .week(week)
                     .anime(anime)
                     .title(titleEng)
                     .rank(rank)
-                    .rankDiff(rankDiff == null ? 0 : rankDiff)
-                    .consecutiveWeeksAtSameRank(
-                            consecutiveWeeksAtSameRank == null ? 0 : consecutiveWeeksAtSameRank)
+//                    .rankDiff(rankDiff == null ? 0 : rankDiff)
+//                    .consecutiveWeeksAtSameRank(
+//                            consecutiveWeeksAtSameRank == null ? 0 : consecutiveWeeksAtSameRank)
                     .build();
 
             animeCornerRepository.save(animeCorner);

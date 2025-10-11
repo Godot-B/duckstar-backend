@@ -102,7 +102,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                                 anime.status.eq(AnimeStatus.NOW_SHOWING)
                                         .and(anime.medium.eq(Medium.MOVIE))
                         )*/)
-                .orderBy(episode.scheduledAt.asc().nullsLast())
+                .orderBy(episode.scheduledAt.desc().nullsLast())
                 .fetch();
 
         return tuples.stream()
@@ -251,7 +251,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 ).from(episode)
                 .join(episode.anime, anime)
                 .where(episode.week.id.eq(weekId))
-                .orderBy(episode.rankInfo.rank.asc(), episode.voterCount.desc(), anime.titleKor.asc())
+                .orderBy(episode.rankInfo.rank.asc(), anime.titleKor.asc())
                 .offset((long) pageable.getPageNumber() * (pageSize - 1))
                 .limit(pageSize)
                 .fetch();
