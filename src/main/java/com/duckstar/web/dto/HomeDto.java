@@ -29,6 +29,8 @@ public class HomeDto {
     @Builder
     @Getter
     public static class WeeklyTopDto {
+        Boolean isPrepared;
+
         List<DuckstarRankPreviewDto> duckstarRankPreviews;
 
         List<RankPreviewDto> animeCornerRankPreviews;
