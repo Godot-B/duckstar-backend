@@ -239,6 +239,7 @@ public class AuthService {
 
         expireCookie(response, "ACCESS_TOKEN");
         expireCookie(response, "REFRESH_TOKEN");
+        expireCookie(response, "AUTH_STATUS"); // 🔑 AUTH_STATUS 쿠키도 삭제
     }
 
     private void expireCookie(HttpServletResponse response, String name) {
@@ -363,5 +364,6 @@ public class AuthService {
 
         expireCookie(response, "ACCESS_TOKEN");
         expireCookie(response, "REFRESH_TOKEN");
+        expireCookie(response, "AUTH_STATUS"); // 🔑 AUTH_STATUS 쿠키도 삭제
     }
 }

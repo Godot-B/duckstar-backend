@@ -134,6 +134,16 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
+        // 🔑 AUTH_STATUS 쿠키 추가 (프론트엔드에서 인증 상태 확인용)
+        ResponseCookie authStatusCookie = ResponseCookie.from("AUTH_STATUS", "true")
+                .httpOnly(false) // JavaScript로 접근 가능
+                .secure(secureCookie)
+                .sameSite(sameSite)
+                .path("/")
+                .maxAge(Duration.ofHours(1)) // ACCESS_TOKEN과 동일한 만료시간
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, authStatusCookie.toString());
+
         boolean isNewUser = !member.getProfileInitialized();
 
         // LOGIN_STATE 임시 쿠키, 로그인 전 페이지 복원용
