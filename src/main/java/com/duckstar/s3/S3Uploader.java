@@ -99,6 +99,11 @@ public class S3Uploader {
     }
 
     private void validateImageFile(MultipartFile file) {
+        // 파일 크기 검증 (20MB)
+        if (file.getSize() > 20 * 1024 * 1024) {
+            throw new ImageHandler(ErrorStatus.FILE_SIZE_EXCEEDED);
+        }
+        
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new ImageHandler(ErrorStatus.INVALID_IMAGE_FILE);
@@ -115,10 +120,16 @@ public class S3Uploader {
             throw new ImageHandler(ErrorStatus.UNSUPPORTED_IMAGE_EXTENSION);
         }
 
+        // 이미지 해상도 검증 (최대 4096x4096)
         try (InputStream is = file.getInputStream()) {
             BufferedImage image = ImageIO.read(is);
             if (image == null) {
                 throw new ImageHandler(ErrorStatus.INVALID_IMAGE_FILE);
+            }
+            
+            // 해상도가 너무 높으면 리사이즈 필요
+            if (image.getWidth() > 4096 || image.getHeight() > 4096) {
+                throw new ImageHandler(ErrorStatus.IMAGE_RESOLUTION_TOO_HIGH);
             }
         } catch (IOException e) {
             throw new ImageHandler(ErrorStatus.INVALID_IMAGE_FILE);

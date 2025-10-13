@@ -44,6 +44,8 @@ public class Episode extends BaseEntity {
 
     private LocalDateTime nextEpScheduledAt;
 
+    private Boolean isVoteEnabled = true;
+
     // [별점 방식]
     private Integer voterCount = 0;  // 투표 수 (또는 투표자 수)
 
@@ -181,5 +183,9 @@ public class Episode extends BaseEntity {
         this.week = week;
         this.rankInfo = rankInfo;
         this.anime.updateRankInfo(lastRankInfo, rankInfo);
+    }
+
+    public void setIsVoteEnabled(boolean isVoteEnabled) {
+        this.isVoteEnabled = isVoteEnabled;
     }
 }

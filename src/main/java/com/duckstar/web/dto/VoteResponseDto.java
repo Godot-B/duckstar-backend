@@ -34,6 +34,8 @@ public class VoteResponseDto {
         /**
          * 애니 정보
          */
+        Long animeId;
+
         String mainThumbnailUrl;
 
         AnimeStatus status;

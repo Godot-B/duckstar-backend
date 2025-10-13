@@ -80,6 +80,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     @Override
     public List<StarCandidateDto> getStarCandidatesByDuration(LocalDateTime weekStart, LocalDateTime weekEnd) {
         List<Tuple> tuples = queryFactory.select(
+                        anime.id,
                         anime.status,
                         anime.mainThumbnailUrl,
                         anime.titleKor,
@@ -95,6 +96,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .from(anime)
                 .leftJoin(episode).on(episode.anime.id.eq(anime.id))
                 .where(episode.scheduledAt.between(weekStart, weekEnd)
+                                .and(episode.isVoteEnabled)
 
                         // 극장판은 일단 보류
 
@@ -131,6 +133,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .quarter(record != null ? record.quarterValue() : null)
                             .week(record != null ? record.weekValue() : null)
                             .episodeId(t.get(episode.id))
+                            .animeId(t.get(anime.id))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
                             .status(status)
                             .isBreak(t.get(episode.isBreak))

@@ -96,6 +96,8 @@ public enum ErrorStatus implements BaseErrorCode {
     // 이미지 관련
     INVALID_IMAGE_FILE(HttpStatus.BAD_REQUEST, "IMAGE4001", "유효하지 않은 이미지 파일입니다."),
     INVALID_S3_IMAGE_URL(HttpStatus.BAD_REQUEST, "IMAGE4002", "유효하지 않은 S3 URL 형식입니다."),
+    FILE_SIZE_EXCEEDED(HttpStatus.PAYLOAD_TOO_LARGE, "IMAGE4003", "파일 크기가 너무 큽니다. 20MB 이하의 파일을 선택해주세요."),
+    IMAGE_RESOLUTION_TOO_HIGH(HttpStatus.BAD_REQUEST, "IMAGE4004", "이미지 해상도가 너무 높습니다. 4096x4096 이하로 조정해주세요."),
 
     UNSUPPORTED_IMAGE_EXTENSION(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "IMAGE4151", "지원하지 않는 이미지 확장자입니다."),
 

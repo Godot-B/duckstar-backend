@@ -463,6 +463,16 @@ public class CsvImportService {
     private static File convertToWebpAndGet(File tempDir, String name, File original) throws IOException {
         try {
             ImmutableImage image = ImmutableImage.loader().fromFile(original);
+            
+            // 이미지가 너무 크면 리사이즈 (최대 2048x2048)
+            int maxDimension = 2048;
+            if (image.width > maxDimension || image.height > maxDimension) {
+                double scale = Math.min((double) maxDimension / image.width, (double) maxDimension / image.height);
+                int newWidth = (int) (image.width * scale);
+                int newHeight = (int) (image.height * scale);
+                image = image.scaleTo(newWidth, newHeight);
+            }
+            
             File webpFile = new File(tempDir, name + ".webp");
             WebpWriter writer = WebpWriter.DEFAULT.withQ(80);  // 품질 80%
             image.output(writer, webpFile);
