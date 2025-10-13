@@ -270,7 +270,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
         Map<Long, List<MedalPreviewDto>> medalDtosMap = queryFactory.from(episode)
                 // 랭크 생성 시 Episode 에 주차 관계 셋팅했으므로
                 .join(episode.week, week)
-                .where(episode.anime.id.in(animeIds))
+                .where(episode.anime.id.in(animeIds).and(week.announcePrepared))
                 .orderBy(week.startDateTime.asc())
                 .transform(GroupBy.groupBy(episode.anime.id).as(
                         GroupBy.list(
