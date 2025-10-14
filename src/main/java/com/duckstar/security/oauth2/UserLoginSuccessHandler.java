@@ -3,7 +3,7 @@ package com.duckstar.security.oauth2;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.domain.Member;
-import com.duckstar.repository.WeekVoteSubmissionRepository;
+import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.jwt.JwtTokenProvider;

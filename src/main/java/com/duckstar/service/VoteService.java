@@ -15,7 +15,7 @@ import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Week.WeekRepository;
-import com.duckstar.repository.WeekVoteSubmissionRepository;
+import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.VoteRequestDto.BallotRequestDto;
 import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
@@ -248,10 +248,11 @@ public class VoteService {
         Week week = weekService.getWeekByTime(now);
 
         Optional<WeekVoteSubmission> submissionOpt =
-                weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(week.getId(), principalKey);
+                weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(
+                        week.getId(), principalKey);
 
         Map<Long, StarInfoDto> userStarInfoMap;
-        if (submissionOpt.isPresent()) {
+        if (submissionOpt.isPresent()) {  // 투표 내역 존재
             userStarInfoMap = new HashMap<>();
             WeekVoteSubmission submission = submissionOpt.get();
 
@@ -292,9 +293,7 @@ public class VoteService {
             StarRequestDto request,
             Long memberId,
             String cookieId,
-            String ipHash,
-            HttpServletRequest requestRaw,
-            HttpServletResponse responseRaw
+            String ipHash
     ) {
         //=== 투표 유효성(방영시간으로부터 36시간 이내인지) ===//
         Long episodeId = request.getEpisodeId();
@@ -320,22 +319,23 @@ public class VoteService {
                         new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND)) :
                 null;
 
-        boolean isConsecutive = false;
         Week currentWeek = weekService.getCurrentWeek();
-        if (member != null) {
-            LocalDateTime lastWeekStartedAt = currentWeek.getStartDateTime().minusWeeks(1);
-            Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
-
-            isConsecutive = weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(
-                    lastWeek.getId(), member.getId());
-        }
+//        boolean isConsecutive = false;
+//        if (member != null) {
+//            LocalDateTime lastWeekStartedAt = currentWeek.getStartDateTime().minusWeeks(1);
+//            Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
+//
+//            // 멤버 연속 기록 체크
+//            isConsecutive = weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(
+//                    lastWeek.getId(), member.getId());
+//        }
 
         //=== 제출 정보 찾기 ===//
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
         Optional<WeekVoteSubmission> submissionOpt =
                 weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(currentWeek.getId(), principalKey);
 
-        boolean isNewSubmission = submissionOpt.isEmpty();
+//        boolean isNewSubmission = submissionOpt.isEmpty();
         WeekVoteSubmission submission = submissionOpt.orElseGet(() ->
                 weekVoteSubmissionRepository.save(WeekVoteSubmission.create(
                         currentWeek,
@@ -368,9 +368,40 @@ public class VoteService {
 
         //=== 마무리 작업 ===//
         // 멤버 연속 기록 반영
-        if (isNewSubmission && member != null) member.updateStreak(isConsecutive);
+//        if (isNewSubmission && member != null) member.updateStreak(isConsecutive);
 
         return StarInfoDto.of(starScore, episode);
+    }
+    
+    @Transactional
+    public void withdrawStar(
+            Long episodeId,
+            Long memberId,
+            String cookieId
+    ) {
+        //=== 제출 정보 찾기 ===//
+        Week currentWeek = weekService.getCurrentWeek();
+        
+        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+        Optional<WeekVoteSubmission> submissionOpt =
+                weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(currentWeek.getId(), principalKey);
+
+        if (submissionOpt.isEmpty()) {
+            throw new VoteHandler(ErrorStatus.SUBMISSION_NOT_FOUND);
+        }
+
+        Map<Long, EpisodeStar> episodeStarMap =
+                episodeStarRepository.findAllByWeekVoteSubmission_Id(submissionOpt.get().getId())
+                        .stream().collect(Collectors.toMap(
+                                es -> es.getEpisode().getId(),
+                                es -> es
+                        ));
+
+        EpisodeStar target = episodeStarMap.get(episodeId);
+        if (target == null) {
+            throw new VoteHandler(ErrorStatus.STAR_NOT_FOUND);
+        }
+        target.withdrawScore();
     }
 
     @Transactional
@@ -408,15 +439,15 @@ public class VoteService {
 
         Gender gender = request.getGender();
 
-        boolean isConsecutive = false;
-        if (member != null) {
-            member.setGender(gender);
-            LocalDateTime lastWeekStartedAt = ballotWeek.getStartDateTime().minusWeeks(1);
-            Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
-
-            isConsecutive = weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(
-                    lastWeek.getId(), member.getId());
-        }
+//        boolean isConsecutive = false;
+//        if (member != null) {
+//            member.setGender(gender);
+//            LocalDateTime lastWeekStartedAt = ballotWeek.getStartDateTime().minusWeeks(1);
+//            Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
+//
+//            isConsecutive = weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(
+//                    lastWeek.getId(), member.getId());
+//        }
 
         //=== 중복 투표 방지 ===//
         WeekVoteSubmission submission = WeekVoteSubmission.create(
@@ -470,7 +501,7 @@ public class VoteService {
         }
 
         animeVoteRepository.saveAll(rows);
-        if (member != null) member.updateStreak(isConsecutive);
+//        if (member != null) member.updateStreak(isConsecutive);
 
 //        voteCookieManager.markVotedThisWeek(requestRaw, responseRaw);
     }

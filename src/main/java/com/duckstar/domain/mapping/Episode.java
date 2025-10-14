@@ -102,6 +102,10 @@ public class Episode extends BaseEntity {
         voterCount += 1;
     }
 
+    public void removeVoterCount() {
+        voterCount -= 1;
+    }
+
     public void addStar(int starScore) {
         switch (starScore) {
             case 1 -> this.star_0_5++;
@@ -117,8 +121,8 @@ public class Episode extends BaseEntity {
         }
     }
 
-    public void updateStar(int originalScore, int newScore) {
-        switch (originalScore) {
+    public void removeStar(int oldScore) {
+        switch (oldScore) {
             case 1 -> this.star_0_5--;
             case 2 -> this.star_1_0--;
             case 3 -> this.star_1_5--;
@@ -130,7 +134,12 @@ public class Episode extends BaseEntity {
             case 9 -> this.star_4_5--;
             case 10 -> this.star_5_0--;
         }
+    }
 
+    public void updateStar(Integer oldScore, int newScore) {
+        if (oldScore != null) {
+            removeStar(oldScore);
+        }
         addStar(newScore);
     }
 
@@ -187,5 +196,9 @@ public class Episode extends BaseEntity {
 
     public void setIsVoteEnabled(boolean isVoteEnabled) {
         this.isVoteEnabled = isVoteEnabled;
+    }
+
+    public int[] getStarList() {
+        return new int[]{star_0_5, star_1_0, star_1_5, star_2_0, star_2_5, star_3_0, star_3_5, star_4_0, star_4_5, star_5_0};
     }
 }

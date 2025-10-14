@@ -32,7 +32,7 @@ public class EpisodeStar extends BaseEntity {
     private Episode episode;
 
     @Column(nullable = false)
-    private Integer starScore;  // 1점 ~ 10점 (별 0.5개 ~ 5.0개)
+    private Integer starScore;  // null: 별점 회수 , 1점 ~ 10점 :별 0.5개 ~ 5.0개
 
     protected EpisodeStar(
             WeekVoteSubmission weekVoteSubmission,
@@ -61,7 +61,11 @@ public class EpisodeStar extends BaseEntity {
     }
 
     public void updateStarScore(int newScore) {
-        episode.updateStar(this.starScore, newScore);
+        Integer oldScore = this.starScore;
+        if (oldScore == null) {
+            this.episode.addVoterCount();
+        }
+        episode.updateStar(oldScore, newScore);
         this.starScore = newScore;
     }
 
@@ -69,7 +73,14 @@ public class EpisodeStar extends BaseEntity {
         this.weekVoteSubmission = weekVoteSubmission;
     }
 
-    public void setStarScore(int starScore) {
+    public void setStarScore(Integer starScore) {
         this.starScore = starScore;
+    }
+
+    public void withdrawScore() {
+        int oldScore = this.starScore;
+        this.starScore = null;
+        this.episode.removeVoterCount();
+        this.episode.removeStar(oldScore);
     }
 }

@@ -8,7 +8,7 @@ import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
-import com.duckstar.repository.WeekVoteSubmissionRepository;
+import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.service.AnimeService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.WeekService;
@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 

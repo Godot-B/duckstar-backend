@@ -33,6 +33,10 @@ public class VoteController {
     private final IpHasher ipHasher;
     private final IpExtractor ipExtractor;
 
+    /**
+     * 별점 투표 방식
+     */
+
     @Operation(summary = "별점 투표 후보자 리스트 조회 API", description = "now - 36시간 ~ now + 36시간 범위의 에피소드들 조회")
     @GetMapping("/star")
     public ApiResponse<StarCandidateListDto> getStarCandidates(
@@ -64,71 +68,94 @@ public class VoteController {
                 request,
                 memberId,
                 cookieId,
-                ipHash,
-                requestRaw,
-                responseRaw
+                ipHash
         ));
     }
 
-    @Operation(summary = "애니메이션 후보자 리스트 조회 API")
-    @GetMapping("/anime")
-    public ApiResponse<AnimeCandidateListDto> getAnimeCandidateList(
-            @AuthenticationPrincipal MemberPrincipal principal) {
-        Long memberId = principal == null ? null : principal.getId();
-        return ApiResponse.onSuccess(
-                voteService.getAnimeCandidateList(memberId));
-    }
-
-    @Operation(summary = "애니 투표 참여 여부에 따른 투표 기록 조회 API")
-    @GetMapping("/anime/status")
-    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteStatus(
-            @AuthenticationPrincipal MemberPrincipal principal,
-            @CookieValue(name = "vote_cookie_id", required = false) String cookieId
-    ) {
-        Long memberId = principal == null ? null : principal.getId();
-
-        return ApiResponse.onSuccess(
-                voteService.getAnimeVoteHistory(memberId, cookieId));
-    }
-
-    @Operation(summary = "애니메이션 투표 (단일 방식) API")
-    @PostMapping("/anime")
-    public ApiResponse<Void> voteAnime(
-            @Valid @RequestBody AnimeVoteRequest request,
+    @Operation(summary = "별점 회수 API", description = "starScore 를 null 로 셋팅")
+    @PostMapping("/withdraw/{episodeId}")
+    public ApiResponse<Void> withdrawStar(
+            @PathVariable Long episodeId,
             @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest requestRaw,
-            HttpServletResponse responseRaw
-    ) {
+            HttpServletResponse responseRaw) {
+
         Long memberId = principal == null ? null : principal.getId();
 
         String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
 
-        String clientIp = ipExtractor.extract(requestRaw);
-        String ipHash = ipHasher.hash(clientIp);
-
-        voteService.voteAnime(
-                request,
+        voteService.withdrawStar(
+                episodeId,
                 memberId,
-                cookieId,
-                ipHash,
-                requestRaw,
-                responseRaw
+                cookieId
         );
 
         return ApiResponse.onSuccess(null);
     }
 
-    @Operation(summary = "애니메이션 재투표 API")
-    @PostMapping("/anime/{submissionId}")
-    public ApiResponse<Void> revoteAnime(
-            @PathVariable Long submissionId,
-            @Valid @RequestBody AnimeRevoteRequest request,
-            @AuthenticationPrincipal MemberPrincipal principal
-    ) {
-        Long memberId = principal == null ? null : principal.getId();
-
-        voteService.revoteAnime(submissionId, request, memberId);
-
-        return ApiResponse.onSuccess(null);
-    }
+//    /**
+//     * 기존 투표 방식
+//     */
+//
+//    @Operation(summary = "(legacy) 애니메이션 후보자 리스트 조회 API")
+//    @GetMapping("/anime")
+//    public ApiResponse<AnimeCandidateListDto> getAnimeCandidateList(
+//            @AuthenticationPrincipal MemberPrincipal principal) {
+//        Long memberId = principal == null ? null : principal.getId();
+//        return ApiResponse.onSuccess(
+//                voteService.getAnimeCandidateList(memberId));
+//    }
+//
+//    @Operation(summary = "(legacy) 애니 투표 참여 여부에 따른 투표 기록 조회 API")
+//    @GetMapping("/anime/status")
+//    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteStatus(
+//            @AuthenticationPrincipal MemberPrincipal principal,
+//            @CookieValue(name = "vote_cookie_id", required = false) String cookieId
+//    ) {
+//        Long memberId = principal == null ? null : principal.getId();
+//
+//        return ApiResponse.onSuccess(
+//                voteService.getAnimeVoteHistory(memberId, cookieId));
+//    }
+//
+//    @Operation(summary = "(leagcy) 애니메이션 투표 (단일 방식) API")
+//    @PostMapping("/anime")
+//    public ApiResponse<Void> voteAnime(
+//            @Valid @RequestBody AnimeVoteRequest request,
+//            @AuthenticationPrincipal MemberPrincipal principal,
+//            HttpServletRequest requestRaw,
+//            HttpServletResponse responseRaw
+//    ) {
+//        Long memberId = principal == null ? null : principal.getId();
+//
+//        String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
+//
+//        String clientIp = ipExtractor.extract(requestRaw);
+//        String ipHash = ipHasher.hash(clientIp);
+//
+//        voteService.voteAnime(
+//                request,
+//                memberId,
+//                cookieId,
+//                ipHash,
+//                requestRaw,
+//                responseRaw
+//        );
+//
+//        return ApiResponse.onSuccess(null);
+//    }
+//
+//    @Operation(summary = "(legacy) 애니메이션 재투표 API")
+//    @PostMapping("/anime/{submissionId}")
+//    public ApiResponse<Void> revoteAnime(
+//            @PathVariable Long submissionId,
+//            @Valid @RequestBody AnimeRevoteRequest request,
+//            @AuthenticationPrincipal MemberPrincipal principal
+//    ) {
+//        Long memberId = principal == null ? null : principal.getId();
+//
+//        voteService.revoteAnime(submissionId, request, memberId);
+//
+//        return ApiResponse.onSuccess(null);
+//    }
 }

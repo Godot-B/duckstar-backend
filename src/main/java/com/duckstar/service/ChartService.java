@@ -182,7 +182,9 @@ public class ChartService {
 
         List<Integer> voterCountList = new ArrayList<>();
         for (Episode episode : episodes) {
-            List<EpisodeStar> episodeStars = episodeStarMap.get(episode.getId());
+            List<EpisodeStar> episodeStars =
+                    episodeStarMap.get(episode.getId());
+
             if (episodeStars == null || episodeStars.isEmpty()) {
                      voterCountList.add(0);
                 // ⚠️ 전환용
@@ -191,10 +193,17 @@ public class ChartService {
 //                voterCountList.add(voterCount);
 
             } else {
-                int voterCount = episodeStars.size();
+                //=== 회수된 표 제외 === //
+                episodeStars = episodeStars.stream()
+                        .filter(es -> es.getStarScore() != null)
+                        .toList();
+                                                       // ⚠️ 반드시 지워야
+                int voterCount = episodeStars.size()/* + episode.getVoterCount()*/;
                 voterCountList.add(voterCount);
 
-                int[] scores = new int[10];
+                // ⚠️ 반드시 다시 new 로 돌려야
+                int[] scores = new int[10]/*episode.getStarList()*/;
+
                 for (EpisodeStar episodeStar : episodeStars) {
                     Integer starScore = episodeStar.getStarScore();
                     int idx = starScore - 1;
@@ -221,7 +230,7 @@ public class ChartService {
         // ⚠️ 전환용
         // (2) uniqueVoterCount 하드 코딩
         // 고유 투표자 수
-        int uniqueVoterCount = (int) allEpisodeStars.stream()
+        int uniqueVoterCount = /*68*/(int) allEpisodeStars.stream()
                     .map(es -> es.getWeekVoteSubmission().getId())
                     .distinct()
                     .count();

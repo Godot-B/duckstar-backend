@@ -75,14 +75,14 @@ public class Member extends BaseEntity {
     // 혹시나 소셜 API 추가 이용에 대비
     private LocalDateTime socialRefreshTokenExpiresAt;
 
-    /**
-     * 최장 투표 기간
-     * 현재 스트릭
-     */
-
-    private Integer bestStreak = 0;
-
-    private Integer currentStreak = 0;
+//    /**
+//     * 최장 투표 기간
+//     * 현재 스트릭
+//     */
+//    private Integer bestStreak = 0;
+//    private Long bestStreakWeekId;  // 최고 스트릭 달성 주차 id
+//
+//    private Integer currentStreak = 0;
 
     @Builder
     protected Member(
@@ -162,14 +162,27 @@ public class Member extends BaseEntity {
         this.gender = gender;
     }
 
-    public void updateStreak(boolean isConsecutive) {
-        if (isConsecutive) {
-            currentStreak += 1;
-        } else {
-            currentStreak = 1;
-        }
-        bestStreak = Math.max(bestStreak, currentStreak);
-    }
+//    public void updateStreak(boolean isConsecutive, Long weekId) {
+//        if (isConsecutive) {
+//            currentStreak += 1;
+//        } else {
+//            currentStreak = 1;
+//        }
+//
+//        if (currentStreak > bestStreak) {
+//            bestStreak = currentStreak;
+//            bestStreakWeekId = weekId;
+//        }
+//    }
+//
+//    public void rollbackStreakByWithdraw(boolean bestUpdatedThisWeek) {
+//        if (bestUpdatedThisWeek) {
+//            bestStreak -= 1;
+//            currentStreak -= 1;
+//        } else {
+//            currentStreak -= 1;
+//        }
+//    }
 
     public void withdraw() {
         this.status = MemberStatus.INACTIVE;

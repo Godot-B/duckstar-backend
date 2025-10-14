@@ -26,7 +26,8 @@ public class EpisodeStarRepositoryCustomImpl implements EpisodeStarRepositoryCus
                 )
                 .from(episodeStar)
                 .join(episode).on(episode.id.eq(episodeStar.episode.id))
-                .where(episodeStar.weekVoteSubmission.id.eq(submissionId))
+                .where(episodeStar.weekVoteSubmission.id.eq(submissionId)
+                        .and(episodeStar.starScore.gt(0)))
                 .stream()
                 .collect(Collectors.toMap(
                         t -> t.get(episode),
