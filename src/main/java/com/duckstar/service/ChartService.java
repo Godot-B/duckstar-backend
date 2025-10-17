@@ -188,7 +188,7 @@ public class ChartService {
             if (episodeStars == null || episodeStars.isEmpty()) {
                      voterCountList.add(0);
                 // ⚠️ 전환용
-                // (1) 아래를 위로 대체
+                // (1) 아래를 위로 대체 [전환 때만]
 //                int voterCount = episode.getVoterCount();
 //                voterCountList.add(voterCount);
 
@@ -198,7 +198,7 @@ public class ChartService {
                         .filter(es -> es.getStarScore() != null)
                         .toList();
                                                        // ⚠️ 반드시 지워야
-                int voterCount = episodeStars.size()/* + episode.getVoterCount()*/;
+                int voterCount = episodeStars.size() /*+ episode.getVoterCount()*/;
                 voterCountList.add(voterCount);
 
                 // ⚠️ 반드시 다시 new 로 돌려야
