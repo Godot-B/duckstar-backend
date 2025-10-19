@@ -46,18 +46,18 @@ public class ScheduleHandler {
         animeService.updateAnimeStatusByMinute();
     }
 
-    // 매주 화요일 13시 30분
-    @Scheduled(cron = "0 30 13 * * TUE")
-    public void handleWeeklySchedule() {
-        scheduleState.startRunning();
-
-        try {
-            LocalDateTime newWeekStartAt = LocalDateTime.of(LocalDate.now(), LocalTime.of(18, 0));
-            runSchedule(newWeekStartAt);
-        } finally {
-            scheduleState.stopRunning();
-        }
-    }
+//    // 매주 화요일 13시 30분
+//    @Scheduled(cron = "0 30 13 * * TUE")
+//    public void handleWeeklySchedule() {
+//        scheduleState.startRunning();
+//
+//        try {
+//            LocalDateTime newWeekStartAt = LocalDateTime.of(LocalDate.now(), LocalTime.of(18, 0));
+//            runSchedule(newWeekStartAt);
+//        } finally {
+//            scheduleState.stopRunning();
+//        }
+//    }
 
     public void runSchedule(LocalDateTime newWeekStartAt) {
         log.info("✈️ 주간 마무리 작업 시작 - {}", newWeekStartAt.format(FORMATTER));

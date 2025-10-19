@@ -182,6 +182,10 @@ public class ChartService {
         } else {
             allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
         }
+        //=== 회수된 표 제외 === //
+        allEpisodeStars = allEpisodeStars.stream()
+                .filter(es -> es.getStarScore() != null)
+                .toList();
 
         Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()
                 .collect(Collectors.groupingBy(es -> es.getEpisode().getId()));
@@ -195,10 +199,6 @@ public class ChartService {
                      voterCountList.add(0);
 
             } else {
-                //=== 회수된 표 제외 === //
-                episodeStars = episodeStars.stream()
-                        .filter(es -> es.getStarScore() != null)
-                        .toList();
                 int voterCount = episodeStars.size();
                 voterCountList.add(voterCount);
 
