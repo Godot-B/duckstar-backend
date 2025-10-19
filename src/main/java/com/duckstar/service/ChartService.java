@@ -175,7 +175,13 @@ public class ChartService {
                 .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
                         lastWeek.getStartDateTime(), lastWeek.getEndDateTime());
 
-        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
+        List<EpisodeStar> allEpisodeStars;
+        if (lastWeekId == 22L) {
+            // 오픈 주차에 적용하는 예외 정책
+            allEpisodeStars = episodeStarRepository.findEligibleByWeekId(lastWeekId);
+        } else {
+            allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
+        }
 
         Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()
                 .collect(Collectors.groupingBy(es -> es.getEpisode().getId()));
@@ -187,22 +193,16 @@ public class ChartService {
 
             if (episodeStars == null || episodeStars.isEmpty()) {
                      voterCountList.add(0);
-                // ⚠️ 전환용
-                // (1) 아래를 위로 대체
-//                int voterCount = episode.getVoterCount();
-//                voterCountList.add(voterCount);
 
             } else {
                 //=== 회수된 표 제외 === //
                 episodeStars = episodeStars.stream()
                         .filter(es -> es.getStarScore() != null)
                         .toList();
-                                                       // ⚠️ 반드시 지워야
-                int voterCount = episodeStars.size()/* + episode.getVoterCount()*/;
+                int voterCount = episodeStars.size();
                 voterCountList.add(voterCount);
 
-                // ⚠️ 반드시 다시 new 로 돌려야
-                int[] scores = new int[10]/*episode.getStarList()*/;
+                int[] scores = new int[10];
 
                 for (EpisodeStar episodeStar : episodeStars) {
                     Integer starScore = episodeStar.getStarScore();
@@ -227,10 +227,8 @@ public class ChartService {
         // 전체 투표 수
         int totalVotes = votedCountList.stream().mapToInt(Integer::intValue).sum();
 
-        // ⚠️ 전환용
-        // (2) uniqueVoterCount 하드 코딩
         // 고유 투표자 수
-        int uniqueVoterCount = /*68*/(int) allEpisodeStars.stream()
+        int uniqueVoterCount = (int) allEpisodeStars.stream()
                     .map(es -> es.getWeekVoteSubmission().getId())
                     .distinct()
                     .count();

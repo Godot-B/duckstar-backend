@@ -127,28 +127,28 @@ public class CsvImportService {
                 rank = null;
             }
 
-//            Integer rankDiff;
-//            try {
-//                rankDiff = Integer.parseInt(record.get("rank_diff"));
-//            } catch (NumberFormatException e) {
-//                rankDiff = null;
-//            }
+            Integer rankDiff;
+            try {
+                rankDiff = Integer.parseInt(record.get("rank_diff"));
+            } catch (NumberFormatException e) {
+                rankDiff = null;
+            }
 
-//            Integer consecutiveWeeksAtSameRank;
-//            try {
-//                consecutiveWeeksAtSameRank = Integer.parseInt(record.get("consecutive_weeks_at_same_rank"));
-//            } catch (NumberFormatException e) {
-//                consecutiveWeeksAtSameRank = null;
-//            }
+            Integer consecutiveWeeksAtSameRank;
+            try {
+                consecutiveWeeksAtSameRank = Integer.parseInt(record.get("consecutive_weeks_at_same_rank"));
+            } catch (NumberFormatException e) {
+                consecutiveWeeksAtSameRank = null;
+            }
 
             AnimeCorner animeCorner = AnimeCorner.builder()
                     .week(week)
                     .anime(anime)
                     .title(titleEng)
                     .rank(rank)
-//                    .rankDiff(rankDiff == null ? 0 : rankDiff)
-//                    .consecutiveWeeksAtSameRank(
-//                            consecutiveWeeksAtSameRank == null ? 0 : consecutiveWeeksAtSameRank)
+                    .rankDiff(rankDiff == null ? 0 : rankDiff)
+                    .consecutiveWeeksAtSameRank(
+                            consecutiveWeeksAtSameRank == null ? 0 : consecutiveWeeksAtSameRank)
                     .build();
 
             animeCornerRepository.save(animeCorner);

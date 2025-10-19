@@ -46,8 +46,8 @@ public class ScheduleHandler {
         animeService.updateAnimeStatusByMinute();
     }
 
-    // 매주 월요일 18시
-    @Scheduled(cron = "0 0 18 * * MON")
+    // 매주 화요일 13시 30분
+    @Scheduled(cron = "0 30 13 * * TUE")
     public void handleWeeklySchedule() {
         scheduleState.startRunning();
 
