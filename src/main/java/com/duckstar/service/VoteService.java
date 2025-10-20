@@ -28,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -268,6 +269,35 @@ public class VoteService {
             userStarInfoMap = Map.of();
         }
 
+        //=== 월, 화에는 지난 주차와 공존하는 경우 있으므로 확인 ===//
+        Map<Long, StarInfoDto> lastUserStarInfoMap;
+        boolean isMonOrTue = now.getDayOfWeek() == DayOfWeek.MONDAY || now.getDayOfWeek() == DayOfWeek.TUESDAY;
+        if (isMonOrTue) {
+            Week lastWeek = weekService.getWeekByTime(week.getStartDateTime().minusWeeks(1));
+
+            Optional<WeekVoteSubmission> lastSubmissionOpt =
+                    weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(
+                            lastWeek.getId(), principalKey);
+
+            if (submissionOpt.isPresent()) {  // 투표 내역 존재
+                lastUserStarInfoMap = new HashMap<>();
+                WeekVoteSubmission submission = lastSubmissionOpt.get();
+
+                Map<Episode, Integer> episodeMap =
+                        episodeStarRepository.findEpisodeMapBySubmissionId(submission.getId());
+
+                for (Map.Entry<Episode, Integer> entry : episodeMap.entrySet()) {
+                    Episode episode = entry.getKey();
+                    lastUserStarInfoMap.put(episode.getId(), StarInfoDto.of(entry.getValue(), episode));
+                }
+
+            } else {
+                lastUserStarInfoMap = Map.of();
+            }
+        } else {
+            lastUserStarInfoMap = Map.of();
+        }
+
         List<StarCandidateDto> starCandidates =
                 episodeRepository.getStarCandidatesByDuration(
                         now.minusHours(36),
@@ -279,6 +309,12 @@ public class VoteService {
             if (episodeId != null) {
                 StarInfoDto info = userStarInfoMap.get(episodeId);
                 sc.setUserHistory(info);
+
+                // 지난 주차도 확인
+                if (info == null && isMonOrTue) {
+                    info = lastUserStarInfoMap.get(episodeId);
+                    sc.setUserHistory(info);
+                }
             }
         });
 
