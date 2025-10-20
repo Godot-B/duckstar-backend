@@ -416,8 +416,25 @@ public class VoteService {
             Long memberId,
             String cookieId
     ) {
+        //=== 투표 유효성(방영시간으로부터 36시간 이내인지) ===//
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime scheduledAt = episode.getScheduledAt();
+        Boolean isBreak = episode.getIsBreak();
+
+        // 유효 투표 조건: 방송 이후 36시간 동안
+        boolean isValid = !now.isBefore(scheduledAt) && now.isBefore(scheduledAt.plusHours(36)) &&
+                // 그리고 휴방 아님
+                (isBreak == null || !isBreak);
+
+        if (!isValid) {
+            throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
+        }
+
         //=== 제출 정보 찾기 ===//
-        Week currentWeek = weekService.getCurrentWeek();
+        Week currentWeek = weekService.getWeekByTime(scheduledAt);
         
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
         Optional<WeekVoteSubmission> submissionOpt =
