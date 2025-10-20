@@ -319,7 +319,8 @@ public class VoteService {
                         new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND)) :
                 null;
 
-        Week currentWeek = weekService.getCurrentWeek();
+                                            // ** 방영된 에피소드가 속한 주
+        Week currentWeek = weekService.getWeekByTime(scheduledAt);
 //        boolean isConsecutive = false;
 //        if (member != null) {
 //            LocalDateTime lastWeekStartedAt = currentWeek.getStartDateTime().minusWeeks(1);

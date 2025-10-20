@@ -93,7 +93,7 @@ public class VoteResponseDto {
 
             return StarInfoDto.builder()
                     .userStarScore(userStarScore)
-                    .starAverage(episode.getRankInfo().getRankedAverage())
+                    .starAverage(episode.getStarAverage())
                     .voterCount(episode.getVoterCount())
                     .star_0_5(episode.getStar_0_5())
                     .star_1_0(episode.getStar_1_0())
