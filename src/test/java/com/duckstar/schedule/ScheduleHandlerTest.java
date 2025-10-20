@@ -101,6 +101,6 @@ public class ScheduleHandlerTest {
     @Test
 //    @Rollback(false)
     public void schduleTest() throws Exception {
-        scheduleHandler.runSchedule(LocalDateTime.of(2025, 10, 3, 19, 0));
+        scheduleHandler.closeOldWeek(LocalDateTime.of(2025, 10, 3, 19, 0));
     }
 }

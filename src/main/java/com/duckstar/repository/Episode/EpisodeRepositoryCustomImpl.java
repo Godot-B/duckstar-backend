@@ -254,7 +254,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 ).from(episode)
                 .join(episode.anime, anime)
                 .where(episode.week.id.eq(weekId))
-                .orderBy(episode.rankInfo.rank.asc(), anime.titleKor.asc())
+                .orderBy(episode.rankInfo.rank.asc(),
+                        episode.rankInfo.rankedVoterCount.desc(),
+                        episode.rankInfo.rankedAverage.desc(),
+                        anime.titleKor.asc())
                 .offset((long) pageable.getPageNumber() * (pageSize - 1))
                 .limit(pageSize)
                 .fetch();

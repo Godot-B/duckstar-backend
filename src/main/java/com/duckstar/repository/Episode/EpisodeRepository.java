@@ -28,6 +28,7 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
              ORDER BY
                 e.rankInfo.rank ASC NULLS LAST,
                 e.rankInfo.rankedVoterCount DESC,
+                e.rankInfo.rankedAverage DESC,
                 a.titleKor ASC
             """)
     List<Episode> findEpisodesByWeekOrdered(

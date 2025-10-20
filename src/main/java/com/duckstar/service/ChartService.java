@@ -173,15 +173,13 @@ public class ChartService {
         //=== 투표 집계, 통계 필드 업데이트 ===//
         List<Episode> episodes = episodeRepository
                 .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
-                        lastWeek.getStartDateTime(), lastWeek.getEndDateTime());
+                        lastWeek.getStartDateTime(), lastWeek.getEndDateTime())
+                .stream()
+                .filter(e -> e.getIsBreak() == null || !e.getIsBreak())
+                .toList();
 
-        List<EpisodeStar> allEpisodeStars;
-        if (lastWeekId == 22L) {
-            // 오픈 주차에 적용하는 예외 정책
-            allEpisodeStars = episodeStarRepository.findEligibleByWeekId(lastWeekId);
-        } else {
-            allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
-        }
+        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
+
         //=== 회수된 표 제외 === //
         allEpisodeStars = allEpisodeStars.stream()
                 .filter(es -> es.getStarScore() != null)
@@ -196,7 +194,7 @@ public class ChartService {
                     episodeStarMap.get(episode.getId());
 
             if (episodeStars == null || episodeStars.isEmpty()) {
-                     voterCountList.add(0);
+                voterCountList.add(0);
 
             } else {
                 int voterCount = episodeStars.size();
@@ -209,13 +207,15 @@ public class ChartService {
                     int idx = starScore - 1;
                     scores[idx] += 1;
                 }
+                System.out.println("episodeId: " + episode.getId() +
+                        " voterCount: " + voterCount);
 
                 episode.setStats(voterCount, scores);
             }
         }
         List<Episode> votedEpisodes = new ArrayList<>(
                 episodes.stream()
-                        .filter(e -> e.getVoterCount() > 0)
+                        .filter(e -> e.getVoterCount() != null && e.getVoterCount() > 0)
                         .toList()
         );
         List<Integer> votedCountList = new ArrayList<>(
@@ -233,10 +233,12 @@ public class ChartService {
                     .distinct()
                     .count();
         lastWeek.updateAnimeVotes(totalVotes, uniqueVoterCount);
-        int minVotes = (int) Math.ceil(0.10 * uniqueVoterCount);
+        int minVotes = (int) Math.ceil(0.1 * uniqueVoterCount);
 
         // 가중치 총 합계
-        double weightedSum = votedEpisodes.stream().mapToDouble(Episode::getWeightedSum).sum();
+        double weightedSum = votedEpisodes.stream()
+                .mapToDouble(Episode::getWeightedSum)
+                .sum();  // 전체 합계 10점 만점 스케일로 맞춤
 
         int size = votedEpisodes.size();
 
@@ -252,7 +254,17 @@ public class ChartService {
         int m = Math.max(median, Math.max(p75, mRule));
 
         m = Math.max(m, 10); // 하한
-        m = Math.min(m, 40); // 상한 (유입 급증 방지)
+
+        int mCap = (int) Math.min(100, Math.round(0.3 * uniqueVoterCount));
+        m = Math.min(m, mCap); // 상한 (유입 급증 방지)
+
+        System.out.println("=====투표 정책=====");
+        System.out.println("totalVotes = " + totalVotes);
+        System.out.println("uniqueVoterCount = " + uniqueVoterCount);
+        System.out.println("minVotes = " + minVotes);
+        System.out.println("weightedSum = " + weightedSum);
+        System.out.println("m = " + m);
+        System.out.println("C = " + C);
 
         //=== 정렬 및 차트 만들기 ===//
         Map<Integer, List<Episode>> chart = buildChart(
@@ -288,7 +300,7 @@ public class ChartService {
                 RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
 
                 RankInfo rankInfo = RankInfo.create(
-                        episode.getStarAverage(),
+                        episode.getUiStarAverage(),
                         episode.getVoterCount(),
                         lastRankInfo,
                         lastWeekEndAt.toLocalDate(),
@@ -330,10 +342,9 @@ public class ChartService {
             double C,
             int minVotes
     ) {
-        final double kappa = 0.5;
+        final double kappa = 0.6;
         //=== 베이지안 계산 ===//
         for (Episode episode : episodes) {
-
             int deficit = Math.max(0, minVotes - episode.getVoterCount());
             int mDynamic = m + (int) (kappa * deficit);
             mDynamic = Math.min(mDynamic, 100);  // 상한
@@ -342,7 +353,6 @@ public class ChartService {
         }
 
         //=== episodes 정렬 ===//
-        final double EPS = 0.005; // 소수 둘째자리 표시용
 
         episodes.sort((a, b) -> {
             double bBayes = b.getBayesScore();
@@ -360,8 +370,8 @@ public class ChartService {
             int byVoterCount = Integer.compare(bV, aV);
             if (byVoterCount != 0) return byVoterCount;
 
-            double averageDiff = b.getStarAverage() - a.getStarAverage();  // DESC
-            if (Math.abs(averageDiff) >= EPS) {
+            double averageDiff = b.getUiStarAverage() - a.getUiStarAverage();  // DESC
+            if (averageDiff != 0) {
                 return averageDiff > 0 ? 1 : -1;
             }
             return 0;
@@ -381,11 +391,12 @@ public class ChartService {
         for (Episode episode : episodes) {
             double bayesScore = episode.getBayesScore();
             int voterCount = episode.getVoterCount();
-            double starAverage = episode.getStarAverage();
+            double starAverage = episode.getUiStarAverage();
 
             boolean newGroup = currentGroupSize == 0
                     || Math.abs(prevScore - bayesScore) > epsDynamic(voterCount, prevVoterCount)
-                    || Math.abs(prevAverage - starAverage) > EPS;
+                    || prevAverage != starAverage
+                    || prevVoterCount != voterCount;
 
             if (newGroup) {
                 // 이전 그룹 마감 → 누적 반영 & 새 랭크
@@ -411,9 +422,9 @@ public class ChartService {
 
     private double epsDynamic(int a, int b) {
         // 작은 표본 쪽 불확실성 우선 반영
-        double base = 0.5 * (1/Math.sqrt(a) + 1/Math.sqrt(b));
+        double base = 0.3 * (1/Math.sqrt(a) + 1/Math.sqrt(b));
 
-        // 최소 허용치: UI 소수 정밀도에 맞춤
+        // 최소 허용치
         double min = 0.005;
         return Math.max(min, base);
     }

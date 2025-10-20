@@ -82,10 +82,14 @@ public class RankInfo {
                 .weeksOnTop10(isTop10 ? 1 : 0)
                 .build();
 
-        boolean notNew = lastRankInfo != null && lastRankInfo.getRank() >= 1;
+        Integer lastRank = 0;
+        boolean notNew = false;
+        if (lastRankInfo != null) {
+            lastRank = lastRankInfo.getRank();
+            if (lastRank != null) notNew = lastRank >= 1;
+        }
 
         if (notNew) {
-            Integer lastRank = lastRankInfo.getRank();
             newRankInfo.rankDiff = lastRank - rank;
 
             if (newRankInfo.rankDiff == 0) {

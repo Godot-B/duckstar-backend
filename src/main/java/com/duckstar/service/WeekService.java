@@ -112,7 +112,6 @@ public class WeekService {
             schedule.putIfAbsent(key, List.of());
         }
 
-        Week week = getWeekByTime(now);
         return AnimePreviewListDto.builder()
                 .schedule(schedule)
                 .build();

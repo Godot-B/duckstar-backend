@@ -144,7 +144,7 @@ public class Episode extends BaseEntity {
     }
 
     public double getWeightedSum() {
-        return 0.5 * star_0_5 +
+        /*return 0.5 * star_0_5 +
                 1.0 * star_1_0 +
                 1.5 * star_1_5 +
                 2.0 * star_2_0 +
@@ -153,11 +153,25 @@ public class Episode extends BaseEntity {
                 3.5 * star_3_5 +
                 4.0 * star_4_0 +
                 4.5 * star_4_5 +
-                5.0 * star_5_0;
+                5.0 * star_5_0;*/
+        return 1.0 * star_0_5 +   // 0.5점 ×2 = 1.0
+                2.0 * star_1_0 +
+                3.0 * star_1_5 +
+                4.0 * star_2_0 +
+                5.0 * star_2_5 +
+                6.0 * star_3_0 +
+                7.0 * star_3_5 +
+                8.0 * star_4_0 +
+                9.0 * star_4_5 +
+                10.0 * star_5_0;
     }
 
     public double getStarAverage() {
         return (voterCount == 0) ? 0.0 : getWeightedSum() / (double) voterCount;
+    }
+
+    public double getUiStarAverage() {
+        return Math.round(getStarAverage() * 10.0) / 10.0; // 10점 만점, 소수 첫째자리 반올림
     }
 
     public void setStats(Integer voterCount, int[] scores) {

@@ -72,7 +72,7 @@ cloud:
     s3:
       bucket: img.duckstar.kr
 
-logging:
-  level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+#logging:
+#  level:
+#    org.hibernate.SQL: debug
+#    org.hibernate.orm.jdbc.bind: trace
