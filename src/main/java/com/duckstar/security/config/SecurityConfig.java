@@ -88,10 +88,10 @@ public class SecurityConfig {
 
             private OAuth2AuthorizationRequest customize(OAuth2AuthorizationRequest authRequest) {
                 if (authRequest == null) return null;
+                
                 return OAuth2AuthorizationRequest.from(authRequest)
                         .additionalParameters(params -> {
                             params.put("access_type", "offline");
-                            params.put("prompt", "login");
                         })
                         .build();
             }
