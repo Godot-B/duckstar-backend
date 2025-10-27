@@ -53,17 +53,17 @@ public class AnimeCandidate extends BaseEntity {
     public static AnimeCandidate create(Week week, Anime anime) {
         return new AnimeCandidate(week, anime);
     }
-
-    public void updateInfo(int votes, int voterCount, int femaleCount) {
-        this.votes = votes;
-        this.voterCount = voterCount;
-        this.femaleCount = femaleCount;
-
-        this.maleCount = voterCount - femaleCount;
-    }
-
-    public void setRankInfo(RankInfo lastRankInfo, RankInfo rankInfo) {
-        this.rankInfo = rankInfo;
-        this.anime.updateRankInfo_legacy(lastRankInfo, rankInfo);
-    }
+//
+//    public void updateInfo(int votes, int voterCount, int femaleCount) {
+//        this.votes = votes;
+//        this.voterCount = voterCount;
+//        this.femaleCount = femaleCount;
+//
+//        this.maleCount = voterCount - femaleCount;
+//    }
+//
+//    public void setRankInfo(RankInfo lastRankInfo, RankInfo rankInfo) {
+//        this.rankInfo = rankInfo;
+//        this.anime.updateRankInfo_legacy(lastRankInfo, rankInfo);
+//    }
 }

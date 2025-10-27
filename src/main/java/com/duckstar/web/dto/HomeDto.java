@@ -1,5 +1,6 @@
 package com.duckstar.web.dto;
 
+import com.duckstar.domain.Anime;
 import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.enums.BannerType;
 import com.duckstar.domain.enums.ContentType;
@@ -9,6 +10,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.duckstar.web.dto.WeekResponseDto.*;
@@ -44,7 +47,9 @@ public class HomeDto {
 
         ContentType contentType;
 
-        Long contentId;
+        Long animeId;
+
+        Long characterId;
 
         String mainTitle;
 
@@ -54,15 +59,25 @@ public class HomeDto {
 
         String characterImageUrl;
 
-        public static HomeBannerDto of(HomeBanner banner) {
+        public static HomeBannerDto ofAnime(HomeBanner banner) {
+            LocalDateTime endDateTime = banner.getWeek().getEndDateTime();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
+            String formatted = null;
+            if (endDateTime != null) {
+                formatted = endDateTime.format(formatter);
+            }
+
+            Anime anime = banner.getAnime();
+            String override = banner.getAnimeImageUrl();
             return HomeBannerDto.builder()
                     .bannerType(banner.getBannerType())
                     .contentType(banner.getContentType())
-                    .contentId(banner.getContentId())
-                    .mainTitle(banner.getMainTitle())
-                    .subTitle(banner.getSubTitle())
-                    .animeImageUrl(banner.getAnimeImageUrl())
-                    .characterImageUrl(banner.getCharacterImageUrl())
+                    .animeId(anime.getId())
+                    .characterId(null)
+                    .mainTitle(anime.getTitleKor())
+                    .subTitle("덕스타, " + formatted + " 기준")
+                    .animeImageUrl(override != null ? override : anime.getMainImageUrl())
+                    .characterImageUrl(null)
                     .build();
         }
     }

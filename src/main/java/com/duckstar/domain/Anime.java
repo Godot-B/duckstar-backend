@@ -86,12 +86,14 @@ public class Anime extends BaseEntity {
 
     //=== 순위 정보 ===//
 
-    private Integer debutRank;
+    // 스트릭 기록용
+    private Integer lastRank;
+    private Integer sameRankWeekStreak;
 
+    private Integer debutRank;
     private LocalDate debutDate;
 
     private Integer peakRank;
-
     private LocalDate peakDate;
 
     private Integer weeksOnTop10;
@@ -100,33 +102,24 @@ public class Anime extends BaseEntity {
         this.status = status;
     }
 
-    public void updateRankInfo(RankInfo lastRankInfo, RankInfo rankInfo) {
-        this.weeksOnTop10 = rankInfo.getWeeksOnTop10();
+    public void initRankInfo(Integer debutRank, LocalDate debutDate) {
+        this.lastRank = debutRank;
+        this.sameRankWeekStreak = 1;
 
-        Integer rank = rankInfo.getPeakRank();
-        LocalDate date = rankInfo.getPeakDate();
-        if (lastRankInfo == null) {
-            this.debutRank = rank;
-            this.debutDate = date;
-        }
-        this.peakRank = rank;
-        this.peakDate = date;
+        this.debutRank = debutRank;
+        this.debutDate = debutDate;
+        this.peakRank = debutRank;
+        this.peakDate = debutDate;
+
+        this.weeksOnTop10 = (debutRank != null && debutRank <= 10) ? 1 : 0;
     }
 
-    public void updateRankInfo_legacy(
-            com.duckstar.domain.mapping.legacy_vote.RankInfo lastRankInfo,
-            com.duckstar.domain.mapping.legacy_vote.RankInfo rankInfo
-    ) {
-        this.weeksOnTop10 = rankInfo.getWeeksOnTop10();
-
-        Integer rank = rankInfo.getPeakRank();
-        LocalDate date = rankInfo.getPeakDate();
-        if (lastRankInfo == null) {
-            this.debutRank = rank;
-            this.debutDate = date;
-        }
-        this.peakRank = rank;
-        this.peakDate = date;
+    public void updateRankInfo(RankInfo newRankInfo) {
+        this.lastRank = newRankInfo.getRank();
+        this.sameRankWeekStreak = newRankInfo.getConsecutiveWeeksAtSameRank();
+        this.peakRank = newRankInfo.getPeakRank();
+        this.peakDate = newRankInfo.getPeakDate();
+        this.weeksOnTop10 = newRankInfo.getWeeksOnTop10();
     }
 
     public void updateImage(String mainImageUrl, String mainThumbnailUrl) {

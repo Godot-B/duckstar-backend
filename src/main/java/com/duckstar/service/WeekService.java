@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
@@ -159,8 +160,9 @@ public class WeekService {
 
         if (!week.getAnnouncePrepared()) throw new WeekHandler(ErrorStatus.ANNOUNCEMENT_NOT_PREPARED);
 
+        LocalDateTime weekEndDateTime = week.getEndDateTime();
         List<AnimeRankDto> rows =
-                episodeRepository.getAnimeRankDtosByWeekIdWithOverFetch(weekId, overFetch);
+                episodeRepository.getAnimeRankDtosByWeekIdWithOverFetch(weekId, weekEndDateTime, overFetch);
         boolean duckstarHasNext = rows.size() > size;
 
         List<RankPreviewDto> animeCornerRankDtos =

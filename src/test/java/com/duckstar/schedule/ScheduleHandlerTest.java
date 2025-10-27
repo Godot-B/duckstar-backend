@@ -87,9 +87,8 @@ public class ScheduleHandlerTest {
 
         for (long id : idList) {
             Week lastWeek = weekRepository.findWeekById(id).orElse(null);
-            Week secondLastWeek = weekService.getWeekByTime(lastWeek.getStartDateTime().minusWeeks(1));
-
-            chartService.buildDuckstars(lastWeek.getEndDateTime(), lastWeek.getId(), secondLastWeek.getId());
+            assert lastWeek != null;
+            chartService.buildDuckstars(lastWeek.getEndDateTime(), lastWeek.getId());
         }
 
         long end = System.nanoTime();

@@ -21,68 +21,57 @@ public class HomeBanner extends BaseEntity {
     @JoinColumn(name = "week_id", nullable = false)
     private Week week;
 
-    private Integer bannerNumber;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
+    private ContentType contentType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anime_id")
+    private Anime anime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "character_id")
+    private Character character;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)
     private BannerType bannerType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(10)", nullable = false)
-    private ContentType contentType;
+    private Integer bannerNumber;
 
-    @Column(nullable = false)
-    private Long contentId;
-
-    @Column(nullable = false)
-    private String mainTitle;
-
-    private String subTitle;
-
-    @Column(nullable = false)
     private String animeImageUrl;
 
     private String characterImageUrl;
 
     protected HomeBanner(
             Week week,
-            Integer bannerNumber,
-            BannerType bannerType,
             ContentType contentType,
-            Long contentId,
-            String mainTitle,
-            String subTitle,
-            String animeImageUrl,
-            String characterImageUrl
+            Anime anime,
+            Character character,
+            BannerType bannerType,
+            Integer bannerNumber
     ) {
         this.week = week;
-        this.bannerNumber = bannerNumber;
-        this.bannerType = bannerType;
         this.contentType = contentType;
-        this.contentId = contentId;
-        this.mainTitle = mainTitle;
-        this.subTitle = subTitle;
-        this.animeImageUrl = animeImageUrl;
-        this.characterImageUrl = characterImageUrl;
+        this.anime = anime;
+        this.character = character;
+        this.bannerType = bannerType;
+        this.bannerNumber = bannerNumber;
     }
 
     public static HomeBanner createByAnime(
             Week week,
             Integer bannerNumber,
             BannerType bannerType,
-            Anime anime,
-            String subTitle
+            Anime anime
     ) {
         return new HomeBanner(
                 week,
-                bannerNumber,
-                bannerType,
                 ContentType.ANIME,
-                anime.getId(),
-                anime.getTitleKor(),
-                subTitle,
-                anime.getMainImageUrl(),
-                null
+                anime,
+                null,
+                bannerType,
+                bannerNumber
         );
     }
 }

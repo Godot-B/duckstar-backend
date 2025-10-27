@@ -2,6 +2,7 @@ package com.duckstar.domain.vo;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.RankHandler;
+import com.duckstar.domain.Anime;
 import com.duckstar.domain.enums.MedalType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -31,89 +32,82 @@ public class RankInfo {
     private Integer rankedVoterCount;
 
     //=== 이전 기록 필요 ===//
-
-    private Integer rankDiff;  // 이전 기록 없을 때 null 이며 NEW
-
+    private Integer rankDiff;  // anime lastRank 없을 때 null 이며 NEW
     private Integer consecutiveWeeksAtSameRank;
 
     private Integer peakRank;
-
     private LocalDate peakDate;
 
     private Integer weeksOnTop10;
 
     @Builder
     protected RankInfo(
-            Double rankedAverage,
-            Integer rankedVoterCount,
             MedalType type,
             Integer rank,
-            Integer weeksOnTop10
+            Double rankedAverage,
+            Integer rankedVoterCount
     ) {
-        this.rankedAverage = rankedAverage;
-        this.rankedVoterCount = rankedVoterCount;
         this.type = type;
         this.rank = rank;
-        this.weeksOnTop10 = weeksOnTop10;
+        this.rankedAverage = rankedAverage;
+        this.rankedVoterCount = rankedVoterCount;
     }
 
     public static RankInfo create(
+            Anime anime,
+            int rank,
+            LocalDate lastWeekEndAt,
             Double rankedAverage,
-            Integer rankedVoterCount,
-            RankInfo lastRankInfo,
-            LocalDate today,
-            Integer rank
+            Integer rankedVoterCount
     ) {
-        if (rank == null || rank <= 0) {
-            throw new RankHandler(ErrorStatus.RANK_VALUE_NOT_VALID);
-        }
-
         boolean isPrized = rank <= 3;
         boolean isTop10 = rank <= 10;
 
         int medalIdx = isPrized ? rank - 1 : 3;
         RankInfo newRankInfo = RankInfo.builder()
-                .rankedAverage(rankedAverage)
-                .rankedVoterCount(rankedVoterCount)
                 .type(
                         MedalType.values()[medalIdx]
                 )
                 .rank(rank)
-                .weeksOnTop10(isTop10 ? 1 : 0)
+                .rankedAverage(rankedAverage)
+                .rankedVoterCount(rankedVoterCount)
                 .build();
 
-        Integer lastRank = 0;
-        boolean notNew = false;
-        if (lastRankInfo != null) {
-            lastRank = lastRankInfo.getRank();
-            if (lastRank != null) notNew = lastRank >= 1;
-        }
+        Integer lastRank = anime.getLastRank();
+        boolean notNew = lastRank != null;
 
         if (notNew) {
             newRankInfo.rankDiff = lastRank - rank;
 
             if (newRankInfo.rankDiff == 0) {
-                newRankInfo.consecutiveWeeksAtSameRank = lastRankInfo.getConsecutiveWeeksAtSameRank() + 1;
+                newRankInfo.consecutiveWeeksAtSameRank = anime.getSameRankWeekStreak() + 1;
             } else {
                 newRankInfo.consecutiveWeeksAtSameRank = 1;
             }
 
-            if (isTop10) {
-                newRankInfo.weeksOnTop10 = lastRankInfo.getWeeksOnTop10() + 1;
+            Integer oldPeakRank = anime.getPeakRank();
+            if (rank < oldPeakRank) {
+                newRankInfo.peakRank = rank;
+                newRankInfo.peakDate = lastWeekEndAt;
+            } else {
+                newRankInfo.peakRank = oldPeakRank;
+                newRankInfo.peakDate = anime.getPeakDate();
             }
 
-            Integer peakRank = lastRankInfo.getPeakRank();
-            if (rank < peakRank) {
-                newRankInfo.peakRank = rank;
-                newRankInfo.peakDate = today;
-            } else {
-                newRankInfo.peakRank = peakRank;
-                newRankInfo.peakDate = lastRankInfo.getPeakDate();
-            }
+            newRankInfo.weeksOnTop10 = isTop10 ? anime.getWeeksOnTop10() + 1 : anime.getWeeksOnTop10();
+
+            // anime 스트릭 갱신
+            anime.updateRankInfo(newRankInfo);
+
         } else {
-            newRankInfo.peakRank = rank;
-            newRankInfo.peakDate = today;
+            newRankInfo.rankDiff = null;
             newRankInfo.consecutiveWeeksAtSameRank = 1;
+            newRankInfo.peakRank = rank;
+            newRankInfo.peakDate = lastWeekEndAt;
+            newRankInfo.weeksOnTop10 = isTop10 ? 1 : 0;
+
+            // anime 초기 랭크 정보 셋팅
+            anime.initRankInfo(rank, lastWeekEndAt);
         }
 
         return newRankInfo;

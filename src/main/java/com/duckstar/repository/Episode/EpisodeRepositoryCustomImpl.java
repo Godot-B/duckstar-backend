@@ -240,7 +240,11 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     }
 
     @Override
-    public List<AnimeRankDto> getAnimeRankDtosByWeekIdWithOverFetch(Long weekId, Pageable pageable) {
+    public List<AnimeRankDto> getAnimeRankDtosByWeekIdWithOverFetch(
+            Long weekId,
+            LocalDateTime weekEndDateTime,
+            Pageable pageable
+    ) {
         int pageSize = pageable.getPageSize();
 
         List<Tuple> tuples = queryFactory.select(
@@ -273,7 +277,8 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
         Map<Long, List<MedalPreviewDto>> medalDtosMap = queryFactory.from(episode)
                 // 랭크 생성 시 Episode 에 주차 관계 셋팅했으므로
                 .join(episode.week, week)
-                .where(episode.anime.id.in(animeIds).and(week.announcePrepared))
+                .where(episode.anime.id.in(animeIds).and(week.announcePrepared)
+                        .and(week.startDateTime.before(weekEndDateTime)))
                 .orderBy(week.startDateTime.asc())
                 .transform(GroupBy.groupBy(episode.anime.id).as(
                         GroupBy.list(

@@ -202,10 +202,9 @@ public class Episode extends BaseEntity {
                 (double) m / (v + m) * C;
     }
 
-    public void setRankInfo(Week week, RankInfo lastRankInfo, RankInfo rankInfo) {
+    public void setRankInfo(Week week, RankInfo rankInfo) {
         this.week = week;
         this.rankInfo = rankInfo;
-        this.anime.updateRankInfo(lastRankInfo, rankInfo);
     }
 
     public void setIsVoteEnabled(boolean isVoteEnabled) {

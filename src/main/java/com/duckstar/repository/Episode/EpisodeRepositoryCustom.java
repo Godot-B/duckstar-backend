@@ -15,5 +15,5 @@ public interface EpisodeRepositoryCustom {
     List<StarCandidateDto> getStarCandidatesByDuration(LocalDateTime weekStart, LocalDateTime weekEnd);
     List<AnimePreviewDto> getAnimePreviewsByDuration(LocalDateTime weekStart, LocalDateTime weekEnd);
 
-    List<AnimeRankDto> getAnimeRankDtosByWeekIdWithOverFetch(Long weekId, Pageable pageable);
+    List<AnimeRankDto> getAnimeRankDtosByWeekIdWithOverFetch(Long weekId, LocalDateTime weekEndDateTime, Pageable pageable);
 }

@@ -2,7 +2,10 @@ package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
+import com.duckstar.domain.Anime;
+import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.Week;
+import com.duckstar.domain.enums.BannerType;
 import com.duckstar.domain.enums.Gender;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.EpisodeStar;
@@ -13,6 +16,7 @@ import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
+import com.duckstar.repository.HomeBannerRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,7 @@ public class ChartService {
     private final WeekRepository weekRepository;
     private final EpisodeRepository episodeRepository;
     private final EpisodeStarRepository episodeStarRepository;
+    private final HomeBannerRepository homeBannerRepository;
 
 //    @Transactional
 //    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
@@ -51,7 +56,7 @@ public class ChartService {
 //        for (Episode episode : episodes) {
 //            List<EpisodeStar> episodeStars = episodeStarMap.get(episode.getId());
 //            if (episodeStars == null || episodeStars.isEmpty()) {
-////                 voterCountList.add(0);
+//                 voterCountList.add(0);
 //                // ⚠️ 전환용
 //                // (1) 아래를 위로 대체
 //                int voterCount = episode.getVoterCount();
@@ -123,7 +128,7 @@ public class ChartService {
 //        m = Math.max(m, 10); // 하한
 //        m = Math.min(m, 40); // 상한 (유입 급증 방지)
 //
-////        System.out.println("test: " + "weightedSum = " + weightedSum + ", C =" + C + ", m =" + m);
+//        System.out.println("test: " + "weightedSum = " + weightedSum + ", C =" + C + ", m =" + m);
 //        //=== 정렬 및 차트 만들기 ===//
 //        Map<Integer, List<Episode>> chart = buildChart(eligible, ineligible, m, C);
 //
@@ -166,7 +171,7 @@ public class ChartService {
 //    }
 
     @Transactional
-    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
+    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId) {
         Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
@@ -207,8 +212,6 @@ public class ChartService {
                     int idx = starScore - 1;
                     scores[idx] += 1;
                 }
-                System.out.println("episodeId: " + episode.getId() +
-                        " voterCount: " + voterCount);
 
                 episode.setStats(voterCount, scores);
             }
@@ -274,40 +277,19 @@ public class ChartService {
                 minVotes
         );
 
-        //=== 지난 순위와 결합, RankInfo 셋팅 ===//
-        Week secondLastWeek = weekRepository.findWeekById(secondLastWeekId).orElse(null);
-
-        Map<Long, RankInfo> lastRankInfoMap = Map.of();
-        if (secondLastWeek != null) {
-            List<Episode> lastEpisodes = episodeRepository
-                    .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
-                            secondLastWeek.getStartDateTime(), secondLastWeek.getEndDateTime());
-
-            if (lastEpisodes != null && !lastEpisodes.isEmpty()) {
-                lastRankInfoMap = lastEpisodes.stream()
-                        .filter(e -> e.getRankInfo() != null)
-                        .collect(Collectors.toMap(
-                                e -> e.getAnime().getId(),
-                                Episode::getRankInfo
-                        ));
-            }
-        }
-
+        //=== Anime 스트릭과 결합, RankInfo 셋팅 ===//
         for (Map.Entry<Integer, List<Episode>> entry : chart.entrySet()) {
             int rank = entry.getKey();
             for (Episode episode : entry.getValue()) {  // 동점자 각각 처리
-                Long animeId = episode.getAnime().getId();
-                RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
-
                 RankInfo rankInfo = RankInfo.create(
-                        episode.getUiStarAverage(),
-                        episode.getVoterCount(),
-                        lastRankInfo,
+                        episode.getAnime(),
+                        rank,
                         lastWeekEndAt.toLocalDate(),
-                        rank
+                        episode.getUiStarAverage(),
+                        episode.getVoterCount()
                 );
 
-                episode.setRankInfo(lastWeek, lastRankInfo, rankInfo);
+                episode.setRankInfo(lastWeek, rankInfo);
             }
         }
     }
@@ -422,7 +404,7 @@ public class ChartService {
 
     private double epsDynamic(int a, int b) {
         // 작은 표본 쪽 불확실성 우선 반영
-        double base = 0.3 * (1/Math.sqrt(a) + 1/Math.sqrt(b));
+        double base = 0.1 * (1/Math.sqrt(a) + 1/Math.sqrt(b));
 
         // 최소 허용치
         double min = 0.005;
@@ -430,114 +412,183 @@ public class ChartService {
     }
 
     @Transactional
-    public void buildDuckstars_legacy(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
+    public void createBanners(Long lastWeekId) {
         Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
-        //=== 투표 집계, 금주의 덕스타 결정 ===//
-        List<AnimeCandidate> candidates = animeCandidateRepository.findAllByWeek_Id(lastWeekId);
+        List<Episode> episodes = episodeRepository
+                .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
+                        lastWeek.getStartDateTime(), lastWeek.getEndDateTime())
+                .stream()
+                .filter(e -> e.getRankInfo() != null && e.getRankInfo().getRank() != null)
+                .sorted(Comparator.comparing(e -> e.getRankInfo().getRank()))
+                .toList();
 
-        List<AnimeVote> allAnimeVotes = animeVoteRepository.findAllByWeekId(lastWeekId);
+        int remainSize = 6;
+        int batchSize = 10;
+        int i = 0;
+        int number = 1;
 
-        Map<Long, List<AnimeVote>> animeVoteMap = allAnimeVotes.stream()
-                .collect(Collectors.groupingBy(v -> v.getAnimeCandidate().getId()));
+        while (remainSize > 0 && i * batchSize < episodes.size()) {
+            int from = i * batchSize;
+            int to = Math.min(episodes.size(), (i + 1) * batchSize);
+            List<Episode> subList = episodes.subList(from, to);
 
-        int totalVotes = 0;
-        for (AnimeCandidate candidate : candidates) {
-            List<AnimeVote> animeVotes = animeVoteMap.get(candidate.getId());
-            if (animeVotes == null || animeVotes.isEmpty()) {
-                continue;
-            }
+            // 1. rankDiff == null
+            List<Episode> newEpisodes = subList.stream()
+                    .filter(e -> e.getRankInfo().getRankDiff() == null)
+                    .sorted(Comparator.comparing(e -> e.getRankInfo().getRank()))
+                    .limit(remainSize)
+                    .toList();
 
-            int score = 0;
-            int femaleCount = 0;
-            for (AnimeVote animeVote : animeVotes) {
-                if (animeVote.getWeekVoteSubmission().getGender() == Gender.FEMALE) femaleCount += 1;
-                score += animeVote.getScore();
-            }
-            int votes = score / 100;
-            candidate.updateInfo(votes, animeVotes.size(), femaleCount);
-
-            totalVotes += votes;
-        }
-
-        int voterCount = (int) allAnimeVotes.stream()
-                .map(av -> av.getWeekVoteSubmission().getId())
-                .distinct()
-                .count();
-        lastWeek.updateAnimeVotes(totalVotes, voterCount);
-
-        //=== 정렬 및 차트 만들기 ===//
-        Map<Integer, List<AnimeCandidate>> chart = buildChart_legacy(candidates);
-
-        //=== 지난 순위와 결합, RankInfo 셋팅 ===//
-        Week secondLastWeek = weekRepository.findWeekById(secondLastWeekId).orElse(null);
-
-        Map<Long, com.duckstar.domain.mapping.legacy_vote.RankInfo> lastRankInfoMap = Map.of();
-        if (secondLastWeek != null) {
-            List<AnimeCandidate> lastCandidates = animeCandidateRepository.findAllByWeek_Id(secondLastWeek.getId());
-
-            if (lastCandidates != null && !lastCandidates.isEmpty()) {
-                lastRankInfoMap = lastCandidates.stream()
-                        .collect(Collectors.toMap(
-                                ac -> ac.getAnime().getId(),
-                                AnimeCandidate::getRankInfo
-                        ));
-            }
-        }
-
-        for (Map.Entry<Integer, List<AnimeCandidate>> entry : chart.entrySet()) {
-            int rank = entry.getKey();
-            for (AnimeCandidate candidate : entry.getValue()) {  // 동점자 각각 처리
-                double votePercent = totalVotes != 0 ?
-                        ((double) candidate.getVotes() / totalVotes) * 100 :
-                        0;
-
-                int votes = candidate.getVotes();
-                Double malePercent = votes != 0 ?  // 보너스 투표 하나만 있는 경우, 성비 제공 X
-                        ((double) candidate.getMaleCount() / candidate.getVoterCount()) * 100 :
-                        null;
-
-                Long animeId = candidate.getAnime().getId();
-                com.duckstar.domain.mapping.legacy_vote.RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
-
-                com.duckstar.domain.mapping.legacy_vote.RankInfo rankInfo = com.duckstar.domain.mapping.legacy_vote.RankInfo.create(
-                        lastRankInfo,
-                        lastWeekEndAt.toLocalDate(),
-                        rank,
-                        votePercent,
-                        malePercent
+            for (Episode episode : newEpisodes) {
+                homeBannerRepository.save(
+                        HomeBanner.createByAnime(
+                                lastWeek,
+                                number,
+                                BannerType.NOTICEABLE,
+                                episode.getAnime()
+                        )
                 );
-
-                candidate.setRankInfo(lastRankInfo, rankInfo);
+                number += 1;
             }
+            remainSize = remainSize - newEpisodes.size();
+
+            if (remainSize == 0) break;
+
+            // 2. rankDiff >= 5
+            List<Episode> hotEpisodes = subList.stream()
+                    .filter(e -> e.getRankInfo().getRankDiff() >= 5)
+                    .sorted(Comparator.comparing(e -> e.getRankInfo().getRankDiff(), Comparator.reverseOrder()))
+                    .limit(remainSize)
+                    .toList();
+
+            for (Episode episode : hotEpisodes) {
+                homeBannerRepository.save(
+                        HomeBanner.createByAnime(
+                                lastWeek,
+                                number,
+                                BannerType.HOT,
+                                episode.getAnime()
+                        )
+                );
+                number += 1;
+            }
+            remainSize = remainSize - hotEpisodes.size();
+
+            i += 1;
         }
     }
 
-    private Map<Integer, List<AnimeCandidate>> buildChart_legacy(List<AnimeCandidate> candidates) {
-        candidates.sort(Comparator.comparing(AnimeCandidate::getVotes).reversed()  // 투표 수 정렬
-                .thenComparing(AnimeCandidate::getVoterCount, Comparator.reverseOrder())  // 투표자 수 정렬
-                .thenComparing(ac -> ac.getAnime().getTitleKor()));  // 가나다 순
-
-        Map<Integer, List<AnimeCandidate>> chart = new LinkedHashMap<>();
-        int rank = 1;
-        int prevVotes = -1;
-        for (int i = 0; i < candidates.size(); i++) {
-            AnimeCandidate candidate = candidates.get(i);
-            int votes = candidate.getVotes();
-
-            if (prevVotes != votes) {
-                List<AnimeCandidate> animeCandidates = new ArrayList<>();
-                animeCandidates.add(candidate);
-                rank = i + 1;
-                chart.put(rank, animeCandidates);
-            } else {
-                chart.get(rank).add(candidate);  // 동일 순위 처리
-            }
-
-            prevVotes = votes;
-        }
-
-        return chart;
-    }
+//    @Transactional
+//    public void buildDuckstars_legacy(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
+//        Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
+//                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+//
+//        //=== 투표 집계, 금주의 덕스타 결정 ===//
+//        List<AnimeCandidate> candidates = animeCandidateRepository.findAllByWeek_Id(lastWeekId);
+//
+//        List<AnimeVote> allAnimeVotes = animeVoteRepository.findAllByWeekId(lastWeekId);
+//
+//        Map<Long, List<AnimeVote>> animeVoteMap = allAnimeVotes.stream()
+//                .collect(Collectors.groupingBy(v -> v.getAnimeCandidate().getId()));
+//
+//        int totalVotes = 0;
+//        for (AnimeCandidate candidate : candidates) {
+//            List<AnimeVote> animeVotes = animeVoteMap.get(candidate.getId());
+//            if (animeVotes == null || animeVotes.isEmpty()) {
+//                continue;
+//            }
+//
+//            int score = 0;
+//            int femaleCount = 0;
+//            for (AnimeVote animeVote : animeVotes) {
+//                if (animeVote.getWeekVoteSubmission().getGender() == Gender.FEMALE) femaleCount += 1;
+//                score += animeVote.getScore();
+//            }
+//            int votes = score / 100;
+//            candidate.updateInfo(votes, animeVotes.size(), femaleCount);
+//
+//            totalVotes += votes;
+//        }
+//
+//        int voterCount = (int) allAnimeVotes.stream()
+//                .map(av -> av.getWeekVoteSubmission().getId())
+//                .distinct()
+//                .count();
+//        lastWeek.updateAnimeVotes(totalVotes, voterCount);
+//
+//        //=== 정렬 및 차트 만들기 ===//
+//        Map<Integer, List<AnimeCandidate>> chart = buildChart_legacy(candidates);
+//
+//        //=== 지난 순위와 결합, RankInfo 셋팅 ===//
+//        Week secondLastWeek = weekRepository.findWeekById(secondLastWeekId).orElse(null);
+//
+//        Map<Long, com.duckstar.domain.mapping.legacy_vote.RankInfo> lastRankInfoMap = Map.of();
+//        if (secondLastWeek != null) {
+//            List<AnimeCandidate> lastCandidates = animeCandidateRepository.findAllByWeek_Id(secondLastWeek.getId());
+//
+//            if (lastCandidates != null && !lastCandidates.isEmpty()) {
+//                lastRankInfoMap = lastCandidates.stream()
+//                        .collect(Collectors.toMap(
+//                                ac -> ac.getAnime().getId(),
+//                                AnimeCandidate::getRankInfo
+//                        ));
+//            }
+//        }
+//
+//        for (Map.Entry<Integer, List<AnimeCandidate>> entry : chart.entrySet()) {
+//            int rank = entry.getKey();
+//            for (AnimeCandidate candidate : entry.getValue()) {  // 동점자 각각 처리
+//                double votePercent = totalVotes != 0 ?
+//                        ((double) candidate.getVotes() / totalVotes) * 100 :
+//                        0;
+//
+//                int votes = candidate.getVotes();
+//                Double malePercent = votes != 0 ?  // 보너스 투표 하나만 있는 경우, 성비 제공 X
+//                        ((double) candidate.getMaleCount() / candidate.getVoterCount()) * 100 :
+//                        null;
+//
+//                Long animeId = candidate.getAnime().getId();
+//                com.duckstar.domain.mapping.legacy_vote.RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
+//
+//                com.duckstar.domain.mapping.legacy_vote.RankInfo rankInfo = com.duckstar.domain.mapping.legacy_vote.RankInfo.create(
+//                        lastRankInfo,
+//                        lastWeekEndAt.toLocalDate(),
+//                        rank,
+//                        votePercent,
+//                        malePercent
+//                );
+//
+//                candidate.setRankInfo(lastRankInfo, rankInfo);
+//            }
+//        }
+//    }
+//
+//    private Map<Integer, List<AnimeCandidate>> buildChart_legacy(List<AnimeCandidate> candidates) {
+//        candidates.sort(Comparator.comparing(AnimeCandidate::getVotes).reversed()  // 투표 수 정렬
+//                .thenComparing(AnimeCandidate::getVoterCount, Comparator.reverseOrder())  // 투표자 수 정렬
+//                .thenComparing(ac -> ac.getAnime().getTitleKor()));  // 가나다 순
+//
+//        Map<Integer, List<AnimeCandidate>> chart = new LinkedHashMap<>();
+//        int rank = 1;
+//        int prevVotes = -1;
+//        for (int i = 0; i < candidates.size(); i++) {
+//            AnimeCandidate candidate = candidates.get(i);
+//            int votes = candidate.getVotes();
+//
+//            if (prevVotes != votes) {
+//                List<AnimeCandidate> animeCandidates = new ArrayList<>();
+//                animeCandidates.add(candidate);
+//                rank = i + 1;
+//                chart.put(rank, animeCandidates);
+//            } else {
+//                chart.get(rank).add(candidate);  // 동일 순위 처리
+//            }
+//
+//            prevVotes = votes;
+//        }
+//
+//        return chart;
+//    }
 }

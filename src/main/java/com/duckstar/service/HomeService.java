@@ -61,7 +61,7 @@ public class HomeService {
         }
 
         List<HomeBannerDto> homeBannerDtos = homeBanners.stream()
-                .map(HomeBannerDto::of)
+                .map(HomeBannerDto::ofAnime)
                 .toList();
 
         List<WeekDto> weekDtos = pastWeeks.stream()

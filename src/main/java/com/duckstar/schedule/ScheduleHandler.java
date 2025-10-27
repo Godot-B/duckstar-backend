@@ -88,10 +88,11 @@ public class ScheduleHandler {
 //            YQWRecord newWeekRecord = getThisWeekRecord(newWeekStartAt);
 //            weekService.setupWeeklyVote(lastWeekId, newWeekStartAt, newWeekRecord);
 
-            Week secondLastWeek = weekService.getWeekByTime(newWeekStartAt.minusWeeks(2));
-            chartService.buildDuckstars(newWeekStartAt, lastWeekId, secondLastWeek.getId());  // 2. 지난 주 덕스타 결과 분석
+            chartService.buildDuckstars(newWeekStartAt, lastWeekId);  // 2. 지난 주 덕스타 결과 분석
 
-            //TODO 3. 해외 순위 수집
+            chartService.createBanners(lastWeekId);  // 3. 결과에 의한 배너 생성
+
+            //TODO 4. 해외 순위 수집
 
             log.info("✅ 주간 마무리 작업 완료 - {}", newWeekStartAt.format(FORMATTER));
         } catch (Exception e) {

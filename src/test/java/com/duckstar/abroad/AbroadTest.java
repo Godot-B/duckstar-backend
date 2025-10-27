@@ -58,27 +58,6 @@ public class AbroadTest {
             System.out.println("rank: " + animeCorner.getRank() +
                     " title: " + animeCorner.getTitle() + " rankDiff: " + animeCorner.getRankDiff());
         }
-
-        //=== 배너 생성 ===//
-        int bannerNumber = 1;
-        LocalDateTime endDateTime = week.getEndDateTime();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
-        String formatted = endDateTime.format(formatter);
-
-        for (int i = 0; i < 3; i++) {
-            Anime anime = animeCorners.get(i).getAnime();
-            if (anime != null) {
-                homeBannerRepository.save(HomeBanner.createByAnime(
-                                week,
-                                bannerNumber,
-                                BannerType.HOT,
-                                anime,
-                                "Anime Corner, " + formatted + " 기준"
-                        )
-                );
-            }
-            bannerNumber += 1;
-        }
     }
 
     @Test
