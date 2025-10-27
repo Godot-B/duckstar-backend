@@ -7,6 +7,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -25,7 +27,7 @@ public class EpisodeStarRepositoryCustomImpl implements EpisodeStarRepositoryCus
                         episode
                 )
                 .from(episodeStar)
-                .join(episode).on(episode.id.eq(episodeStar.episode.id))
+                .join(episodeStar.episode, episode)
                 .where(episodeStar.weekVoteSubmission.id.eq(submissionId)
                         .and(episodeStar.starScore.gt(0)))
                 .stream()
@@ -33,5 +35,23 @@ public class EpisodeStarRepositoryCustomImpl implements EpisodeStarRepositoryCus
                         t -> t.get(episode),
                         t -> t.get(episodeStar.starScore)
                 ));
+    }
+
+    @Override
+    public Long getVoteTimeLeftForLatestEpVoted(Long submissionId) {
+        LocalDateTime latestEpScheduledAt = queryFactory.select(
+                        episode.scheduledAt.max()
+                )
+                .from(episodeStar)
+                .join(episodeStar.episode, episode)
+                .where(episodeStar.weekVoteSubmission.id.eq(submissionId))
+                .fetchFirst();
+
+        if (latestEpScheduledAt == null) return 0L;
+
+        LocalDateTime voteClosedAt = latestEpScheduledAt.plusHours(36);
+        if (LocalDateTime.now().isAfter(voteClosedAt)) return 0L;
+
+        return Duration.between(LocalDateTime.now(), voteClosedAt).getSeconds();
     }
 }

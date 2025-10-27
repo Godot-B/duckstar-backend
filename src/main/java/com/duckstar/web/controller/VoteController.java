@@ -29,9 +29,6 @@ import static com.duckstar.web.dto.VoteResponseDto.*;
 public class VoteController {
 
     private final VoteService voteService;
-    private final VoteCookieManager voteCookieManager;
-    private final IpHasher ipHasher;
-    private final IpExtractor ipExtractor;
 
     /**
      * 별점 투표 방식
@@ -41,12 +38,12 @@ public class VoteController {
     @GetMapping("/star")
     public ApiResponse<StarCandidateListDto> getStarCandidates(
             @AuthenticationPrincipal MemberPrincipal principal,
-            @CookieValue(name = "vote_cookie_id", required = false) String cookieId) {
+            HttpServletRequest requestRaw) {
 
         Long memberId = principal == null ? null : principal.getId();
 
         return ApiResponse.onSuccess(
-                voteService.getStarCandidatesByWindow(memberId, cookieId));
+                voteService.getStarCandidatesByWindow(memberId, requestRaw));
     }
 
     @Operation(summary = "별점 투표/수정 API", description = "TVA 투표: Episode 기반, 방송 후 36시간 동안 오픈")
@@ -59,16 +56,11 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
-
-        String clientIp = ipExtractor.extract(requestRaw);
-        String ipHash = ipHasher.hash(clientIp);
-
         return ApiResponse.onSuccess(voteService.voteOrUpdateStar(
                 request,
                 memberId,
-                cookieId,
-                ipHash
+                requestRaw,
+                responseRaw
         ));
     }
 
@@ -82,12 +74,11 @@ public class VoteController {
 
         Long memberId = principal == null ? null : principal.getId();
 
-        String cookieId = voteCookieManager.ensureVoteCookie(requestRaw, responseRaw);
-
         voteService.withdrawStar(
                 episodeId,
                 memberId,
-                cookieId
+                requestRaw,
+                responseRaw
         );
 
         return ApiResponse.onSuccess(null);

@@ -1,11 +1,12 @@
-//package com.duckstar.temp;
+//package com.duckstar.schedule;
 //
 //import com.duckstar.domain.Week;
 //import com.duckstar.domain.mapping.Episode;
 //import com.duckstar.repository.Episode.EpisodeRepository;
 //import com.duckstar.repository.Week.WeekRepository;
 //import com.duckstar.service.ChartService;
-//import org.junit.jupiter.api.Disabled;
+//import com.duckstar.temp.Temp;
+//import com.duckstar.temp.TempRepository;
 //import org.junit.jupiter.api.Test;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.test.context.SpringBootTest;
@@ -34,7 +35,7 @@
 //    @Test
 //    @Transactional
 ////    @Rollback(false)
-//    public void dcMigration() {
+//    public void calculateRankManual() {
 //        Week week = weekRepository.findById(22L).get();
 //
 //        List<Episode> lastEpisodes = episodeRepository

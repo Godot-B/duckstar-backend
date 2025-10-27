@@ -4,6 +4,8 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.domain.Member;
+import com.duckstar.domain.Quarter;
+import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.EpisodeStar;
 import com.duckstar.domain.mapping.WeekVoteSubmission;
@@ -20,6 +22,7 @@ import com.duckstar.security.providers.naver.NaverTokenResponse;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.repository.MemberTokenRepository;
 import com.duckstar.service.WeekService;
+import com.duckstar.web.dto.VoteResponseDto;
 import com.duckstar.web.support.VoteCookieManager;
 import feign.FeignException;
 import io.jsonwebtoken.Claims;
@@ -37,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +65,8 @@ public class AuthService {
     private final NaverApiClient naverApiClient;
     private final WeekService weekService;
     private final EpisodeStarRepository episodeStarRepository;
+
+    private static final String BASE_VOTE_COOKIE = "vote_cookie_id";
 
     @Value("${app.cookie.same-site}")
     private String sameSite;
@@ -87,10 +93,10 @@ public class AuthService {
     public boolean saveTokenAndMigrateVote(
             HttpServletRequest request,
             HttpServletResponse response,
-            Member member,
+            Long memberId,
             String refreshToken
     ) {
-        member = memberRepository.findById(member.getId())
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AuthHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 1. Refresh Token 저장 (회전 고려)
@@ -103,27 +109,72 @@ public class AuthService {
         );
 
         // 2. 비회원 투표 마이그레이션 -> 회원의 투표로 저장
-        String voteCookieId = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("vote_cookie_id".equals(cookie.getName())) {
-                    voteCookieId = cookie.getValue();
-                    break;
-                }
-            }
-        }
+        Week week = weekService.getCurrentWeek();
 
+        //=== 월 18시 ~ 화 15시에는 지난 주차와 공존하는 경우 있으므로 확인 ===//
+        LocalDateTime hybridStart = week.getStartDateTime();  // 이번 주 월요일 18시
+        LocalDateTime hybridEnd = hybridStart.with(DayOfWeek.TUESDAY).withHour(15).withMinute(0);  // 화요일 15시
+        boolean isHybrid = !LocalDateTime.now().isBefore(hybridStart) && LocalDateTime.now().isBefore(hybridEnd);
+
+        if (isHybrid) {
+            Boolean isCurrentWeekMigrated = migrateWeekVoteSubmission(
+                    request,
+                    response,
+                    week,
+                    member
+            );
+            boolean currentMigrated = false;
+            if (isCurrentWeekMigrated != null) currentMigrated = isCurrentWeekMigrated;
+
+            Week lastWeek = weekService.getWeekByTime(week.getStartDateTime().minusWeeks(1));
+            Boolean isLastWeekMigrated = migrateWeekVoteSubmission(
+                    request,
+                    response,
+                    lastWeek,
+                    member
+            );
+            boolean lastMigrated = false;
+            if (isLastWeekMigrated != null) lastMigrated = isLastWeekMigrated;
+
+            return currentMigrated || lastMigrated;
+
+        } else {
+            Boolean isMigrated = migrateWeekVoteSubmission(
+                    request,
+                    response,
+                    week,
+                    member
+            );
+            if (isMigrated == null) return false;
+
+            return isMigrated;
+        }
+    }
+
+    private Boolean migrateWeekVoteSubmission(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Week week,
+            Member member
+    ) {
+        Quarter quarter = week.getQuarter();
+        String voteCookieId = voteCookieManager.readCookie(
+                request,
+                quarter.getYearValue(),
+                quarter.getQuarterValue(),
+                week.getWeekValue()
+        );
         if (voteCookieId == null || voteCookieId.isBlank()) {
             // 쿠키 없는 경우 스킵
-            return false;
+            return null;
         }
 
-        Long weekId = weekService.getCurrentWeek().getId();
+        Long weekId = week.getId();
         Optional<WeekVoteSubmission> localSubmissionOpt =
                 weekVoteSubmissionRepository.findByWeek_IdAndCookieId(weekId, voteCookieId);
         if (localSubmissionOpt.isEmpty()) {
             // 비로그인 투표 기록 없는 경우 스킵
-            return false;
+            return null;
         }
 
         boolean isMigrated = false;
@@ -179,9 +230,13 @@ public class AuthService {
             }
 
             //Case 2. 비로그인 투표 기록 ⭕ -> 이미 투표한 🗳 멤버 로그인: 말 없이 쿠키 삭제
-            expireCookie(response, "vote_cookie_id");
+            expireCookie(response,
+                    BASE_VOTE_COOKIE + "_" +
+                            quarter.getYearValue() +
+                            "Q" + quarter.getQuarterValue() +
+                            "W" + week.getWeekValue()
+            );
         }
-
         return isMigrated;
     }
 
@@ -226,7 +281,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
+    public Long logout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtTokenProvider.resolveFromCookie(request, "REFRESH_TOKEN");
 
         Claims claims = jwtTokenProvider.parseClaims(refreshToken);
@@ -234,11 +289,48 @@ public class AuthService {
             throw new AuthHandler(ErrorStatus.REFRESH_TOKEN_MISSING);
         }
 
+        Optional<MemberToken> memberTokenOpt = memberTokenRepository.findByRefreshToken(refreshToken);
+        if (memberTokenOpt.isEmpty()) {
+            throw new AuthHandler(ErrorStatus.REFRESH_TOKEN_NOT_FOUND);
+        }
+        Member member = memberTokenOpt.get().getMember();
+
+        LocalDateTime now = LocalDateTime.now();
+        Week week = weekService.getWeekByTime(now);
+        Optional<WeekVoteSubmission> thisWeekSubmissionOpt =
+                weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(week.getId(), member.getId());
+
+        Long thisWeekSec = 0L;
+        if (thisWeekSubmissionOpt.isPresent()) {
+            thisWeekSec = episodeStarRepository
+                    .getVoteTimeLeftForLatestEpVoted(thisWeekSubmissionOpt.get().getId());
+        }
+
+        Long lastWeekSec = 0L;
+        if (thisWeekSec == 0L) {
+            LocalDateTime hybridStart = week.getStartDateTime();  // 이번 주 월요일 18시
+            LocalDateTime hybridEnd = hybridStart.with(DayOfWeek.TUESDAY).withHour(15).withMinute(0);  // 화요일 15시
+            boolean isHybrid = !now.isBefore(hybridStart) && now.isBefore(hybridEnd);
+            if (isHybrid) {
+                Week lastWeek = weekService.getWeekByTime(week.getStartDateTime().minusWeeks(1));
+
+                Optional<WeekVoteSubmission> lastWeekSubmissionOpt =
+                        weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(lastWeek.getId(), member.getId());
+
+                if (lastWeekSubmissionOpt.isPresent()) {
+                   lastWeekSec = episodeStarRepository
+                            .getVoteTimeLeftForLatestEpVoted(lastWeekSubmissionOpt.get().getId());
+                }
+            }
+        }
+
         memberTokenRepository.deleteByRefreshToken(refreshToken);
 
         expireCookie(response, "ACCESS_TOKEN");
         expireCookie(response, "REFRESH_TOKEN");
         expireCookie(response, "AUTH_STATUS"); // 🔑 AUTH_STATUS 쿠키도 삭제
+
+        return thisWeekSec > 0L ? thisWeekSec : lastWeekSec;
     }
 
     private void expireCookie(HttpServletResponse response, String name) {

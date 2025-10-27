@@ -14,6 +14,8 @@ public class VoteResponseDto {
     @Builder
     @AllArgsConstructor
     public static class StarCandidateListDto {
+        Boolean hasVoted;
+
         WeekDto weekDto;
         List<StarCandidateDto> starCandidates;
     }

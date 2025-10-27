@@ -1,7 +1,5 @@
 package com.duckstar.web.support;
 
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,11 +15,12 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
+import static com.duckstar.util.QuarterUtil.*;
+
 @Slf4j
 @Component
 public class VoteCookieManager {
-    private static final String VOTE_COOKIE = "vote_cookie_id";
-//    private static final String VOTED_THIS_WEEK = "voted_this_week";
+    private static final String BASE_VOTE_COOKIE = "vote_cookie_id";
 
     @Value("${app.cookie.secure}")
     private boolean secureCookie;
@@ -29,81 +28,70 @@ public class VoteCookieManager {
     @Value("${app.cookie.same-site}")
     private String sameSite;
 
-    public String ensureVoteCookie(HttpServletRequest requestRaw, HttpServletResponse responseRaw) {
-        String existing = null;
-        if (requestRaw.getCookies() != null) {
-            for (Cookie cookie : requestRaw.getCookies()) {
-                if (VOTE_COOKIE.equals(cookie.getName())) {
-                    existing = cookie.getValue();
-                    break;
-                }
-            }
-        }
-        if (existing != null && !existing.isBlank()) return existing;
+    /**
+     * 정규 정책: 주차명 기반 쿠키 생성 (예: vote_cookie_id_25Q4W2)
+     */
+    public String ensureVoteCookie(
+            HttpServletRequest requestRaw,
+            HttpServletResponse responseRaw,
+            int year,
+            int quarter,
+            int week
+    ) {
+        String cookieName = BASE_VOTE_COOKIE + "_" + year + "Q" + quarter + "W" + week;
+
+        String existing = readCookie(requestRaw, year, quarter, week);
+        if (existing != null) return existing;
 
         String cookieId = UUID.randomUUID().toString();
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime weekEnd = getNextWeekEndDate(now);
-        long ttlSec = Duration.between(now, weekEnd).getSeconds();
+        Duration ttl = Duration.between(now, weekEnd);
 
-        ResponseCookie cookie = ResponseCookie.from(VOTE_COOKIE, cookieId)
-                .httpOnly(false)  // 프론트엔드에서 접근 가능하도록 변경
-                .secure(secureCookie)
-                .sameSite(sameSite)
-                .path("/")
-                .maxAge(ttlSec)
-                .build();
-
-        responseRaw.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
+        setCookie(responseRaw, cookieName, cookieId, ttl);
         return cookieId;
     }
 
-//    public void markVotedThisWeek(HttpServletRequest requestRaw, HttpServletResponse responseRaw) {
-//        String existing = null;
-//        if (requestRaw.getCookies() != null) {
-//            for (Cookie cookie : requestRaw.getCookies()) {
-//                if (VOTED_THIS_WEEK.equals(cookie.getName())) {
-//                    existing = cookie.getValue();
-//                    break;
-//                }
-//            }
-//        }
-//        if (existing != null && !existing.isBlank()) {
-//            // 이미 존재하는 경우 스킵
-//            return;
-//        }
-//
-//        LocalDateTime now = LocalDateTime.now();
-//        LocalDateTime weekEnd = getNextWeekEndDate(now);
-//        long ttlSec = Duration.between(now, weekEnd).getSeconds();
-//
-//        String flagId = "1";
-//
-//        ResponseCookie flag = ResponseCookie.from(VOTED_THIS_WEEK, flagId)
-//                .httpOnly(false)
-//                .secure(secureCookie)
-//                .sameSite(sameSite)
-//                .path("/")
-//                .maxAge(ttlSec)
-//                .build();
-//
-//        responseRaw.addHeader(HttpHeaders.SET_COOKIE, flag.toString());
-//    }
+    public String readCookie(
+            HttpServletRequest req,
+            int year,
+            int quarter,
+            int week
+    ) {
+        // 예: vote_cookie_id_25Q4W2
+        String cookieName = BASE_VOTE_COOKIE + "_" + year + "Q" + quarter + "W" + week;
+
+        if (req.getCookies() == null) return null;
+        for (Cookie c : req.getCookies()) {
+            if (cookieName.equals(c.getName())) return c.getValue();
+        }
+        return null;
+    }
+
+    private void setCookie(HttpServletResponse res, String name, String value, Duration ttl) {
+        ResponseCookie rc = ResponseCookie.from(name, value)
+                .httpOnly(false) // 민감정보 아님, 복구용 허용
+                .secure(secureCookie)
+                .sameSite(sameSite)
+                .path("/")
+                .maxAge(ttl)
+                .build();
+        res.addHeader(HttpHeaders.SET_COOKIE, rc.toString());
+    }
 
     private LocalDateTime getNextWeekEndDate(LocalDateTime time) {
-        // nextOrSame 월요일 18시
-        LocalDateTime thisMonday = time
-                .with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY))
-                .withHour(18).withMinute(0).withSecond(0).withNano(0);
+        // nextOrSame 화요일 15시
+        LocalDateTime thisTuesDay = time
+                .with(TemporalAdjusters.nextOrSame(DayOfWeek.TUESDAY))
+                .withHour(15).withMinute(0).withSecond(0).withNano(0);
 
-        // 이미 월요일 18시를 지났다면 → 다음 주 월요일 18시
-        if (time.isAfter(thisMonday)) {
-            thisMonday = thisMonday.plusWeeks(1);
+        // 이미 화요일 15시를 지났다면 → 다음 주 화요일 15시
+        if (time.isAfter(thisTuesDay)) {
+            thisTuesDay = thisTuesDay.plusWeeks(1);
         }
 
-        return thisMonday;
+        return thisTuesDay;
     }
 
     public String toPrincipalKey(Long memberId, String cookieId) {

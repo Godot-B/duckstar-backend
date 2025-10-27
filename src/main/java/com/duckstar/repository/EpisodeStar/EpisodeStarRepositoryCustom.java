@@ -6,4 +6,6 @@ import java.util.Map;
 
 public interface EpisodeStarRepositoryCustom {
     Map<Episode, Integer> findEpisodeMapBySubmissionId(Long submissionId);
+
+    Long getVoteTimeLeftForLatestEpVoted(Long submissionId);
 }

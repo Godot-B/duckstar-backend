@@ -1,11 +1,11 @@
 package com.duckstar.security.controller;
 
+import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.security.jwt.JwtTokenProvider;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.service.AuthService;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,17 +45,18 @@ public class AuthController {
         return authService.refresh(request);
     }
 
-    @Operation(summary = "로그아웃 API")
+    @Operation(summary = "로그아웃 API", description = "로그아웃 시, 회원이 투표한 후보들 중" +
+            " 가장 마지막에 투표가 마감되는 후보에 대해 투표의 남은 시간만큼 프론트에 반환:" +
+            " 프론트는 해당 시간만큼 중복 투표 방지 화면을 띄움.")
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ApiResponse<Long> logout(HttpServletRequest request, HttpServletResponse response) {
         String clientIp = request.getRemoteAddr();
 
         if (!rateLimiter.isAllowedByIp(clientIp, 30, Duration.ofMinutes(1))) {
             throw new AuthHandler(ErrorStatus.TOO_MANY_REQUESTS);
         }
 
-        authService.logout(request, response);
-        return ResponseEntity.ok().build();
+        return ApiResponse.onSuccess(authService.logout(request, response));
     }
 
     @Operation(summary = "카카오 회원 탈퇴 API")

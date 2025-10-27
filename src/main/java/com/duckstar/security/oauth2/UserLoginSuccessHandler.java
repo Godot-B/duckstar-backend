@@ -105,7 +105,7 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
         String refreshToken = jwtTokenProvider.createRefreshToken(memberId, member.getRole());
 
         // 3-1. 토큰 회전, 비회원 투표 마이그레이션
-        boolean isMigrated = authService.saveTokenAndMigrateVote(request, response, member, refreshToken);
+        boolean isMigrated = authService.saveTokenAndMigrateVote(request, response, member.getId(), refreshToken);
 
                 //  * 10/9 프론트가, 투표한 후보 id 리스트를 브라우저에 저장하는 것으로 변경
 //        // 3-2. UX 쿠키 보조 세팅
