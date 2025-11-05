@@ -159,19 +159,15 @@ public class S3Uploader {
         return imageUrl.substring(bucketUrl.length());
     }
 
-    public File createThumbnail(File original, int minWidth, int minHeight) throws IOException {
+    public File createThumbnail(File original, int minWidth) throws IOException {
         // 원본 이미지 로드
         ImmutableImage img = ImmutableImage.loader().fromFile(original);
 
         int ow = img.width;
         int oh = img.height;
 
-        // 1. 최소 배율 계산
-        double scaleW = (double) minWidth / ow;
-        double scaleH = (double) minHeight / oh;
-
-        // 2. 둘 중 더 큰 배율 선택 → 최소 크기 보장
-        double scale = Math.max(scaleW, scaleH);
+        // minWidth 기준으로 비율 조정
+        double scale = (double) minWidth / ow;
 
         int tw = (int) Math.round(ow * scale);
         int th = (int) Math.round(oh * scale);

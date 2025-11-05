@@ -108,6 +108,12 @@ public class AnimeService {
                 .toList();
     }
 
+    public List<Long> getAllAnimeIds() {
+        return animeRepository.findAll().stream()
+                .map(Anime::getId)
+                .toList();
+    }
+
     public AnimeHomeDto getAnimeHomeDtoById(Long animeId) {
         // 애니 정보, 분기 성적 통계
         Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
@@ -412,7 +418,7 @@ public class AnimeService {
 
             Integer newTotalEpisodes = request.getTotalEpisodes();
 
-            List<Episode> episodes = episodeRepository.findAllByAnime_IdOrderByEpisodeNumberAsc(animeId);
+            List<Episode> episodes = episodeRepository.findAllByAnime_IdOrderByScheduledAtAsc(animeId);
 
             if (oldTotalEpisodes.equals(newTotalEpisodes)) {
                 anime.updateTotalEpisodes(12);

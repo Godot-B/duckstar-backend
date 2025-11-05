@@ -1,7 +1,5 @@
 package com.duckstar.domain.vo;
 
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.RankHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.enums.MedalType;
 import jakarta.persistence.Column;

@@ -81,6 +81,12 @@ public class AnimeController {
                 episodeRepository.getEpisodeDtosByAnimeId(animeId));
     }
 
+    @Operation(summary = "모든 애니메이션 ID 조회 API (SEO용)")
+    @GetMapping("/ids")
+    public ApiResponse<List<Long>> getAllAnimeIds() {
+        return ApiResponse.onSuccess(animeService.getAllAnimeIds());
+    }
+
 //    @Operation(summary = "애니메이션 등장인물 전체 조회 API")
 //    @GetMapping("/{animeId}/characters")
 

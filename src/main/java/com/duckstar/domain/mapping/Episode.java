@@ -207,6 +207,22 @@ public class Episode extends BaseEntity {
         this.rankInfo = rankInfo;
     }
 
+    public void setIsBreak(boolean isBreak) {
+        this.isBreak = isBreak;
+    }
+
+    public void setEpisodeNumber(Integer episodeNumber) {
+        this.episodeNumber = episodeNumber;
+    }
+
+    public void setScheduledAt(LocalDateTime scheduledAt) {
+        this.scheduledAt = scheduledAt;
+    }
+
+    public void setNextEpScheduledAt(LocalDateTime nextEpScheduledAt) {
+        this.nextEpScheduledAt = nextEpScheduledAt;
+    }
+
     public void setIsVoteEnabled(boolean isVoteEnabled) {
         this.isVoteEnabled = isVoteEnabled;
     }

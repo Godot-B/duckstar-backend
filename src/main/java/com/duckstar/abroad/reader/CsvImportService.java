@@ -602,8 +602,8 @@ public class CsvImportService {
             // 메인 webp 변환
             File mainWebp = downloadAndConvertToWebp(imageUrl, tempDir, "main");
 
-            // 썸네일 생성 (320x350 박스 안, 비율 유지)
-            File thumbWebp = s3Uploader.createThumbnail(mainWebp, 320, 350);
+            // 썸네일 생성 (minWidth 640 보장, 비율 유지)
+            File thumbWebp = s3Uploader.createThumbnail(mainWebp, 640);
 
             return uploadAnimeImages(anime, mainWebp, thumbWebp, 1);
 
@@ -620,8 +620,8 @@ public class CsvImportService {
             // 메인 webp 변환
             File mainWebp = convertToWebpAndGet(tempDir, "main", main.getInputStream());
 
-            // 썸네일 생성 (320x350 박스 안, 비율 유지)
-            File thumbWebp = s3Uploader.createThumbnail(mainWebp, 320, 350);
+            // 썸네일 생성 (minWidth 640 보장, 비율 유지)
+            File thumbWebp = s3Uploader.createThumbnail(mainWebp, 640);
 
             uploadAnimeImages(anime, mainWebp, thumbWebp, 1);
 
@@ -636,8 +636,8 @@ public class CsvImportService {
             // 메인 webp 변환
             File mainWebp = convertToWebpAndGet(tempDir, "main", main.getInputStream());
 
-            // 썸네일 생성 (320x350 박스 안, 비율 유지)
-            File thumbWebp = s3Uploader.createThumbnail(mainWebp, 320, 350);
+            // 썸네일 생성 (minWidth 640 보장, 비율 유지)
+            File thumbWebp = s3Uploader.createThumbnail(mainWebp, 640);
 
             uploadAnimeImages(anime, mainWebp, thumbWebp, version);
 
