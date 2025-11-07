@@ -4,7 +4,7 @@ spring:
       on-profile: test-db
 
   datasource:
-    url: jdbc:mysql://localhost:3306/duckstar_test2
+    url: jdbc:mysql://localhost:3306/duckstar_test
     username: root
     password: root
   jpa:

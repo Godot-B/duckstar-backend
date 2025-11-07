@@ -31,7 +31,6 @@ public class EpisodeStar extends BaseEntity {
     @JoinColumn(name = "episode_id", nullable = false)
     private Episode episode;
 
-    @Column(nullable = false)
     private Integer starScore;  // null: 별점 회수 , 1점 ~ 10점 :별 0.5개 ~ 5.0개
 
     protected EpisodeStar(
