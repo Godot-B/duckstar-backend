@@ -2,6 +2,7 @@ package com.duckstar.domain;
 
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.Gender;
+import com.duckstar.domain.mapping.CommentLike;
 import com.duckstar.security.domain.enums.MemberStatus;
 import com.duckstar.security.domain.enums.OAuthProvider;
 import com.duckstar.security.domain.enums.Role;
@@ -12,6 +13,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity

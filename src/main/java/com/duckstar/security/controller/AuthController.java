@@ -3,6 +3,7 @@ package com.duckstar.security.controller;
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AuthHandler;
+import com.duckstar.domain.Member;
 import com.duckstar.security.jwt.JwtTokenProvider;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.service.AuthService;

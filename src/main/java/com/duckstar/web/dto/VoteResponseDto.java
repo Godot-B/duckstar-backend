@@ -40,7 +40,7 @@ public class VoteResponseDto {
 
         String mainThumbnailUrl;
 
-        AnimeStatus status;
+        AnimeStatus status;  // ??
 
         Boolean isBreak;    // TVA 결방 주 여부
 

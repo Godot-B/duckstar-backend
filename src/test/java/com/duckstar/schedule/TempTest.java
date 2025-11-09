@@ -124,14 +124,15 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void breakEpisode() {
+        // 관리자 화면, path variable 로 프론트에게 받는 id
         Episode brokenEp = episodeRepository.findById(856L).get();
         //=== 휴방으로 셋팅 ===//
         brokenEp.setIsBreak(true);
 
         LocalDateTime scheduledAt = brokenEp.getScheduledAt();
         Anime anime = brokenEp.getAnime();
-        List<Episode> episodes = episodeRepository.
-                findAllByAnime_IdOrderByScheduledAtAsc(anime.getId());
+        List<Episode> episodes = episodeRepository
+                .findAllByAnime_IdOrderByScheduledAtAsc(anime.getId());
 
         int idx = 0;
         for (Episode episode : episodes) {
@@ -158,7 +159,8 @@ public class TempTest {
                         episodeNumber,
                         nextEpScheduledAt,
                         nextEpScheduledAt.plusWeeks(1)
-                ));
+                )
+        );
     }
 
     @Test

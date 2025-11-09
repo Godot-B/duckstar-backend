@@ -53,10 +53,6 @@ public class RankInfoDto {
 
         public static RankPreviewDto of(AnimeCorner animeCorner) {
             Anime anime = animeCorner.getAnime();
-            String thumbImage = animeCorner.getMainThumbnailUrl();
-            if (thumbImage == null && anime != null) {
-                thumbImage = anime.getMainThumbnailUrl();
-            }
 
             return RankPreviewDto.builder()
                     .type(ContentType.ANIME)
@@ -64,7 +60,11 @@ public class RankInfoDto {
                     .rank(animeCorner.getRank())
                     .rankDiff(animeCorner.getRankDiff())
                     .consecutiveWeeksAtSameRank(animeCorner.getConsecutiveWeeksAtSameRank())
-                    .mainThumbnailUrl(thumbImage)
+                    .mainThumbnailUrl(
+                            anime != null ?
+                                    anime.getMainThumbnailUrl() :
+                                    animeCorner.getMainThumbnailUrl()
+                    )
                     .title(animeCorner.getTitle())
                     .subTitle(anime != null ? anime.getCorp() : null)
                     .build();
@@ -75,13 +75,25 @@ public class RankInfoDto {
 
             return RankPreviewDto.builder()
                     .type(ContentType.ANIME)
-                    .contentId(anime != null ? anime.getId() : null)
+                    .contentId(
+                            anime != null ?
+                                    anime.getId() :
+                                    null
+                    )
                     .rank(anilab.getRank())
                     .rankDiff(anilab.getRankDiff())
                     .consecutiveWeeksAtSameRank(anilab.getConsecutiveWeeksAtSameRank())
-                    .mainThumbnailUrl(anilab.getMainThumbnailUrl())
+                    .mainThumbnailUrl(
+                            anime != null ?
+                                    anime.getMainThumbnailUrl() :
+                                    anilab.getMainThumbnailUrl()
+                    )
                     .title(anilab.getTitle())
-                    .subTitle(anime != null ? anime.getCorp() : null)
+                    .subTitle(
+                            anime != null ?
+                                    anime.getCorp() :
+                                    null
+                    )
                     .build();
         }
     }

@@ -30,7 +30,6 @@ public class WeekRepositoryCustomImpl implements WeekRepositoryCustom {
 
     @Override
     public Optional<Long> findWeekIdByYQW(int yearValue, int quarterValue, int weekValue) {
-
         Long weekId = queryFactory.select(week.id)
                 .from(week)
                 .where(

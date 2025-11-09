@@ -47,4 +47,13 @@ public class AdminController {
                                       @ModelAttribute ImageRequestDto request) throws IOException {
         return ApiResponse.onSuccess(animeService.updateAnimeImage(animeId, request));
     }
+
+    @Operation(summary = "에피소드 휴방 API")
+    // 방영시간(필드) 수정, 에피소드 생성(삽입)
+    @PostMapping("/animes/{animeId}/{episodeId}")
+    public ApiResponse<Void> breakEpisode(@PathVariable Long animeId,
+                                          @PathVariable Long episodeId) {
+
+        return ApiResponse.onSuccess(null);
+    }
 }

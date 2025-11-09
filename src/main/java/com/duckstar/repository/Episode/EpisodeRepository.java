@@ -17,7 +17,6 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
     Optional<Episode> findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(Anime anime, LocalDateTime time1, LocalDateTime time2);
     Optional<Episode> findTopByAnimeOrderByEpisodeNumberDesc(Anime anime);
 
-    List<Episode> findAllByAnime_IdOrderByScheduledAtAsc(Long animeId);
     List<Episode> findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(LocalDateTime scheduledAtIsGreaterThan, LocalDateTime scheduledAtIsLessThan);
 
     @Query("""
@@ -36,5 +35,5 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
             Pageable pageable
     );
 
-    List<Episode> findAllByAnime_IdOrderByScheduledAtDesc(Long animeId);
+    List<Episode> findAllByAnime_IdOrderByScheduledAtAsc(Long animeId);
 }

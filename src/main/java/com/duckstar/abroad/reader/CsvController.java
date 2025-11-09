@@ -26,12 +26,14 @@ public class CsvController {
         return ResponseEntity.ok("✅ 데이터 import 성공");
     }
 
-    @PostMapping(value = "/import/{weekId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/import/{year}/{quarter}/{week}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importAbroad(
-            @PathVariable Long weekId,
+            @PathVariable Integer year,
+            @PathVariable Integer quarter,
+            @PathVariable Integer week,
             @ModelAttribute AbroadRequestDto request
     ) throws IOException {
-        csvImportService.importAbroad(weekId, request);
+        csvImportService.importAbroad(year, quarter, week, request);
         return ResponseEntity.ok("✅ 데이터 import 성공");
     }
 }

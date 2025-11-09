@@ -209,6 +209,7 @@ public class Episode extends BaseEntity {
 
     public void setIsBreak(boolean isBreak) {
         this.isBreak = isBreak;
+        this.isVoteEnabled = false;
     }
 
     public void setEpisodeNumber(Integer episodeNumber) {

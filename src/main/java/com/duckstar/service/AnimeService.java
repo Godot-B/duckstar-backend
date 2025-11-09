@@ -5,6 +5,7 @@ import com.duckstar.abroad.aniLab.AnilabRepository;
 import com.duckstar.abroad.reader.CsvImportService;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
+import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
@@ -525,5 +526,43 @@ public class AnimeService {
         } finally {
             scheduleState.stopAdminMode();
         }
+    }
+
+    @Transactional
+    public void breakEpisode(Long animeId, Long episodeId) {
+        Episode brokenEp = episodeRepository.findById(episodeId).orElseThrow(() ->
+                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+
+        //=== 휴방으로 셋팅 ===//
+        brokenEp.setIsBreak(true);
+        LocalDateTime scheduledAt = brokenEp.getScheduledAt();
+
+        List<Episode> episodes = episodeRepository
+                .findAllByAnime_IdOrderByScheduledAtAsc(animeId);
+
+        int idx = 0;
+        for (Episode episode : episodes) {
+            if (episode.getScheduledAt().equals(scheduledAt)) break;
+            idx += 1;
+        }
+
+        //=== 남은 에피소드 한 주씩 미루기 ===//
+        Integer episodeNumber = brokenEp.getEpisodeNumber();
+        for (int i = idx + 1; i < episodes.size(); i++) {
+            episodes.get(i).setEpisodeNumber(episodeNumber);
+            episodeNumber += 1;
+        }
+
+        // 1.
+        LocalDateTime lastScheduledAt = episodes.get(episodes.size() - 1).getNextEpScheduledAt();
+        Episode episode = Episode.create(
+                animeRepository.findById(animeId).orElseThrow(() -> new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND)),
+                episodeNumber,
+                lastScheduledAt,
+                lastScheduledAt.plusWeeks(1)
+        );
+
+        // 2.
+        episodeRepository.save(episode);
     }
 }

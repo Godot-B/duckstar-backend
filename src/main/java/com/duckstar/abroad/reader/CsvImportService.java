@@ -21,6 +21,7 @@ import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.s3.S3Uploader;
+import com.duckstar.service.WeekService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sksamuel.scrimage.ImmutableImage;
@@ -34,6 +35,7 @@ import org.apache.commons.io.input.BOMInputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -70,6 +72,7 @@ public class CsvImportService {
     private final WeekRepository weekRepository;
     private final AnimeCornerRepository animeCornerRepository;
     private final AnilabRepository anilabRepository;
+    private final WeekService weekService;
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -79,8 +82,15 @@ public class CsvImportService {
         System.out.println("지원하는 포맷: " + Arrays.toString(formats));
     }
 
-    public void importAbroad(Long weekId, AbroadRequestDto request) throws IOException {
-        Week week = weekRepository.findWeekById(weekId)
+    public void importAbroad(
+            Integer year,
+            Integer quarter,
+            Integer weekValue,
+            AbroadRequestDto request
+    ) throws IOException {
+        Long weekIdByYQW = weekService.getWeekIdByYQW(year, quarter, weekValue);
+
+        Week week = weekRepository.findWeekById(weekIdByYQW)
                 .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
         importAnimeCorner(week, request.getAnimeCornerCsv());
@@ -183,7 +193,7 @@ public class CsvImportService {
             if (anime == null) {
                 mainThumbnailUrl = record.get("mainThumbnailUrl");
             } else {
-                mainThumbnailUrl = anime.getMainThumbnailUrl();
+                mainThumbnailUrl = null;
             }
 
             Integer rank;
