@@ -12,6 +12,12 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_anime_ott_ao",
+                        columnNames = {"anime_id", "ott_id"})
+        }
+)
 public class AnimeOtt extends BaseEntity {
 
     // 페치 조인 고려 필요

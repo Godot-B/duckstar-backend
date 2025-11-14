@@ -135,6 +135,7 @@ public class SecurityConfig {
                                 "/api/v1/search/**",
                                 "/api/v1/animes/**",
                                 "/api/v1/home/**",
+                                "/api/v1/images/**",
                                 "/api/v1/chart/**",
                                 "/api/v1/csv/**"
                         ).permitAll()

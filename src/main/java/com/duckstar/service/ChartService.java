@@ -175,17 +175,9 @@ public class ChartService {
         Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
-        //=== 투표 집계, 통계 필드 업데이트 ===//
-        List<Episode> episodes = episodeRepository
-                .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
-                        lastWeek.getStartDateTime(), lastWeek.getEndDateTime())
-                .stream()
-                .filter(e -> e.getIsBreak() == null || !e.getIsBreak())
-                .toList();
-
+        //=== 회수된 표 제외 === //
         List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
 
-        //=== 회수된 표 제외 === //
         allEpisodeStars = allEpisodeStars.stream()
                 .filter(es -> es.getStarScore() != null)
                 .toList();
@@ -193,21 +185,56 @@ public class ChartService {
         Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()
                 .collect(Collectors.groupingBy(es -> es.getEpisode().getId()));
 
+        //=== 이번 주 휴방 아닌 에피소드들 - 표 집계 ===//
+        List<Episode> episodes = episodeRepository
+                .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
+                        lastWeek.getStartDateTime(), lastWeek.getEndDateTime())
+                .stream()
+                .filter(e -> e.getIsBreak() == null || !e.getIsBreak())
+                .toList();
+
         List<Integer> voterCountList = new ArrayList<>();
         for (Episode episode : episodes) {
-            List<EpisodeStar> episodeStars =
+            List<EpisodeStar> thisEpisodeStars =
                     episodeStarMap.get(episode.getId());
 
-            if (episodeStars == null || episodeStars.isEmpty()) {
+            if (thisEpisodeStars == null || thisEpisodeStars.isEmpty()) {
                 voterCountList.add(0);
 
             } else {
-                int voterCount = episodeStars.size();
+                //=== 같은 ip 에서 같은 점수 3개 이상 준 경우 감지 ===//
+                Map<String, List<Integer>> ipHashScoresMap = thisEpisodeStars.stream()
+                        .collect(Collectors.groupingBy(
+                                        es -> es.getWeekVoteSubmission().getIpHash(),
+                                        Collectors.mapping(EpisodeStar::getStarScore, Collectors.toList())
+                                )
+                        );
+
+                List<String> blockedIpHashes = new ArrayList<>();
+
+                for (Map.Entry<String, List<Integer>> entry : ipHashScoresMap.entrySet()) {
+                    Map<Integer, Long> scoreCountMap = entry.getValue().stream()
+                            .collect(Collectors.groupingBy(s -> s, Collectors.counting()));
+
+                    boolean hasRepeatedScore = scoreCountMap.values().stream()
+                            .anyMatch(count -> count >= 3);
+
+                    if (hasRepeatedScore) {
+                        blockedIpHashes.add(entry.getKey());
+                    }
+                }
+
+                // 제외시키기
+                thisEpisodeStars = thisEpisodeStars.stream()
+                        .filter(es -> !blockedIpHashes.contains(es.getWeekVoteSubmission().getIpHash()))
+                        .toList();
+
+                int voterCount = thisEpisodeStars.size();
                 voterCountList.add(voterCount);
 
                 int[] scores = new int[10];
 
-                for (EpisodeStar episodeStar : episodeStars) {
+                for (EpisodeStar episodeStar : thisEpisodeStars) {
                     Integer starScore = episodeStar.getStarScore();
                     int idx = starScore - 1;
                     scores[idx] += 1;
@@ -216,6 +243,7 @@ public class ChartService {
                 episode.setStats(voterCount, scores);
             }
         }
+
         List<Episode> votedEpisodes = new ArrayList<>(
                 episodes.stream()
                         .filter(e -> e.getVoterCount() != null && e.getVoterCount() > 0)

@@ -14,4 +14,6 @@ public interface WeekVoteSubmissionRepository extends JpaRepository<WeekVoteSubm
     List<WeekVoteSubmission> findAllByMember_Id(Long memberId);
 
     List<WeekVoteSubmission> findAllByWeek_Id(Long weekId);
+
+    List<WeekVoteSubmission> findByIpHash(String ipHash);
 }
