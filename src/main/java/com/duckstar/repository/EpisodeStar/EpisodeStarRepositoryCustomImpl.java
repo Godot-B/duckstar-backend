@@ -1,14 +1,13 @@
 package com.duckstar.repository.EpisodeStar;
 
-import com.duckstar.domain.mapping.Episode;
-import com.duckstar.domain.mapping.QEpisode;
-import com.duckstar.domain.mapping.QEpisodeStar;
+import com.duckstar.domain.mapping.*;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -19,6 +18,7 @@ public class EpisodeStarRepositoryCustomImpl implements EpisodeStarRepositoryCus
     private final JPAQueryFactory queryFactory;
     private final QEpisode episode = QEpisode.episode;
     private final QEpisodeStar episodeStar = QEpisodeStar.episodeStar;
+    private final QWeekVoteSubmission weekVoteSubmission = QWeekVoteSubmission.weekVoteSubmission;
 
     @Override
     public Map<Episode, Integer> findEpisodeMapBySubmissionId(Long submissionId) {
@@ -35,6 +35,18 @@ public class EpisodeStarRepositoryCustomImpl implements EpisodeStarRepositoryCus
                         t -> t.get(episode),
                         t -> t.get(episodeStar.starScore)
                 ));
+    }
+
+    @Override
+    public List<EpisodeStar> findAllEligibleByWeekId(Long weekId) {
+        return queryFactory.selectFrom(episodeStar)
+                .join(episodeStar.weekVoteSubmission, weekVoteSubmission)
+                .where(
+                        weekVoteSubmission.week.id.eq(weekId)
+                                .and(episodeStar.starScore.isNotNull())
+                                .and(weekVoteSubmission.isBlocked.isFalse())
+                )
+                .fetch();
     }
 
     @Override

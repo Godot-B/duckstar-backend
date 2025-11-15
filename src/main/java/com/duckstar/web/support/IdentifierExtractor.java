@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
 @Component
-public class IpExtractor {
+public class IdentifierExtractor {
     public String extract(HttpServletRequest request) {
         // X-Forwarded-For 헤더 확인 (로드밸런서, 프록시에서 사용)
         String xForwardedFor = request.getHeader("X-Forwarded-For");
@@ -27,5 +27,23 @@ public class IpExtractor {
         
         // 기본값: 직접 연결된 클라이언트 IP
         return request.getRemoteAddr();
+    }
+
+    public String safeFpHash(HttpServletRequest request) {
+        String fp = request.getHeader("X-DEVICE-FP");
+        if (fp == null || fp.isBlank() || fp.length() < 20) {
+            // finger print 변조 또는 없음 → 기본값 처리
+            return "no-fp";
+        }
+        return fp;
+    }
+
+    public String safeUserAgent(HttpServletRequest request) {
+        String ua = request.getHeader("User-Agent");
+        if (ua == null || ua.isBlank() || ua.length() < 5) {
+            // user agent 변조 또는 없음 → 기본값 처리
+            return "no-ua";
+        }
+        return ua;
     }
 }

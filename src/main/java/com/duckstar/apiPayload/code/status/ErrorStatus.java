@@ -53,7 +53,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_VOTED_YET(HttpStatus.BAD_REQUEST, "VOTE4010", "아직 투표에 참여하지 않았습니다."),
     VOTER_GENDER_REQUIRED(HttpStatus.BAD_REQUEST, "VOTE40011", "투표에서 성별 정보는 필수입니다."),
     SUBMISSION_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40012", "존재하지 않는 제출 정보입니다."),
-    HASH_IP_FAILED(HttpStatus.BAD_REQUEST, "VOTE40013", "해싱할 수 없는 IP 주소입니다."),
+    HASH_FAILED(HttpStatus.BAD_REQUEST, "VOTE40013", "해싱할 수 없는 IP 주소입니다."),
 
     // (별점)
     STAR_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40014", "별점 투표 내역이 없습니다."),
@@ -105,6 +105,10 @@ public enum ErrorStatus implements BaseErrorCode {
     UNSUPPORTED_IMAGE_EXTENSION(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "IMAGE4151", "지원하지 않는 이미지 확장자입니다."),
 
     S3_FILE_UPLOAD_FAILURE(HttpStatus.BAD_GATEWAY, "IMAGE5021", "S3 업로드에 실패했습니다"),
+
+    // 관리자 관련
+    BAN_NOT_FOUND(HttpStatus.BAD_REQUEST, "ADMIN4001", "밴 목록에 없는 IP 해시값입니다."),
+    LOG_NOT_FOUND(HttpStatus.BAD_REQUEST, "ADMIN4002", "로그가 존재하지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;

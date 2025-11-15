@@ -44,13 +44,16 @@ public class EpisodeStar extends BaseEntity {
     }
 
     public static EpisodeStar create(
+            boolean isBlocked,
             WeekVoteSubmission weekVoteSubmission,
             Episode episode,
             Integer starScore
     ) {
-        // AnimeVote 와 다르게 바로바로 반영
-        episode.addVoterCount();
-        episode.addStar(starScore);
+        if (!isBlocked) {
+            // AnimeVote 와 다르게 바로바로 반영
+            episode.addVoterCount();
+            episode.addStar(starScore);
+        }
 
         return new EpisodeStar(
                 weekVoteSubmission,
@@ -59,12 +62,16 @@ public class EpisodeStar extends BaseEntity {
         );
     }
 
-    public void updateStarScore(int newScore) {
+    public void updateStarScore(boolean isBlocked, int newScore) {
         Integer oldScore = this.starScore;
-        if (oldScore == null) {
-            this.episode.addVoterCount();
+
+        if (!isBlocked) {
+            if (oldScore == null) {
+                this.episode.addVoterCount();
+            }
+            episode.updateStar(oldScore, newScore);
         }
-        episode.updateStar(oldScore, newScore);
+
         this.starScore = newScore;
     }
 

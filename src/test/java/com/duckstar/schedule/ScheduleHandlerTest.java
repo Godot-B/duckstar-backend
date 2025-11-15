@@ -42,8 +42,6 @@ public class ScheduleHandlerTest {
     @Autowired
     private AnimeVoteRepository animeVoteRepository;
     @Autowired
-    private WeekVoteSubmissionRepository weekVoteSubmissionRepository;
-    @Autowired
     private ScheduleHandler scheduleHandler;
 
     @Test

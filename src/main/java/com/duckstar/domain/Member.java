@@ -51,6 +51,7 @@ public class Member extends BaseEntity {
 
     private Boolean profileInitialized = false;
 
+    private Boolean voteBlocked = false;
 
     /**
      * 현재는 Member <-> 소셜 계정
@@ -202,5 +203,13 @@ public class Member extends BaseEntity {
         this.profileInitialized = false;
         this.socialRefreshToken = null;
         this.socialRefreshTokenExpiresAt = null;
+    }
+
+    public boolean isVoteBlocked() {
+        return voteBlocked;
+    }
+
+    public void setVoteBlocked(boolean voteBlocked) {
+        this.voteBlocked = voteBlocked;
     }
 }

@@ -176,11 +176,7 @@ public class ChartService {
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
         //=== 회수된 표 제외 === //
-        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
-
-        allEpisodeStars = allEpisodeStars.stream()
-                .filter(es -> es.getStarScore() != null)
-                .toList();
+        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllEligibleByWeekId(lastWeekId);
 
         Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()
                 .collect(Collectors.groupingBy(es -> es.getEpisode().getId()));

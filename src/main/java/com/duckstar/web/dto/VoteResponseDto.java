@@ -72,6 +72,7 @@ public class VoteResponseDto {
     @Builder
     @AllArgsConstructor
     public static class StarInfoDto {
+        Boolean isBlocked;
         Integer userStarScore;
 
         Double starAverage;
@@ -88,12 +89,13 @@ public class VoteResponseDto {
         Integer star_4_5;
         Integer star_5_0;
 
-        public static StarInfoDto of(Integer userStarScore, Episode episode) {
+        public static StarInfoDto of(Boolean isBlocked, Integer userStarScore, Episode episode) {
             if (episode == null) {
                 return StarInfoDto.builder().build();
             }
 
             return StarInfoDto.builder()
+                    .isBlocked(isBlocked)
                     .userStarScore(userStarScore)
                     .starAverage(episode.getStarAverage())
                     .voterCount(episode.getVoterCount())

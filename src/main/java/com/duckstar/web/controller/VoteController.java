@@ -2,14 +2,10 @@ package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
-import com.duckstar.service.VoteService;
-import com.duckstar.service.WeekService;
-import com.duckstar.web.dto.VoteRequestDto.AnimeVoteRequest;
-import com.duckstar.web.dto.VoteResponseDto.AnimeCandidateListDto;
-import com.duckstar.web.dto.VoteResponseDto.AnimeVoteHistoryDto;
-import com.duckstar.web.support.IpExtractor;
-import com.duckstar.web.support.IpHasher;
-import com.duckstar.web.support.VoteCookieManager;
+import com.duckstar.service.EpisodeQueryService;
+import com.duckstar.service.VoteCommandService;
+import com.duckstar.web.support.IdentifierExtractor;
+import com.duckstar.web.support.Hasher;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,8 +13,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 import static com.duckstar.web.dto.VoteRequestDto.*;
 import static com.duckstar.web.dto.VoteResponseDto.*;
@@ -28,7 +22,8 @@ import static com.duckstar.web.dto.VoteResponseDto.*;
 @RequiredArgsConstructor
 public class VoteController {
 
-    private final VoteService voteService;
+    private final VoteCommandService voteCommandService;
+    private final EpisodeQueryService episodeQueryService;
 
     /**
      * 별점 투표 방식
@@ -43,7 +38,7 @@ public class VoteController {
         Long memberId = principal == null ? null : principal.getId();
 
         return ApiResponse.onSuccess(
-                voteService.getStarCandidatesByWindow(memberId, requestRaw));
+                episodeQueryService.getStarCandidatesByWindow(memberId, requestRaw));
     }
 
     @Operation(summary = "별점 투표/수정 API", description = "TVA 투표: Episode 기반, 방송 후 36시간 동안 오픈")
@@ -56,7 +51,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        return ApiResponse.onSuccess(voteService.voteOrUpdateStar(
+        return ApiResponse.onSuccess(voteCommandService.voteOrUpdateStar(
                 request,
                 memberId,
                 requestRaw,
@@ -74,7 +69,7 @@ public class VoteController {
 
         Long memberId = principal == null ? null : principal.getId();
 
-        voteService.withdrawStar(
+        voteCommandService.withdrawStar(
                 episodeId,
                 memberId,
                 requestRaw,

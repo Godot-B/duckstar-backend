@@ -22,11 +22,9 @@ import com.duckstar.security.providers.naver.NaverTokenResponse;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.repository.MemberTokenRepository;
 import com.duckstar.service.WeekService;
-import com.duckstar.web.dto.VoteResponseDto;
 import com.duckstar.web.support.VoteCookieManager;
 import feign.FeignException;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +57,7 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoApiClient kakaoApiClient;
-    private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
+    private final WeekVoteSubmissionRepository submissionRepository;
     private final VoteCookieManager voteCookieManager;
     private final GoogleApiClient googleApiClient;
     private final NaverApiClient naverApiClient;
@@ -171,7 +169,7 @@ public class AuthService {
 
         Long weekId = week.getId();
         Optional<WeekVoteSubmission> localSubmissionOpt =
-                weekVoteSubmissionRepository.findByWeek_IdAndCookieId(weekId, voteCookieId);
+                submissionRepository.findLocalSubmission(weekId, voteCookieId);
         if (localSubmissionOpt.isEmpty()) {
             // 비로그인 투표 기록 없는 경우 스킵
             return null;
@@ -182,7 +180,7 @@ public class AuthService {
         if (localSubmission.getMember() == null) {
 
             Optional<WeekVoteSubmission> memberSubmissionOpt =
-                    weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(weekId, member.getId());
+                    submissionRepository.findByWeek_IdAndMember_Id(weekId, member.getId());
             //Case 1. 비로그인 투표 기록 ⭕️ -> 투표하지 않은 멤버 로그인
             if (memberSubmissionOpt.isEmpty()) {
                 // ** 마이그레이션 ** //
@@ -226,7 +224,7 @@ public class AuthService {
 
                     episodeStarRepository.deleteAllById(deleteIds);
                 }
-                weekVoteSubmissionRepository.delete(localSubmission);
+                submissionRepository.delete(localSubmission);
             }
 
             //Case 2. 비로그인 투표 기록 ⭕ -> 이미 투표한 🗳 멤버 로그인: 말 없이 쿠키 삭제
@@ -298,7 +296,7 @@ public class AuthService {
         LocalDateTime now = LocalDateTime.now();
         Week week = weekService.getWeekByTime(now);
         Optional<WeekVoteSubmission> thisWeekSubmissionOpt =
-                weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(week.getId(), member.getId());
+                submissionRepository.findByWeek_IdAndMember_Id(week.getId(), member.getId());
 
         Long thisWeekSec = 0L;
         if (thisWeekSubmissionOpt.isPresent()) {
@@ -315,7 +313,7 @@ public class AuthService {
                 Week lastWeek = weekService.getWeekByTime(week.getStartDateTime().minusWeeks(1));
 
                 Optional<WeekVoteSubmission> lastWeekSubmissionOpt =
-                        weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(lastWeek.getId(), member.getId());
+                        submissionRepository.findByWeek_IdAndMember_Id(lastWeek.getId(), member.getId());
 
                 if (lastWeekSubmissionOpt.isPresent()) {
                    lastWeekSec = episodeStarRepository
@@ -437,7 +435,7 @@ public class AuthService {
         memberTokenRepository.deleteAllByMember_Id(memberId);
 
         // 투표 기록에서 회원 정보 삭제
-        weekVoteSubmissionRepository.findAllByMember_Id(memberId)
+        submissionRepository.findAllByMember_Id(memberId)
                 .forEach(sub -> {
                     String cookieId = sub.getCookieId();
                     sub.setMember(null, voteCookieManager.toPrincipalKey(null, cookieId));

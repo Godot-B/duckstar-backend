@@ -8,11 +8,11 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-public class IpHasher {
+public class Hasher {
     private final byte[] key;
     private final boolean useHex; // true면 HEX, false면 Base64
 
-    public IpHasher(byte[] key, boolean useHex) {
+    public Hasher(byte[] key, boolean useHex) {
         this.key = key;
         this.useHex = useHex;
     }
@@ -24,7 +24,7 @@ public class IpHasher {
             byte[] macBytes = mac.doFinal(ip.getBytes(StandardCharsets.UTF_8));
             return useHex ? toHex(macBytes) : Base64.getUrlEncoder().withoutPadding().encodeToString(macBytes);
         } catch (Exception e) {
-            throw new VoteHandler(ErrorStatus.HASH_IP_FAILED);
+            throw new VoteHandler(ErrorStatus.HASH_FAILED);
         }
     }
 

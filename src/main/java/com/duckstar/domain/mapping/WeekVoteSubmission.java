@@ -45,6 +45,13 @@ public class WeekVoteSubmission extends BaseEntity {
     @Column(length = 64)
     private String ipHash;
 
+    private String userAgent;
+
+    @Column(length = 64)
+    private String fpHash;
+
+    private Boolean isBlocked = false;
+
     // 인덱스
     @Column(length = 80, nullable = false)
     private String principalKey;
@@ -57,37 +64,49 @@ public class WeekVoteSubmission extends BaseEntity {
     private VoteCategory category;
 
     protected WeekVoteSubmission(
+            Boolean isBlocked,
             Week week,
             Member member,
             String cookieId,
             String ipHash,
+            String userAgent,
+            String fpHash,
             String principalKey,
             Gender gender,
             VoteCategory category
     ) {
+        this.isBlocked = isBlocked;
         this.week = week;
         this.member = member;
         this.cookieId = cookieId;
         this.ipHash = ipHash;
+        this.userAgent = userAgent;
+        this.fpHash = fpHash;
         this.principalKey = principalKey;
         this.gender = gender;
         this.category = category;
     }
 
     public static WeekVoteSubmission create(
+            boolean isBlocked,
             Week week,
             Member member,
             String cookieId,
             String ipHash,
+            String userAgent,
+            String fpHash,
             String principalKey,
             Gender gender,
             VoteCategory category
     ) {
         return new WeekVoteSubmission(
+                isBlocked,
                 week,
                 member,
                 cookieId,
                 ipHash,
+                userAgent,
+                fpHash,
                 principalKey,
                 gender,
                 category
@@ -97,5 +116,11 @@ public class WeekVoteSubmission extends BaseEntity {
     public void setMember(Member member, String principalKey) {
         this.member = member;
         this.principalKey = principalKey;
+    }
+
+    public boolean isBlocked() { return isBlocked; }
+
+    public void setBlocked(Boolean isBlocked) {
+        this.isBlocked = isBlocked;
     }
 }

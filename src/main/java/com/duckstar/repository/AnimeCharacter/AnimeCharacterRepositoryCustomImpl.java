@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import static com.duckstar.web.dto.AnimeResponseDto.*;
+
 @Repository
 @RequiredArgsConstructor
 public class AnimeCharacterRepositoryCustomImpl implements AnimeCharacterRepositoryCustom {
@@ -19,9 +21,10 @@ public class AnimeCharacterRepositoryCustomImpl implements AnimeCharacterReposit
     private final QCharacter character = QCharacter.character;
 
     @Override
-    public List<AnimeResponseDto.CastPreviewDto> getAllCharacterHomePreviewsByAnimeId(Long animeId) {
+    public List<CastPreviewDto> getAllCharacterHomePreviewsByAnimeId(Long animeId) {
         return queryFactory.select(
-                        Projections.constructor(AnimeResponseDto.CastPreviewDto.class,
+                        Projections.constructor(
+                                CastPreviewDto.class,
                                 character.mainThumbnailUrl,
                                 character.nameKor,
                                 character.cv

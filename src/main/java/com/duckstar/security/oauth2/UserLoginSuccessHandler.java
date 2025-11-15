@@ -39,14 +39,11 @@ import java.util.Base64;
 public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final MemberRepository memberRepository;
-    private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
 
     private final AuthService authService;
 
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final VoteCookieManager voteCookieManager;
-    private final WeekService weekService;
 
     @Value("${app.cookie.secure}")
     private boolean secureCookie;

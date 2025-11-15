@@ -6,15 +6,14 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.EpisodeStar;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
 import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Week.WeekRepository;
-import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.service.ChartService;
-import com.duckstar.temp.TempRepository;
+import com.duckstar.service.VoteCommandService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-//@Disabled("로컬 개발용 테스트")
+@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("test-db")
 public class TempTest {
 
@@ -44,7 +43,7 @@ public class TempTest {
     @Autowired
     private EpisodeStarRepository episodeStarRepository;
     @Autowired
-    private WeekVoteSubmissionRepository weekVoteSubmissionRepository;
+    private VoteCommandService voteCommandService;
 
     @Test
     @Transactional
@@ -52,45 +51,7 @@ public class TempTest {
     public void 에피소드_별점_리프레시() {
         Long weekId = 26L;
 
-        Week lastWeek = weekRepository.findWeekById(weekId).orElseThrow(() ->
-                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
-
-        //=== 회수된 표 제외 === //
-        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllByWeekId(weekId);
-
-        allEpisodeStars = allEpisodeStars.stream()
-                .filter(es -> es.getStarScore() != null)
-                .toList();
-
-        Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()
-                .collect(Collectors.groupingBy(es -> es.getEpisode().getId()));
-
-        //=== 이번 주 휴방 아닌 에피소드들 - 표 집계 ===//
-        List<Episode> episodes = episodeRepository
-                .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
-                        lastWeek.getStartDateTime(), lastWeek.getEndDateTime())
-                .stream()
-                .filter(e -> e.getIsBreak() == null || !e.getIsBreak())
-                .toList();
-
-        for (Episode episode : episodes) {
-            List<EpisodeStar> thisEpisodeStars =
-                    episodeStarMap.get(episode.getId());
-
-            if (thisEpisodeStars != null && !thisEpisodeStars.isEmpty())  {
-                int voterCount = thisEpisodeStars.size();
-
-                int[] scores = new int[10];
-
-                for (EpisodeStar episodeStar : thisEpisodeStars) {
-                    Integer starScore = episodeStar.getStarScore();
-                    int idx = starScore - 1;
-                    scores[idx] += 1;
-                }
-
-                episode.setStats(voterCount, scores);
-            }
-        }
+        voteCommandService.refreshEpisodeStatsByWeekId(weekId);
     }
 
     @Test
@@ -102,11 +63,7 @@ public class TempTest {
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
         //=== 회수된 표 제외 ===//
-        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllByWeekId(weekId);
-
-        allEpisodeStars = allEpisodeStars.stream()
-                .filter(es -> es.getStarScore() != null)
-                .toList();
+        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllEligibleByWeekId(weekId);
 
         Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()
                 .collect(Collectors.groupingBy(es -> es.getEpisode().getId()));
