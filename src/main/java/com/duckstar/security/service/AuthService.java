@@ -203,13 +203,17 @@ public class AuthService {
                         ));
 
                 List<EpisodeStar> localEpisodeStars =
-                        episodeStarRepository.findAllByWeekVoteSubmission_Id(localSubmission.getId());
+                        episodeStarRepository.findAllByWeekVoteSubmission_Id(localSubmission.getId())
+                                .stream()
+                                .filter(es -> es.getStarScore() != null)  // 로컬에서 회수한 별점은 제외
+                                .toList();
 
                 if (!localEpisodeStars.isEmpty()) {
                     List<Long> deleteIds = new ArrayList<>();
                     for (EpisodeStar localEpisodeStar : localEpisodeStars) {
                         // 이미 멤버가 투표한 적이 있는 후보인가?
-                        EpisodeStar memberEpisodeStar = memberEpisodeStarMap.get(localEpisodeStar.getEpisode().getId());
+                        EpisodeStar memberEpisodeStar =
+                                memberEpisodeStarMap.get(localEpisodeStar.getEpisode().getId());
                         if (memberEpisodeStar != null) {  // 투표한 적이 있음
                             // 비로그인의 투표 점수로 업데이트
                             memberEpisodeStar.setStarScore(localEpisodeStar.getStarScore());

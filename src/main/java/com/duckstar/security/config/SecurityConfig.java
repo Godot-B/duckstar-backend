@@ -125,7 +125,10 @@ public class SecurityConfig {
                                 "/swagger-resources/**", "/webjars/**",
 
                                 // 🔑 OAuth 엔드포인트 허용
-                                "/login/**", "/oauth2/**"
+                                "/login/**", "/oauth2/**",
+                                
+                                // 🏥 Health Check 엔드포인트 허용 (배포 검증용)
+                                "/actuator/health"
                                 ).permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/animes/*").authenticated()

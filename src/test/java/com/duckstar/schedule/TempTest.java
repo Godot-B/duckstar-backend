@@ -124,7 +124,7 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void calculateRankManual() {
-        Long weekId = 25L;
+        Long weekId = 26L;
 
         Week week = weekRepository.findById(weekId).get();
 
