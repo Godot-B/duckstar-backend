@@ -4,10 +4,7 @@ import com.duckstar.abroad.aniLab.Anilab;
 import com.duckstar.abroad.aniLab.AnilabRepository;
 import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
-import com.duckstar.domain.Anime;
-import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.enums.BannerType;
 import com.duckstar.repository.HomeBannerRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.WeekService;
@@ -15,12 +12,9 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 
