@@ -1,6 +1,9 @@
 package com.duckstar.domain.enums;
 
-public enum VoteStatus {
+/**
+ * Week 의 투표 오픈 상태
+ */
+public enum WeekVoteStatus {
     OPEN,
 
     PAUSED,

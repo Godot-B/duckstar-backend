@@ -5,13 +5,11 @@ import com.duckstar.abroad.aniLab.AnilabRepository;
 import com.duckstar.abroad.reader.CsvImportService;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
-import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
 import com.duckstar.domain.*;
 import com.duckstar.domain.enums.*;
-import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
 import com.duckstar.domain.mapping.AnimeOtt;
 import com.duckstar.domain.mapping.AnimeSeason;
 import com.duckstar.domain.mapping.Episode;
@@ -194,53 +192,58 @@ public class AnimeService {
                 .toList();
     }
 
-    @Transactional
-    public void updateAnimeStatusByMinute() {
-        List<Anime> animes = animeRepository.findAllByStatusOrStatus(AnimeStatus.UPCOMING, AnimeStatus.NOW_SHOWING);
+    public record PremieredEpRecord(
+            Episode episode,
+            Boolean isFirstEpisode,
+            Boolean isLastEpisode,
 
+            // 정책
+            Boolean isAfter24Minutes,
+            Boolean isAfter36Hours,
+
+            Anime anime
+    ) {}
+
+    @Transactional
+    public void updateStatesByWindows() {
         LocalDateTime now = LocalDateTime.now();
 
-        // 방영 상태 업데이트
-        animes.forEach(anime -> updateAnimeStatus(now, anime));
-    }
+        // 1분 윈도우, 24분 전 윈도우, 36시간 전 윈도우
+        // 에피소드들 조회
+        List<PremieredEpRecord> records = episodeRepository
+                .findPremieredEpRecordsInWindow(now.minusSeconds(30), now.plusSeconds(30));
 
-    public void updateAnimeStatus(LocalDateTime now, Anime anime) {
-        LocalDateTime premiereDateTime = anime.getPremiereDateTime();
-        if (premiereDateTime == null) {
-            return;
-        }
+        records.forEach(record -> {
+            Boolean premiereFinished = record.isAfter24Minutes;
+            Boolean liveVoteFinished = record.isAfter36Hours;
 
-        if (anime.getStatus() == AnimeStatus.UPCOMING) {
-            boolean isPremiered = !now.isBefore(premiereDateTime);
-            if (isPremiered) {
-                anime.setStatus(AnimeStatus.NOW_SHOWING);
-                if (!animeCandidateRepository.existsByAnime_Id(anime.getId())) {
-                    Week week = weekRepository.findWeekByStartDateTimeLessThanEqualAndEndDateTimeGreaterThan(now, now)
-                            .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+            // 36시간 전 윈도우 내
+            if (liveVoteFinished) {
+                Episode episode = record.episode;
+                episode.setEvaluateState(EpEvaluateState.LOGIN_REQUIRED);
 
-                    AnimeCandidate candidate = AnimeCandidate.create(week, anime);
+            // 24분 전 윈도우 내
+            } else if (premiereFinished) {
+                // 방영 상태 체크
+                Anime anime = record.anime;
+                if (anime.getStatus() == AnimeStatus.NOW_SHOWING && record.isLastEpisode) {
+                    anime.setStatus(AnimeStatus.ENDED);
+                }
 
-                    animeCandidateRepository.save(candidate);
+            // 1분 전 윈도우 내
+            } else {
+                Episode episode = record.episode;
+                episode.setEvaluateState(EpEvaluateState.VOTING_WINDOW);
+
+                // 방영 상태 체크
+                Anime anime = record.anime;
+                if (anime.getStatus() == AnimeStatus.UPCOMING && record.isFirstEpisode) {
+                    anime.setStatus(AnimeStatus.NOW_SHOWING);
+
+                    // AnimeCandidate 합류 로직 등 .. 추후 필요할 때 구현
                 }
             }
-        } else if (anime.getStatus() == AnimeStatus.NOW_SHOWING) {
-            // 분기마다 수십 개 수준이라 가능,,
-            // 수백~ 수천 등 더 많아지면 N+1 이슈 고려해야 함.
-            Episode episode = findLastEpScheduledAt(anime).orElse(null);
-            LocalDateTime lastEpScheduledAt = episode != null ?
-                    episode.getScheduledAt() :
-                    null;
-
-            // 24분 하드코딩. 나중 생각
-            boolean isAfterLastEpisode = lastEpScheduledAt != null && !now.isBefore(lastEpScheduledAt.plusMinutes(24));
-            if (isAfterLastEpisode) {
-                anime.setStatus(AnimeStatus.ENDED);
-            }
-        }
-    }
-
-    private Optional<Episode> findLastEpScheduledAt(Anime anime) {
-        return episodeRepository.findTopByAnimeOrderByEpisodeNumberDesc(anime);
+        });
     }
 
     @Transactional
@@ -330,11 +333,13 @@ public class AnimeService {
                 LocalDateTime scheduledAt = premiereDateTime;
                 for (int i = 0; i < totalEpisodes; i++) {
                     LocalDateTime nextEpScheduledAt = scheduledAt.plusWeeks(1);
+                    boolean isLastEpisode = i == (totalEpisodes - 1);
                     episodes.add(Episode.create(
                             saved,
                             i + 1,
                             scheduledAt,
-                            nextEpScheduledAt
+                            nextEpScheduledAt,
+                            isLastEpisode
                     ));
                     scheduledAt = nextEpScheduledAt;
                 }
@@ -439,11 +444,13 @@ public class AnimeService {
                 for (int i = 0; i < diff; i++) {
                     int episodeNumber = lastEpisodeNumber + i + 1;
                     nextEpScheduledAt = scheduledAt.plusWeeks(1);
+                    boolean isLastEpisode = i == (diff - 1);
                     Episode episode = Episode.create(
                             anime,
                             episodeNumber,
                             scheduledAt,
-                            nextEpScheduledAt
+                            nextEpScheduledAt,
+                            isLastEpisode
                     );
                     Episode saved = episodeRepository.save(episode);
 
@@ -530,39 +537,40 @@ public class AnimeService {
 
     @Transactional
     public void breakEpisode(Long animeId, Long episodeId) {
-        Episode brokenEp = episodeRepository.findById(episodeId).orElseThrow(() ->
-                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
-
-        //=== 휴방으로 셋팅 ===//
-        brokenEp.setIsBreak(true);
-        LocalDateTime scheduledAt = brokenEp.getScheduledAt();
-
-        List<Episode> episodes = episodeRepository
-                .findAllByAnime_IdOrderByScheduledAtAsc(animeId);
-
-        int idx = 0;
-        for (Episode episode : episodes) {
-            if (episode.getScheduledAt().equals(scheduledAt)) break;
-            idx += 1;
-        }
-
-        //=== 남은 에피소드 한 주씩 미루기 ===//
-        Integer episodeNumber = brokenEp.getEpisodeNumber();
-        for (int i = idx + 1; i < episodes.size(); i++) {
-            episodes.get(i).setEpisodeNumber(episodeNumber);
-            episodeNumber += 1;
-        }
-
-        // 1.
-        LocalDateTime lastScheduledAt = episodes.get(episodes.size() - 1).getNextEpScheduledAt();
-        Episode episode = Episode.create(
-                animeRepository.findById(animeId).orElseThrow(() -> new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND)),
-                episodeNumber,
-                lastScheduledAt,
-                lastScheduledAt.plusWeeks(1)
-        );
-
-        // 2.
-        episodeRepository.save(episode);
+//        Episode brokenEp = episodeRepository.findById(episodeId).orElseThrow(() ->
+//                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+//
+//        //=== 휴방으로 셋팅 ===//
+//        brokenEp.setIsBreak(true);
+//        LocalDateTime scheduledAt = brokenEp.getScheduledAt();
+//
+//        List<Episode> episodes = episodeRepository
+//                .findAllByAnime_IdOrderByScheduledAtAsc(animeId);
+//
+//        int idx = 0;
+//        for (Episode episode : episodes) {
+//            if (episode.getScheduledAt().equals(scheduledAt)) break;
+//            idx += 1;
+//        }
+//
+//        //=== 남은 에피소드 한 주씩 미루기 ===//
+//        Integer episodeNumber = brokenEp.getEpisodeNumber();
+//        for (int i = idx + 1; i < episodes.size(); i++) {
+//            episodes.get(i).setEpisodeNumber(episodeNumber);
+//            episodeNumber += 1;
+//        }
+//
+//        // 1.
+//        LocalDateTime lastScheduledAt = episodes.get(episodes.size() - 1).getNextEpScheduledAt();
+//        Episode episode = Episode.create(
+//                animeRepository.findById(animeId).orElseThrow(() -> new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND)),
+//                episodeNumber,
+//                lastScheduledAt,
+//                lastScheduledAt.plusWeeks(1),
+//                isLastEpisode
+//        );
+//
+//        // 2.
+//        episodeRepository.save(episode);
     }
 }

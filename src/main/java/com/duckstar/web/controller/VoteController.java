@@ -41,7 +41,8 @@ public class VoteController {
                 episodeQueryService.getStarCandidatesByWindow(memberId, requestRaw));
     }
 
-    @Operation(summary = "별점 투표/수정 API", description = "TVA 투표: Episode 기반, 방송 후 36시간 동안 오픈")
+    @Operation(summary = "실시간 투표/수정 API (비로그인 허용)",
+            description = "TVA 투표: Episode 기반, 방송 후 36시간 동안 오픈.")
     @PostMapping("/star")
     public ApiResponse<StarInfoDto> voteOrUpdateStar(
             @Valid @RequestBody StarRequestDto request,
@@ -58,6 +59,18 @@ public class VoteController {
                 responseRaw
         ));
     }
+
+    // 마지막 후보 투표시간 끝나고 ~ 주차 발표 전까지 공백 ??
+
+//    @Operation(summary = "늦참 투표/수정 API (로그인 ONLY)", description = "TVA 투표 : Episode 기반, " +
+//                    "방송 후 투표시간 끝나고 주차 발표 전까지, Comment 5글자 이상 필수")
+//    @PostMapping()
+
+
+    // 개발 연기 ?
+//    @Operation(summary = "상시 평가/수정 API (로그인 ONLY)",
+//            description = "Episode 기반, 지난 주차")
+//    @PostMapping()
 
     @Operation(summary = "별점 회수 API", description = "starScore 를 null 로 셋팅")
     @PostMapping("/withdraw/{episodeId}")
@@ -104,7 +117,7 @@ public class VoteController {
 //                voteService.getAnimeVoteHistory(memberId, cookieId));
 //    }
 //
-//    @Operation(summary = "(leagcy) 애니메이션 투표 (단일 방식) API")
+//    @Operation(summary = "(leagcy) 애니메이션 투표 (일반 방식) API")
 //    @PostMapping("/anime")
 //    public ApiResponse<Void> voteAnime(
 //            @Valid @RequestBody AnimeVoteRequest request,

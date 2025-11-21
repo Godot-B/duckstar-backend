@@ -1,5 +1,8 @@
 package com.duckstar.domain.enums;
 
+/**
+ * 애니메이션 방영 상태
+ */
 public enum AnimeStatus {
     UPCOMING,
 

@@ -3,8 +3,8 @@ package com.duckstar.domain.mapping;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.domain.enums.ContentType;
 import com.duckstar.domain.enums.Gender;
-import com.duckstar.domain.enums.VoteCategory;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -57,11 +57,11 @@ public class WeekVoteSubmission extends BaseEntity {
     private String principalKey;
 
     @Enumerated(EnumType.STRING)
-    private Gender gender;  // 단일 방식에서 필요
+    private Gender gender;  // 일반 투표 방식에서 필요
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)
-    private VoteCategory category;
+    private ContentType category;
 
     protected WeekVoteSubmission(
             Boolean isBlocked,
@@ -73,7 +73,7 @@ public class WeekVoteSubmission extends BaseEntity {
             String fpHash,
             String principalKey,
             Gender gender,
-            VoteCategory category
+            ContentType category
     ) {
         this.isBlocked = isBlocked;
         this.week = week;
@@ -97,7 +97,7 @@ public class WeekVoteSubmission extends BaseEntity {
             String fpHash,
             String principalKey,
             Gender gender,
-            VoteCategory category
+            ContentType category
     ) {
         return new WeekVoteSubmission(
                 isBlocked,

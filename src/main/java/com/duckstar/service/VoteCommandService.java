@@ -408,7 +408,7 @@ public class VoteCommandService {
                         fpHash,
                         voteCookieManager.toPrincipalKey(memberId, cookieId),
                         null,
-                        VoteCategory.ANIME
+                        ContentType.ANIME
                 ))
         );
 

@@ -10,14 +10,13 @@ import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.SeasonType;
-import com.duckstar.domain.enums.VoteStatus;
+import com.duckstar.domain.enums.WeekVoteStatus;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.PageInfo;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
-import com.duckstar.web.dto.WeekResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
@@ -239,7 +237,7 @@ public class WeekService {
 
     public List<WeekDto> getAllWeeks() {
         return weekRepository.findAll().stream()
-                .filter(week -> week.getStatus() == VoteStatus.CLOSED && week.getAnnouncePrepared())
+                .filter(week -> week.getStatus() == WeekVoteStatus.CLOSED && week.getAnnouncePrepared())
                 .sorted(Comparator.comparing(Week::getStartDateTime))
                 .map(WeekDto::of)
                 .toList();

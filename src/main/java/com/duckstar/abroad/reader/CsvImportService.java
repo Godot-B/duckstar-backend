@@ -296,11 +296,14 @@ public class CsvImportService {
                 nextEpScheduledAt = null;
             }
 
+            boolean isLastEpisode = Boolean.parseBoolean(record.get("is_last_episode"));
+
             Episode episode = Episode.create(
                     animeMap.get(animeIdMap.get(Integer.valueOf(record.get("anime_id")))),
                     episodeNumber,
                     scheduledAt,
-                    nextEpScheduledAt
+                    nextEpScheduledAt,
+                    isLastEpisode
             );
             episodeRepository.save(episode);
         }

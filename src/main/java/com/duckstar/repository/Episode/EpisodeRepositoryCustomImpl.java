@@ -4,16 +4,13 @@ import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QOtt;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.enums.AnimeStatus;
-import com.duckstar.domain.enums.ContentType;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.util.QuarterUtil;
-import com.duckstar.web.dto.MedalDto;
 import com.duckstar.web.dto.OttDto;
-import com.duckstar.web.dto.RankInfoDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
@@ -28,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.duckstar.service.AnimeService.*;
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.MedalDto.*;
@@ -96,7 +94,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .from(anime)
                 .leftJoin(episode).on(episode.anime.id.eq(anime.id))
                 .where(episode.scheduledAt.between(weekStart, weekEnd)
-                                .and(episode.isVoteEnabled)
+                                /*.and(episode.isVoteEnabled)*/
 
                         // 극장판은 일단 보류
 
@@ -321,5 +319,41 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    public List<PremieredEpRecord> findPremieredEpRecordsInWindow(LocalDateTime windowStart, LocalDateTime windowEnd) {
+        // 방영 종료 체크: scheduledAt + 24분이 윈도우 안에 있는 경우
+        // 즉, scheduledAt이 (windowStart - 24분) ~ (windowEnd - 24분) 범위에 있어야 함
+        LocalDateTime finishedEpWindowStart = windowStart.minusMinutes(24);
+        LocalDateTime finishedEpWindowEnd = windowEnd.minusMinutes(24);
+
+        // 실시간 투표 종료 체크 : scheduledAt + 36시간
+        LocalDateTime liveVoteFinishedEpWindowStart = windowStart.minusHours(36);
+        LocalDateTime liveVoteFinishedEpWindowEnd = windowEnd.minusHours(36);
+
+        return queryFactory.select(
+                        Projections.constructor(
+                                PremieredEpRecord.class,
+                                episode,
+                                episode.scheduledAt.eq(anime.premiereDateTime),  // 첫 번째 에피소드인지
+                                episode.isLastEpisode,  // 마지막 에피소드인지
+                                episode.scheduledAt.between(finishedEpWindowStart, finishedEpWindowEnd),
+                                episode.scheduledAt.between(liveVoteFinishedEpWindowStart, liveVoteFinishedEpWindowEnd),
+                                anime
+                        )
+                )
+                .from(episode)
+                .join(episode.anime, anime)
+                .where(
+                        episode.isBreak.isFalse(),
+                        // 방영 시작 체크: scheduledAt이 윈도우 안에 있음
+                        episode.scheduledAt.between(windowStart, windowEnd)
+                                // 방영 종료 체크: scheduledAt + 24분이 윈도우 안에 있음
+                                .or(episode.scheduledAt.between(finishedEpWindowStart, finishedEpWindowEnd))
+                                // 실시간 투표 종료 체크: scheduledAt + 36시간이 윈도우 안에 있음
+                                .or(episode.scheduledAt.between(liveVoteFinishedEpWindowStart, liveVoteFinishedEpWindowEnd))
+                )
+                .fetch();
     }
 }

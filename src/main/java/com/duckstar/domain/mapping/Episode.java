@@ -3,6 +3,7 @@ package com.duckstar.domain.mapping;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.vo.RankInfo;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,11 +33,12 @@ public class Episode extends BaseEntity {
     @JoinColumn(name = "week_id")
     private Week week;  // 순위 결정 시점에 셋팅
 
-    private Integer episodeNumber;
-
     //=== 결방, 변칙 편성 update API 마련 필요 ===//
 
-    private Boolean isBreak;
+    private Integer episodeNumber;
+
+    @Column(nullable = false)
+    private Boolean isBreak = false;
 
     private Boolean isRescheduled;
 
@@ -44,10 +46,15 @@ public class Episode extends BaseEntity {
 
     private LocalDateTime nextEpScheduledAt;
 
-    private Boolean isVoteEnabled = true;
+    // ** 마지막 에피소드 식별 플래그
+    private Boolean isLastEpisode = false;
 
     // [별점 방식]
     private Integer voterCount = 0;  // 투표 수 (또는 투표자 수)
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(20)")
+    private EpEvaluateState evaluateState = EpEvaluateState.CLOSED;  // 휴방 시 null 셋팅
 
     // 추후 StarDistribution 테이블 분리
     private Integer star_0_5 = 0;
@@ -69,32 +76,30 @@ public class Episode extends BaseEntity {
     protected Episode(
             Anime anime,
             Integer episodeNumber,
-            Boolean isBreak,
-            Boolean isRescheduled,
             LocalDateTime scheduledAt,
-            LocalDateTime nextEpScheduledAt
+            LocalDateTime nextEpScheduledAt,
+            Boolean isLastEpisode
     ) {
         this.anime = anime;
         this.episodeNumber = episodeNumber;
-        this.isBreak = isBreak;
-        this.isRescheduled = isRescheduled;
         this.scheduledAt = scheduledAt;
         this.nextEpScheduledAt = nextEpScheduledAt;
+        this.isLastEpisode = isLastEpisode;
     }
 
     public static Episode create(
             Anime anime,
             Integer episodeNumber,
             LocalDateTime scheduledAt,
-            LocalDateTime nextEpScheduledAt
+            LocalDateTime nextEpScheduledAt,
+            Boolean isLastEpisode
     ) {
         return new Episode(
                 anime,
                 episodeNumber,
-                null,
-                null,
                 scheduledAt,
-                nextEpScheduledAt
+                nextEpScheduledAt,
+                isLastEpisode
         );
     }
 
@@ -209,7 +214,7 @@ public class Episode extends BaseEntity {
 
     public void setIsBreak(boolean isBreak) {
         this.isBreak = isBreak;
-        this.isVoteEnabled = false;
+        this.evaluateState = null;
     }
 
     public void setEpisodeNumber(Integer episodeNumber) {
@@ -224,11 +229,11 @@ public class Episode extends BaseEntity {
         this.nextEpScheduledAt = nextEpScheduledAt;
     }
 
-    public void setIsVoteEnabled(boolean isVoteEnabled) {
-        this.isVoteEnabled = isVoteEnabled;
-    }
-
     public int[] getStarList() {
         return new int[]{star_0_5, star_1_0, star_1_5, star_2_0, star_2_5, star_3_0, star_3_5, star_4_0, star_4_5, star_5_0};
+    }
+
+    public void setEvaluateState(EpEvaluateState state) {
+        this.evaluateState = state;
     }
 }

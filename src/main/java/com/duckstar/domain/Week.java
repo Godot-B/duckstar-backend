@@ -1,7 +1,7 @@
 package com.duckstar.domain;
 
 import com.duckstar.domain.common.BaseEntity;
-import com.duckstar.domain.enums.VoteStatus;
+import com.duckstar.domain.enums.WeekVoteStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class Week extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)")
-    private VoteStatus status;
+    private WeekVoteStatus status;
 
     @Column(nullable = false)
     private Integer weekValue;
@@ -61,7 +61,7 @@ public class Week extends BaseEntity {
 
     protected Week(
             Quarter quarter,
-            VoteStatus status,
+            WeekVoteStatus status,
             Integer weekValue,
             LocalDateTime startDateTime,
             LocalDateTime endDateTime
@@ -80,7 +80,7 @@ public class Week extends BaseEntity {
     ) {
         return new Week(
                 quarter,
-                VoteStatus.CLOSED,
+                WeekVoteStatus.CLOSED,
                 weekValue,
                 startDateTime,
                 startDateTime.plusWeeks(1)
@@ -88,14 +88,14 @@ public class Week extends BaseEntity {
     }
 
     public void closeVote() {
-        if (status != VoteStatus.CLOSED) {
-            status = VoteStatus.CLOSED;
+        if (status != WeekVoteStatus.CLOSED) {
+            status = WeekVoteStatus.CLOSED;
         }
     }
 
     public void openVote() {
-        if (status != VoteStatus.OPEN) {
-            status = VoteStatus.OPEN;
+        if (status != WeekVoteStatus.OPEN) {
+            status = WeekVoteStatus.OPEN;
         }
     }
 

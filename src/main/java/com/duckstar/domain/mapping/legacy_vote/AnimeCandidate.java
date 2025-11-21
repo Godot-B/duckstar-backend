@@ -39,8 +39,7 @@ public class AnimeCandidate extends BaseEntity {
 
     private Integer femaleCount = 0;
 
-    // [단일 방식]
-    private Integer votes = 0;  // [단일 투표 모드] bonus 점수는 소수점 탈락
+    private Integer votes = 0;  // [일반 투표 방식] bonus 점수는 소수점 탈락
 
     @Embedded
     private RankInfo rankInfo;

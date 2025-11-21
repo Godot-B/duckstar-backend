@@ -2,7 +2,7 @@ package com.duckstar.security.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
-import com.duckstar.domain.enums.TaskType;
+import com.duckstar.domain.enums.AdminTaskType;
 import com.duckstar.domain.mapping.AdminActionLog;
 import com.duckstar.repository.AdminActionLog.AdminActionLogRepository;
 import com.duckstar.security.domain.ShadowBan;
@@ -46,7 +46,7 @@ public class ShadowBanService {
                                 memberRepository.findById(memberId).orElseThrow(() ->
                                         new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND))
                         )
-                        .taskType(banned ? TaskType.BAN : TaskType.UNBAN)
+                        .adminTaskType(banned ? AdminTaskType.BAN : AdminTaskType.UNBAN)
                         .targetIpHash(ipHash)
                         .reason(reason)
                         .build()

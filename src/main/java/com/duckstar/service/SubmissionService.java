@@ -4,7 +4,7 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AdminHandler;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
-import com.duckstar.domain.enums.TaskType;
+import com.duckstar.domain.enums.AdminTaskType;
 import com.duckstar.domain.mapping.AdminActionLog;
 import com.duckstar.domain.mapping.WeekVoteSubmission;
 import com.duckstar.repository.AdminActionLog.AdminActionLogRepository;
@@ -89,7 +89,7 @@ public class SubmissionService {
                                 weekRepository.findWeekById(weekId).orElseThrow(() ->
                                         new WeekHandler(ErrorStatus.WEEK_NOT_FOUND))
                         )
-                        .taskType(TaskType.WITHDRAW)
+                        .adminTaskType(AdminTaskType.WITHDRAW)
                         .targetIpHash(ipHash)
                         .reason(reason)
                         .isUndoable(true)
@@ -129,7 +129,7 @@ public class SubmissionService {
                                 weekRepository.findWeekById(weekId).orElseThrow(() ->
                                         new WeekHandler(ErrorStatus.WEEK_NOT_FOUND))
                         )
-                        .taskType(TaskType.UNDO_WITHDRAW)
+                        .adminTaskType(AdminTaskType.UNDO_WITHDRAW)
                         .targetIpHash(ipHash)
                         .reason(reason)
                         .isUndoable(false)

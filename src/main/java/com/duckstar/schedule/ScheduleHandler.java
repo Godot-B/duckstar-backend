@@ -38,7 +38,7 @@ public class ScheduleHandler {
             return;
         }
 
-        animeService.updateAnimeStatusByMinute();
+        animeService.updateStatesByWindows();
     }
 
     // 매주 월요일 18시

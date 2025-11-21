@@ -3,7 +3,7 @@ package com.duckstar.domain.mapping;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
-import com.duckstar.domain.enums.TaskType;
+import com.duckstar.domain.enums.AdminTaskType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +28,7 @@ public class AdminActionLog extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(15)")
-    private TaskType taskType;
+    private AdminTaskType adminTaskType;
 
     @Column(length = 64)
     private String targetIpHash;

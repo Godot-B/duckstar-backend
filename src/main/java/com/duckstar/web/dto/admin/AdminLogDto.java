@@ -1,6 +1,6 @@
 package com.duckstar.web.dto.admin;
 
-import com.duckstar.domain.enums.TaskType;
+import com.duckstar.domain.enums.AdminTaskType;
 import com.duckstar.web.dto.PageInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,7 +38,7 @@ public class AdminLogDto {
 
         String ipHash;
 
-        TaskType taskType;
+        AdminTaskType adminTaskType;
         String reason;
 
         Boolean isUndoable;  // undo 가능한지 여부

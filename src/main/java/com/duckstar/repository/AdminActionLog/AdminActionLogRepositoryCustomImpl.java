@@ -37,7 +37,7 @@ public class AdminActionLogRepositoryCustomImpl implements AdminActionLogReposit
                                 quarter.quarterValue,
                                 week.weekValue,
                                 adminActionLog.targetIpHash,
-                                adminActionLog.taskType,
+                                adminActionLog.adminTaskType,
                                 adminActionLog.reason,
                                 adminActionLog.isUndoable,
                                 adminActionLog.createdAt
