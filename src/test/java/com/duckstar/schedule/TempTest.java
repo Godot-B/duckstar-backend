@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-//@Disabled("로컬 개발용 테스트")
+@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("test-db")
 public class TempTest {
 
@@ -199,48 +199,48 @@ public class TempTest {
         chartService.buildDuckstars(week4.getEndDateTime(), 23L);
     }
 
-    @Test
-    @Transactional
-    @Rollback(false)
-    public void breakEpisode() {
-        // 관리자 화면, path variable 로 프론트에게 받는 id
-        Episode brokenEp = episodeRepository.findById(859L).get();
-        //=== 휴방으로 셋팅 ===//
-        brokenEp.setIsBreak(true);
-
-        LocalDateTime scheduledAt = brokenEp.getScheduledAt();
-        Anime anime = brokenEp.getAnime();
-        List<Episode> episodes = episodeRepository
-                .findAllByAnime_IdOrderByScheduledAtAsc(anime.getId());
-
-        int idx = 0;
-        for (Episode episode : episodes) {
-            if (episode.getScheduledAt().equals(scheduledAt)) break;
-            idx += 1;
-        }
-
-        /**
-         * ⚠️ 순위 발표 이후 휴방이 발견된 Case
-         *  복잡해서 순위는 새로 계산이 더 빠를 듯.
-         *  귀찮아지므로 이런 Case 없게 미리미리 휴방 파악해야.
-         */
-
-        //=== 남은 에피소드 한 주씩 미루기 ===//
-        Integer episodeNumber = brokenEp.getEpisodeNumber();
-        for (int i = idx + 1; i < episodes.size(); i++) {
-            episodes.get(i).setEpisodeNumber(episodeNumber);
-            episodeNumber += 1;
-        }
-        LocalDateTime nextEpScheduledAt = episodes.get(episodes.size() - 1).getNextEpScheduledAt();
-        episodeRepository.save(
-                Episode.create(
-                        anime,
-                        episodeNumber,
-                        nextEpScheduledAt,
-                        nextEpScheduledAt.plusWeeks(1)
-                )
-        );
-    }
+//    @Test
+//    @Transactional
+//    @Rollback(false)
+//    public void breakEpisode() {
+//        // 관리자 화면, path variable 로 프론트에게 받는 id
+//        Episode brokenEp = episodeRepository.findById(859L).get();
+//        //=== 휴방으로 셋팅 ===//
+//        brokenEp.setIsBreak(true);
+//
+//        LocalDateTime scheduledAt = brokenEp.getScheduledAt();
+//        Anime anime = brokenEp.getAnime();
+//        List<Episode> episodes = episodeRepository
+//                .findAllByAnime_IdOrderByScheduledAtAsc(anime.getId());
+//
+//        int idx = 0;
+//        for (Episode episode : episodes) {
+//            if (episode.getScheduledAt().equals(scheduledAt)) break;
+//            idx += 1;
+//        }
+//
+//        /**
+//         * ⚠️ 순위 발표 이후 휴방이 발견된 Case
+//         *  복잡해서 순위는 새로 계산이 더 빠를 듯.
+//         *  귀찮아지므로 이런 Case 없게 미리미리 휴방 파악해야.
+//         */
+//
+//        //=== 남은 에피소드 한 주씩 미루기 ===//
+//        Integer episodeNumber = brokenEp.getEpisodeNumber();
+//        for (int i = idx + 1; i < episodes.size(); i++) {
+//            episodes.get(i).setEpisodeNumber(episodeNumber);
+//            episodeNumber += 1;
+//        }
+//        LocalDateTime nextEpScheduledAt = episodes.get(episodes.size() - 1).getNextEpScheduledAt();
+//        episodeRepository.save(
+//                Episode.create(
+//                        anime,
+//                        episodeNumber,
+//                        nextEpScheduledAt,
+//                        nextEpScheduledAt.plusWeeks(1)
+//                )
+//        );
+//    }
 
     @Test
     @Transactional
