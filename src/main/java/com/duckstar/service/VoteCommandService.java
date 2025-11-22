@@ -442,6 +442,7 @@ public class VoteCommandService {
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
 
+
         return null;
     }
     

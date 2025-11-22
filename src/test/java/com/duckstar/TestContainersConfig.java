@@ -8,24 +8,28 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Duration;
+
 @Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
 public abstract class TestContainersConfig {
 
     @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withReuse(true);
+            // 안정화 옵션
+            .withEnv("MYSQL_ROOT_HOST", "%")
+            .withCommand("--max_connections=200")
+            .withStartupTimeout(Duration.ofSeconds(60));
 
     @DynamicPropertySource
-    static void configure(DynamicPropertyRegistry registry) {
-        // 컨테이너가 시작된 후에만 속성 설정
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
+    static void properties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
+        registry.add("spring.datasource.username", MYSQL::getUsername);
+        registry.add("spring.datasource.password", MYSQL::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
     }
 }
-

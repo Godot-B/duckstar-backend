@@ -28,7 +28,6 @@ public class MemberToken extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Lob
     private String refreshToken;     // JWT refresh token
 
     // DB단 검증, 삭제 필요
