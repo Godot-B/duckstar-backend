@@ -1,5 +1,6 @@
 package com.duckstar.abroad;
 
+import com.duckstar.TestContainersConfig;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.mapping.AnimeSeason;
@@ -25,8 +26,8 @@ import java.util.List;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("test-db")
-public class CsvImportServiceTest {
+@ActiveProfiles("test")
+public class CsvImportServiceTest extends TestContainersConfig {
 
     @Autowired
     AnimeRepository animeRepository;

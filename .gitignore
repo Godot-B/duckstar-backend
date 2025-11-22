@@ -41,3 +41,5 @@ src/main/resources/application.yml
 src/main/resources/application-prod.yml
 src/main/resources/onnada_fullchain.crt
 src/main/resources/truststore.p12
+
+src/test/resources/application-prod-db.yml

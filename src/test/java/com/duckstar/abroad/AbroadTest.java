@@ -1,5 +1,6 @@
 package com.duckstar.abroad;
 
+import com.duckstar.TestContainersConfig;
 import com.duckstar.abroad.aniLab.Anilab;
 import com.duckstar.abroad.aniLab.AnilabRepository;
 import com.duckstar.abroad.animeCorner.AnimeCorner;
@@ -20,8 +21,8 @@ import java.util.List;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("test-db")
-public class AbroadTest {
+@ActiveProfiles("test")
+public class AbroadTest extends TestContainersConfig {
 
     @Autowired
     private AnimeCornerRepository animeCornerRepository;

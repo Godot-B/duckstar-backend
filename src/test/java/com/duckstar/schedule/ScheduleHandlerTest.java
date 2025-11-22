@@ -1,5 +1,6 @@
 package com.duckstar.schedule;
 
+import com.duckstar.TestContainersConfig;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
@@ -23,8 +24,8 @@ import java.util.List;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("test-db")
-public class ScheduleHandlerTest {
+@ActiveProfiles("test")
+public class ScheduleHandlerTest extends TestContainersConfig {
 
     @Autowired
     private AnimeService animeService;

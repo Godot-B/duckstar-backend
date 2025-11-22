@@ -1,5 +1,6 @@
 package com.duckstar.service;
 
+import com.duckstar.TestContainersConfig;
 import com.duckstar.domain.Member;
 import com.duckstar.security.repository.MemberRepository;
 import org.junit.jupiter.api.Disabled;
@@ -11,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("test-db")
-public class MemberServiceTest {
+@ActiveProfiles("test")
+public class MemberServiceTest extends TestContainersConfig {
 
     @Autowired
     private MemberRepository memberRepository;

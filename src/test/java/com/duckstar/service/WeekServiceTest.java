@@ -1,5 +1,6 @@
 package com.duckstar.service;
 
+import com.duckstar.TestContainersConfig;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
@@ -23,8 +24,8 @@ import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("test-db")
-public class WeekServiceTest {
+@ActiveProfiles("test")
+public class WeekServiceTest extends TestContainersConfig {
 
     @Autowired WeekService weekService;
     @Autowired WeekRepository weekRepository;

@@ -1,5 +1,6 @@
 package com.duckstar.util;
 
+import com.duckstar.TestContainersConfig;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,8 +12,8 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("test-db")
-public class QuarterUtilTest {
+@ActiveProfiles("test")
+public class QuarterUtilTest extends TestContainersConfig {
 
     @Test
     void testQ1Anchor() {
