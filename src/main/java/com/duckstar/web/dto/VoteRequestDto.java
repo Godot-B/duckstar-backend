@@ -12,6 +12,16 @@ import java.util.List;
 public class VoteRequestDto {
 
     @Getter
+    public static class LateStarRequestDto {
+        @NotNull
+        Long episodeId;
+
+        @NotNull
+        @Min(1)
+        @Max(10)
+        Integer starScore;
+    }
+    @Getter
     public static class StarRequestDto {
         @NotNull
         Long episodeId;
