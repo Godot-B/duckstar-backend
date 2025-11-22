@@ -24,7 +24,7 @@ spring:
 
   security:
     ip-hash:
-      key: test-key
+      key: local-secret-key-1234567890
       use-hex: true
 
     oauth2:
@@ -57,17 +57,17 @@ spring:
 
 app:
   kakao:
-    admin-key: dummy
+    admin-key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   cookie:
     same-site: None
     secure: false
   base-url: http://localhost:3000
 
 jwt:
-  secret: dummy-secret
+  secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
   issuer: "localhost"
 
 cloud:
   aws:
     s3:
-      bucket: dummy
+      bucket: img.duckstar.kr
