@@ -1,8 +1,12 @@
 package com.duckstar;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-public class DuckstarApplicationTests extends TestContainersConfig {
+@SpringBootTest
+@ActiveProfiles("test")
+class DuckstarApplicationTests {
 
 	@Test
 	void contextLoads() {
