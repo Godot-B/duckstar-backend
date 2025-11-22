@@ -62,9 +62,10 @@ public class VoteController {
 
     // 마지막 후보 투표시간 끝나고 ~ 주차 발표 전까지 공백 ??
 
-//    @Operation(summary = "늦참 투표/수정 API (로그인 ONLY)", description = "TVA 투표 : Episode 기반, " +
+//    @Operation(summary = "늦참 투표/수정 API (로그인 ONLY)",
+//            description = "TVA 투표 : Episode 기반, " +
 //                    "방송 후 투표시간 끝나고 주차 마감 전까지, Comment 5글자 이상 필수")
-//    @PostMapping()
+//    @PostMapping("/")
 
 
     // 개발 연기
