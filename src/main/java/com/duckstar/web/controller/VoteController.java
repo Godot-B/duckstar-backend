@@ -29,7 +29,7 @@ public class VoteController {
      * 별점 투표 방식
      */
 
-    @Operation(summary = "별점 투표 후보자 리스트 조회 API", description = "now - 36시간 ~ now + 36시간 범위의 에피소드들 조회")
+    @Operation(summary = "실시간 투표 리스트 조회 API", description = "now - 36시간 ~ now 범위의 에피소드들 (VOTING_WINDOW 상태) 조회")
     @GetMapping("/star")
     public ApiResponse<StarCandidateListDto> getStarCandidates(
             @AuthenticationPrincipal MemberPrincipal principal,

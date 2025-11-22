@@ -3,7 +3,9 @@ package com.duckstar.repository.Episode;
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QOtt;
 import com.duckstar.domain.QWeek;
+import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.AnimeStatus;
+import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.QAnimeOtt;
@@ -14,6 +16,9 @@ import com.duckstar.web.dto.OttDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -76,7 +81,9 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     }
 
     @Override
-    public List<StarCandidateDto> getStarCandidatesByDuration(LocalDateTime weekStart, LocalDateTime weekEnd) {
+    public List<StarCandidateDto> getStarCandidatesByWeek(Week week) {
+        LocalDateTime weekStart = week.getStartDateTime();
+
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
                         anime.status,
@@ -89,12 +96,13 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         episode.id,
                         episode.isBreak,
                         episode.isRescheduled,
-                        episode.scheduledAt
+                        episode.scheduledAt,
+                        episode.evaluateState,
+                        episode.voterCount
                 )
                 .from(anime)
                 .leftJoin(episode).on(episode.anime.id.eq(anime.id))
-                .where(episode.scheduledAt.between(weekStart, weekEnd)
-                                /*.and(episode.isVoteEnabled)*/
+                .where(episode.scheduledAt.between(weekStart, week.getEndDateTime())
 
                         // 극장판은 일단 보류
 
@@ -102,7 +110,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                                 anime.status.eq(AnimeStatus.NOW_SHOWING)
                                         .and(anime.medium.eq(Medium.MOVIE))
                         )*/)
-                .orderBy(episode.scheduledAt.desc().nullsLast())
+                .orderBy(episode.scheduledAt.asc())
                 .fetch();
 
         return tuples.stream()
@@ -120,6 +128,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             formatted :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
                             t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
 
+                    //=== 에피소드가 속한 주 계산 ===//
                     LocalDateTime scheduledAt = t.get(episode.scheduledAt);
                     QuarterUtil.YQWRecord record = null;
                     if (scheduledAt != null) {
@@ -131,20 +140,34 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .quarter(record != null ? record.quarterValue() : null)
                             .week(record != null ? record.weekValue() : null)
                             .episodeId(t.get(episode.id))
+                            .state(t.get(episode.evaluateState))
+                            .voterCount(t.get(episode.voterCount))
                             .animeId(t.get(anime.id))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
-                            .status(status)
-                            .isBreak(t.get(episode.isBreak))
                             .titleKor(t.get(anime.titleKor))
                             .dayOfWeek(t.get(anime.dayOfWeek))
                             .scheduledAt(scheduledAt)
-                            .isRescheduled(t.get(episode.isRescheduled))
                             .airTime(airTime)
                             .genre(t.get(anime.genre))
                             .medium(medium)
+                            .hasVoted(false)
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    public Boolean isHybridTime(Week currentWeek, LocalDateTime now) {
+        LocalDateTime lastWeekEndTime = currentWeek.getStartDateTime();
+        LocalDateTime lastWeekStartTime = lastWeekEndTime.minusWeeks(1);
+
+        LocalDateTime lastWeekMaxScheduledAt =
+                queryFactory.select(episode.scheduledAt.max())
+                .from(episode)
+                .where(episode.scheduledAt.between(lastWeekStartTime, lastWeekEndTime))
+                .fetchOne();
+
+        return now.isBefore(lastWeekMaxScheduledAt.plusHours(36));
     }
 
     @Override

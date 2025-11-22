@@ -16,7 +16,9 @@ public class VoteResponseDto {
     public static class StarCandidateListDto {
         WeekDto weekDto;
 
-        List<StarCandidateDto> starCandidates;
+        List<StarCandidateDto> currentWeekStarCandidates;
+
+        List<StarCandidateDto> lastWeekStarCandidates;
     }
 
     @Getter
@@ -31,6 +33,8 @@ public class VoteResponseDto {
         Integer week;
 
         Long episodeId;
+        EpEvaluateState state;
+        Integer voterCount;
 
         /**
          * 애니 정보
@@ -39,15 +43,9 @@ public class VoteResponseDto {
 
         String mainThumbnailUrl;
 
-        AnimeStatus status;  // ??
-
-        Boolean isBreak;    // TVA 결방 주 여부
-
         String titleKor;
 
         DayOfWeekShort dayOfWeek;
-
-        Boolean isRescheduled;
 
         LocalDateTime scheduledAt;
 
@@ -60,10 +58,16 @@ public class VoteResponseDto {
         /**
          * 유저 기록
          */
-        StarInfoDto info;
+        StarInfoDto info;  // VOTING_WINDOW 전용
+
+        Boolean hasVoted;  // LOGIN_REQUIRED 전용
 
         public void setUserHistory(StarInfoDto info) {
             this.info = info;
+        }
+
+        public void setVoted(Boolean hasVoted) {
+            this.hasVoted = hasVoted;
         }
     }
 
@@ -75,7 +79,6 @@ public class VoteResponseDto {
         Integer userStarScore;
 
         Double starAverage;
-        Integer voterCount;
 
         Integer star_0_5;
         Integer star_1_0;
@@ -97,7 +100,6 @@ public class VoteResponseDto {
                     .isBlocked(isBlocked)
                     .userStarScore(userStarScore)
                     .starAverage(episode.getStarAverage())
-                    .voterCount(episode.getVoterCount())
                     .star_0_5(episode.getStar_0_5())
                     .star_1_0(episode.getStar_1_0())
                     .star_1_5(episode.getStar_1_5())
@@ -140,7 +142,6 @@ public class VoteResponseDto {
 
             return StarInfoDto.builder()
                     .starAverage(starAverage)
-                    .voterCount(voterCount)
                     .star_0_5(star_0_5)
                     .star_1_0(star_1_0)
                     .star_1_5(star_1_5)

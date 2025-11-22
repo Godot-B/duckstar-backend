@@ -1,5 +1,6 @@
 package com.duckstar.repository.Episode;
 
+import com.duckstar.domain.Week;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,11 @@ import static com.duckstar.web.dto.VoteResponseDto.*;
 
 public interface EpisodeRepositoryCustom {
     List<EpisodeDto> getEpisodeDtosByAnimeId(Long animeId);
-    List<StarCandidateDto> getStarCandidatesByDuration(LocalDateTime weekStart, LocalDateTime weekEnd);
+
+    List<StarCandidateDto> getStarCandidatesByWeek(Week week);
+
+    Boolean isHybridTime(Week currentWeek, LocalDateTime now);
+
     List<AnimePreviewDto> getAnimePreviewsByDuration(LocalDateTime weekStart, LocalDateTime weekEnd);
 
     List<AnimeRankDto> getAnimeRankDtosByWeekIdWithOverFetch(Long weekId, LocalDateTime weekEndDateTime, Pageable pageable);

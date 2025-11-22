@@ -212,6 +212,10 @@ public class Episode extends BaseEntity {
         this.rankInfo = rankInfo;
     }
 
+    public boolean isBreak() {
+        return isBreak;
+    }
+
     public void setIsBreak(boolean isBreak) {
         this.isBreak = isBreak;
         this.evaluateState = null;

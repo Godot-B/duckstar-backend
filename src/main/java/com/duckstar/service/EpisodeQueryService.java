@@ -1,9 +1,8 @@
 package com.duckstar.service;
 
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Week;
+import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.WeekVoteSubmission;
 import com.duckstar.repository.Episode.EpisodeRepository;
@@ -24,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.duckstar.web.dto.VoteResponseDto.*;
+import static com.duckstar.web.dto.WeekResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +46,44 @@ public class EpisodeQueryService {
             HttpServletRequest requestRaw
     ) {
         LocalDateTime now = LocalDateTime.now();
-        Week week = weekService.getWeekByTime(now);
 
+        //=== 이번 주 ===//
+        Week currentWeek = weekService.getWeekByTime(now);
+        List<StarCandidateDto> currentCandidates = getStarCandidatesByWeek(memberId, requestRaw, currentWeek);
+
+        //=== 월 18시 ~ 화 15시: DB look up (지난 주차 마지막 후보의 방영 시간 체크) ===//
+        LocalDateTime hybridStart = currentWeek.getStartDateTime();
+        LocalDateTime hybridEnd = hybridStart.with(DayOfWeek.TUESDAY)
+                .withHour(15)
+                .withMinute(0);
+        boolean isHybrid = false;
+        if (!now.isBefore(hybridStart) && now.isBefore(hybridEnd)) {
+            isHybrid = episodeRepository.isHybridTime(currentWeek, now);
+        }
+
+        //=== 지난 주 ===//
+        List<StarCandidateDto> lastCandidates = null;
+        if (isHybrid) {
+            Week lastWeek = weekService.getWeekByTime(currentWeek.getStartDateTime().minusWeeks(1));
+            lastCandidates = getStarCandidatesByWeek(memberId, requestRaw, lastWeek);
+        }
+
+        return StarCandidateListDto.builder()
+                .weekDto(WeekDto.of(currentWeek))
+                .currentWeekStarCandidates(currentCandidates)
+                .lastWeekStarCandidates(lastCandidates)
+                .build();
+    }
+
+    private List<StarCandidateDto> getStarCandidatesByWeek(
+            Long memberId,
+            HttpServletRequest requestRaw,
+            Week week
+    ) {
+        //=== 주차 후보 조회 ===//
+        List<StarCandidateDto> candidates = episodeRepository.getStarCandidatesByWeek(week);
+
+        //=== 투표 내역 검색 ===//
         Quarter quarter = week.getQuarter();
         String cookieId = voteCookieManager.readCookie(
                 requestRaw,
@@ -62,13 +98,11 @@ public class EpisodeQueryService {
                 submissionRepository.findByWeek_IdAndPrincipalKey(
                         week.getId(), principalKey);
 
-        boolean isBlocked = false;
-
         Map<Long, StarInfoDto> userStarInfoMap;
         if (submissionOpt.isPresent()) {  // 투표 내역 존재
             userStarInfoMap = new HashMap<>();
             WeekVoteSubmission submission = submissionOpt.get();
-            isBlocked = submission.isBlocked();
+            boolean isBlocked = submission.isBlocked();
 
             Map<Episode, Integer> episodeMap =
                     episodeStarRepository.findEpisodeMapBySubmissionId(submission.getId());
@@ -85,81 +119,27 @@ public class EpisodeQueryService {
                 );
             }
 
-        } else {
-            userStarInfoMap = Map.of();
+            //=== 주차 후보에 투표 내역 셋팅 ===//
+            candidates.forEach(sc -> {
+                Long episodeId = sc.getEpisodeId();
+                if (episodeId != null) {
+                    EpEvaluateState state = sc.getState();
+                    StarInfoDto info = userStarInfoMap.get(episodeId);
+                    if (info != null) {
+                        // 실시간 투표 후보
+                        if (state == EpEvaluateState.VOTING_WINDOW) {
+                            sc.setUserHistory(info);
+                        // 투표 시간 지난 후보
+                        } else if (state == EpEvaluateState.LOGIN_REQUIRED) {
+                            Integer userStarScore = info.getUserStarScore();
+                            boolean hasVoted = userStarScore != null;
+                            sc.setVoted(hasVoted);
+                        }
+                    }
+                }
+            });
         }
 
-        //=== 월 18시 ~ 화 15시에는 지난 주차와 공존하는 경우 있으므로 확인 ===//
-        Map<Long, StarInfoDto> lastUserStarInfoMap;
-        LocalDateTime hybridStart = week.getStartDateTime();  // 이번 주 월요일 18시
-        LocalDateTime hybridEnd = hybridStart.with(DayOfWeek.TUESDAY).withHour(15).withMinute(0);  // 화요일 15시
-        boolean isHybrid = !now.isBefore(hybridStart) && now.isBefore(hybridEnd);
-
-        if (isHybrid) {
-            Week lastWeek = weekService.getWeekByTime(week.getStartDateTime().minusWeeks(1));
-            Quarter lastWeekQuarter = lastWeek.getQuarter();
-            String lastCookieId = voteCookieManager.readCookie(
-                    requestRaw,
-                    lastWeekQuarter.getYearValue(),
-                    lastWeekQuarter.getQuarterValue(),
-                    lastWeek.getWeekValue()
-            );
-            String lastPrincipalKey = voteCookieManager.toPrincipalKey(memberId, lastCookieId);
-
-            Optional<WeekVoteSubmission> lastSubmissionOpt =
-                    submissionRepository.findByWeek_IdAndPrincipalKey(
-                            lastWeek.getId(), lastPrincipalKey);
-
-            if (lastSubmissionOpt.isPresent()) { // 지난 주 투표 내역 존재
-                lastUserStarInfoMap = new HashMap<>();
-                WeekVoteSubmission submission = lastSubmissionOpt.get();
-                isBlocked = submission.isBlocked();
-
-                Map<Episode, Integer> episodeMap =
-                        episodeStarRepository.findEpisodeMapBySubmissionId(submission.getId());
-
-                for (Map.Entry<Episode, Integer> entry : episodeMap.entrySet()) {
-                    Episode episode = entry.getKey();
-                    lastUserStarInfoMap.put(
-                            episode.getId(),
-                            StarInfoDto.of(
-                                    isBlocked,
-                                    entry.getValue(),
-                                    episode
-                            )
-                    );
-                }
-
-            } else {
-                lastUserStarInfoMap = Map.of();
-            }
-        } else {
-            lastUserStarInfoMap = Map.of();
-        }
-
-        List<StarCandidateDto> starCandidates =
-                episodeRepository.getStarCandidatesByDuration(
-                        now.minusHours(36),
-                        now
-                );
-
-        starCandidates.forEach(sc -> {
-            Long episodeId = sc.getEpisodeId();
-            if (episodeId != null) {
-                StarInfoDto info = userStarInfoMap.get(episodeId);
-                sc.setUserHistory(info);
-
-                // 지난 주차도 확인
-                if (info == null && isHybrid) {
-                    info = lastUserStarInfoMap.get(episodeId);
-                    sc.setUserHistory(info);
-                }
-            }
-        });
-
-        return StarCandidateListDto.builder()
-                .weekDto(WeekResponseDto.WeekDto.of(week))
-                .starCandidates(starCandidates)
-                .build();
+        return candidates;
     }
 }
