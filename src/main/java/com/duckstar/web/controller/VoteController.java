@@ -67,11 +67,13 @@ public class VoteController {
                     "방송 후 투표시간 끝나고 주차 마감 전까지, Comment 5글자 이상 필수")
     @PostMapping("/star-late")
     public ApiResponse<StarInfoDto> lateVoteOrUpdateStar(
-
+            @Valid @RequestBody LateStarRequestDto request,
+            @AuthenticationPrincipal MemberPrincipal principal,
+            HttpServletRequest requestRaw,
+            HttpServletResponse responseRaw
     ) {
-
+        return null;
     }
-
 
     // 개발 연기
 //    @Operation(summary = "상시 평가/수정 API (로그인 ONLY)",

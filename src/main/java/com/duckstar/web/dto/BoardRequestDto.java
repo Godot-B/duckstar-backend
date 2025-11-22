@@ -2,6 +2,7 @@ package com.duckstar.web.dto;
 
 import com.duckstar.validation.annotation.CommentConstraint;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class BoardRequestDto {
 
         MultipartFile attachedImage;
 
+        @NotBlank
         @Size(max = 1000)
         String body;
     }

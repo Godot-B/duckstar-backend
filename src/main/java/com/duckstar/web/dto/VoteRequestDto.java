@@ -20,7 +20,12 @@ public class VoteRequestDto {
         @Min(1)
         @Max(10)
         Integer starScore;
+
+        @NotBlank
+        @Size(min = 5, max = 1000)
+        String body;
     }
+
     @Getter
     public static class StarRequestDto {
         @NotNull
