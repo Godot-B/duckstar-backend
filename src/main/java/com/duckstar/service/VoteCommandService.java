@@ -1,10 +1,7 @@
 package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
-import com.duckstar.apiPayload.exception.handler.MemberHandler;
-import com.duckstar.apiPayload.exception.handler.VoteHandler;
-import com.duckstar.apiPayload.exception.handler.WeekHandler;
+import com.duckstar.apiPayload.exception.handler.*;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Week;
@@ -435,6 +432,15 @@ public class VoteCommandService {
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
+        Episode episode = episodeRepository.findById(request.getEpisodeId()).orElseThrow(() ->
+                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+
+        if (principal == null) {
+            throw new AuthHandler(ErrorStatus.LATE_STAR_UNAUTHORIZED);
+        }
+
+
+
         return null;
     }
     
