@@ -14,6 +14,7 @@ import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
+import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.service.ShadowBanService;
 import com.duckstar.web.support.Hasher;
@@ -426,6 +427,15 @@ public class VoteCommandService {
         }
 
         return StarInfoDto.of(isBlocked, starScore, episode);
+    }
+
+    public StarInfoDto lateVoteOrUpdateStar(
+            LateStarRequestDto request,
+            MemberPrincipal principal,
+            HttpServletRequest requestRaw,
+            HttpServletResponse responseRaw
+    ) {
+        return null;
     }
     
     public void withdrawStar(

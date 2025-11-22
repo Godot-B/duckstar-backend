@@ -72,7 +72,12 @@ public class VoteController {
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
-        return null;
+        return ApiResponse.onSuccess(voteCommandService.lateVoteOrUpdateStar(
+                request,
+                principal,
+                requestRaw,
+                responseRaw
+        ));
     }
 
     // 개발 연기
