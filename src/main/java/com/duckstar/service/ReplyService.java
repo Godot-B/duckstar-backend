@@ -56,12 +56,12 @@ public class ReplyService {
             ReplyRequestDto request,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
-                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
-
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.POST_UNAUTHORIZED);
         }
+
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
 
         Long memberId = principal.getId();
         Member author = memberRepository.findById(memberId).orElseThrow(() ->
@@ -152,12 +152,12 @@ public class ReplyService {
             Long replyLikeId,
             MemberPrincipal principal
     ) {
-        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
-                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
-
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
+
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
+                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
@@ -190,12 +190,12 @@ public class ReplyService {
             Long replyLikeId,
             MemberPrincipal principal
     ) {
-        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
-                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
-
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
+
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() ->
+                new ReplyHandler(ErrorStatus.REPLY_NOT_FOUND));
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 

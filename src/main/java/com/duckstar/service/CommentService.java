@@ -168,12 +168,12 @@ public class CommentService {
             Long commentLikeId,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
-                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
-
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
+
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
@@ -207,12 +207,12 @@ public class CommentService {
             Long commentLikeId,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
-                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
-
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.PRINCIPAL_NOT_FOUND);
         }
+
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
@@ -240,12 +240,12 @@ public class CommentService {
             Long commentId,
             MemberPrincipal principal
     ) {
-        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
-                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
-
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.DELETE_UNAUTHORIZED);
         }
+
+        AnimeComment comment = animeCommentRepository.findById(commentId).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.COMMENT_NOT_FOUND));
 
         boolean isAuthor = Objects.equals(comment.getAuthor().getId(), principal.getId());
         boolean isAdmin = principal.isAdmin();

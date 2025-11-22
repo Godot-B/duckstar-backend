@@ -432,13 +432,14 @@ public class VoteCommandService {
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
-        Episode episode = episodeRepository.findById(request.getEpisodeId()).orElseThrow(() ->
-                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
-
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.LATE_STAR_UNAUTHORIZED);
         }
 
+        Episode episode = episodeRepository.findById(request.getEpisodeId()).orElseThrow(() ->
+                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
 
         return null;
