@@ -1,7 +1,6 @@
 package com.duckstar.schedule;
 
 import com.duckstar.domain.Week;
-import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.AnimeService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.WeekService;
@@ -22,8 +21,6 @@ import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
 @Component
 @RequiredArgsConstructor
 public class ScheduleHandler {
-    private final WeekRepository weekRepository;
-
     private final WeekService weekService;
     private final ChartService chartService;
 
@@ -32,7 +29,7 @@ public class ScheduleHandler {
     private final ScheduleState scheduleState;
 
     // 매 분마다 시작 or 종영 체크
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(cron = "0 * * * * *")
     public void checkAnimeStatus() {
         if (scheduleState.isAdminMode()) {
             return;
@@ -44,6 +41,7 @@ public class ScheduleHandler {
     // 매주 월요일 18시
     @Scheduled(cron = "0 0 18 * * MON")
     public void startNewWeek() {
+
         // ** 어드민 모드와의 상태 충돌 해소 플래그 없음 주의
 
         LocalDateTime newWeekStartAt = LocalDateTime.of(

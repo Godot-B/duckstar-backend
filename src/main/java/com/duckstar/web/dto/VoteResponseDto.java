@@ -14,9 +14,8 @@ public class VoteResponseDto {
     @Builder
     @AllArgsConstructor
     public static class StarCandidateListDto {
-        Boolean hasVoted;
-
         WeekDto weekDto;
+
         List<StarCandidateDto> starCandidates;
     }
 
@@ -212,7 +211,7 @@ public class VoteResponseDto {
     @Builder
     @Getter
     public static class AnimeCandidateListDto {
-        WeekVoteStatus status;
+        WeekVoteStatus voteStatus;
 
         Long weekId;
 
@@ -225,7 +224,7 @@ public class VoteResponseDto {
 
         public static AnimeCandidateListDto ofEmpty(WeekVoteStatus status) {
             return AnimeCandidateListDto.builder()
-                    .status(status)
+                    .voteStatus(status)
                     .build();
         }
     }

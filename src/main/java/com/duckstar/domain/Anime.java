@@ -98,9 +98,7 @@ public class Anime extends BaseEntity {
 
     private Integer weeksOnTop10;
 
-    public void setStatus(AnimeStatus status) {
-        this.status = status;
-    }
+    public void setStatus(AnimeStatus status) { this.status = status; }
 
     public void initRankInfo(Integer debutRank, LocalDate debutDate) {
         this.lastRank = debutRank;

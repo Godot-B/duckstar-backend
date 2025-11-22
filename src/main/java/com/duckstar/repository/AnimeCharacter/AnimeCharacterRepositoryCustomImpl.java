@@ -2,7 +2,6 @@ package com.duckstar.repository.AnimeCharacter;
 
 import com.duckstar.domain.QCharacter;
 import com.duckstar.domain.mapping.QAnimeCharacter;
-import com.duckstar.web.dto.AnimeResponseDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

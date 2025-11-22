@@ -13,7 +13,7 @@ public class WeekResponseDto {
     @Builder
     @Getter
     public static class WeekDto {
-        WeekVoteStatus weekVoteStatus;
+        WeekVoteStatus voteStatus;
 
         Integer year;
 
@@ -28,7 +28,7 @@ public class WeekResponseDto {
         public static WeekDto of(Week week) {
             Quarter quarter = week.getQuarter();
             return WeekDto.builder()
-                    .weekVoteStatus(week.getStatus())
+                    .voteStatus(week.getStatus())
                     .year(quarter.getYearValue())
                     .quarter(quarter.getQuarterValue())
                     .week(week.getWeekValue())
