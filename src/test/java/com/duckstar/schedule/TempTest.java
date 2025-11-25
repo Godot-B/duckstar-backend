@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("local-db")
+@ActiveProfiles("prod-db")
 public class TempTest {
 
     @Autowired
@@ -57,7 +57,7 @@ public class TempTest {
     @Test
     @Transactional
     public void 부정사용자_통계_출력() {
-        Long weekId = 26L;
+        Long weekId = 27L;
 
         Week lastWeek = weekRepository.findWeekById(weekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
@@ -82,7 +82,7 @@ public class TempTest {
                     episodeStarMap.get(episode.getId());
 
             if (thisEpisodeStars != null && !thisEpisodeStars.isEmpty())  {
-                //=== 같은 ip 에서 같은 점수 3개 이상 준 경우 감지 ===//
+                //=== 같은 ip 에서 같은 점수 4개 이상 준 경우 감지 ===//
                 Map<String, List<Integer>> ipHashToScoresMap = thisEpisodeStars.stream()
                         .collect(Collectors.groupingBy(
                                         es -> es.getWeekVoteSubmission().getIpHash(),
@@ -95,7 +95,7 @@ public class TempTest {
                             .collect(Collectors.groupingBy(s -> s, Collectors.counting()));
 
                     boolean hasRepeatedScore = scoreCountMap.values().stream()
-                            .anyMatch(count -> count >= 3);
+                            .anyMatch(count -> count >= 4);
 
                     if (hasRepeatedScore) {
                         suspiciousMap
@@ -106,7 +106,7 @@ public class TempTest {
             }
         }
 
-        System.out.println("=== 동일 점수 3회 이상 반복해서 투표한 IP ===");
+        System.out.println("=== 동일 점수 4회 이상 반복해서 투표한 IP ===");
         AtomicInteger size = new AtomicInteger();
         suspiciousMap.forEach((anime, ipMap) -> {
             System.out.println("애니메이션: " + anime);
@@ -124,7 +124,7 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void calculateRankManual() {
-        Long weekId = 26L;
+        Long weekId = 27L;
 
         Week week = weekRepository.findById(weekId).get();
 

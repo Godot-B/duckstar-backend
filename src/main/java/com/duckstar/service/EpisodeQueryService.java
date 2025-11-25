@@ -1,25 +1,23 @@
 package com.duckstar.service;
 
-import com.duckstar.domain.Quarter;
+import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.enums.EpEvaluateState;
-import com.duckstar.domain.mapping.Episode;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
+import com.duckstar.security.MemberPrincipal;
 import com.duckstar.web.support.VoteCookieManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static com.duckstar.web.dto.VoteResponseDto.*;
 import static com.duckstar.web.dto.WeekResponseDto.*;
@@ -29,9 +27,7 @@ import static com.duckstar.web.dto.WeekResponseDto.*;
 @Transactional(readOnly = true)
 public class EpisodeQueryService {
 
-    private final WeekVoteSubmissionRepository submissionRepository;
     private final EpisodeRepository episodeRepository;
-    private final EpisodeStarRepository episodeStarRepository;
 
     private final VoteCookieManager voteCookieManager;
 
@@ -40,44 +36,79 @@ public class EpisodeQueryService {
     /**
      * 별점 투표 방식
      */
-    public StarCandidateListDto getStarCandidatesByWindow(
+    public LiveCandidateListDto getLiveCandidatesByWindow(
             Long memberId,
             HttpServletRequest requestRaw
     ) {
+        // 사용자의 principal_key 최대 2개 (2주 걸치는 시간 존재)
         List<String> cookies = voteCookieManager.readAllCookies(requestRaw);
+        List<String> principalKeys = cookies.isEmpty() ?
+                List.of(voteCookieManager.toPrincipalKey(memberId, null)) :
+                cookies.stream()
+                        .map(c -> voteCookieManager.toPrincipalKey(memberId, c))
+                        .toList();
 
-        List<String> principalKeys = cookies.stream()
-                .map(c -> voteCookieManager.toPrincipalKey(memberId, c))
-                .toList();
-
-        List<StarCandidateDto> candidates = episodeRepository
-                .getStarCandidatesOnVotingWindow(principalKeys);
+        // 전체 VOTING_WINDOW 상태 에피소드들 조회
+        List<LiveCandidateDto> candidates = episodeRepository
+                .getLiveCandidateDtos(principalKeys);
 
         LocalDateTime now = LocalDateTime.now();
         Week currentWeek = weekService.getWeekByTime(now);
         Integer currentWeekValue = currentWeek.getWeekValue();
 
         // 분리: 이번 주
-        List<StarCandidateDto> currentWeekStarCandidates =
+        List<LiveCandidateDto> currentWeekStarCandidates =
                 candidates.stream()
                         .filter(c -> c.getWeek().equals(currentWeekValue))
                         .toList();
 
         // 분리: 지난 주
-        List<StarCandidateDto> lastWeekStarCandidates =
+        List<LiveCandidateDto> lastWeekStarCandidates =
                 candidates.stream()
                         .filter(c -> !c.getWeek().equals(currentWeekValue))
                         .toList();
 
-        return StarCandidateListDto.builder()
+        return LiveCandidateListDto.builder()
                 .weekDto(WeekDto.of(currentWeek))
-                .currentWeekStarCandidates(currentWeekStarCandidates)
-                .lastWeekStarCandidates(lastWeekStarCandidates)
+                .currentWeekLiveCandidates(currentWeekStarCandidates)
+                .lastWeekLiveCandidates(lastWeekStarCandidates)
                 .build();
     }
 
-    public List<WeekCandidateDto> getWeekCandidatesByYQW() {
-        return null;
+    public List<WeekCandidateDto> getWeekCandidatesByYQW(
+            Integer year,
+            Integer quarter,
+            Integer week,
+            Long memberId,
+            HttpServletRequest requestRaw
+    ) {
+        String cookieId = voteCookieManager.readCookie(
+                requestRaw,
+                year,
+                quarter,
+                week
+        );
+        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
+
+        return episodeRepository.getWeekCandidateDtos(weekId, principalKey);
     }
 
+    public CandidateFormDto getCandidateForm(
+            Long episodeId,
+            Long memberId,
+            HttpServletRequest requestRaw
+    ) {
+        // 사용자의 principal_key 최대 2개 (2주 걸치는 시간 존재)
+        List<String> cookies = voteCookieManager.readAllCookies(requestRaw);
+        List<String> principalKeys = cookies.isEmpty() ?
+                List.of(voteCookieManager.toPrincipalKey(memberId, null)) :
+                cookies.stream()
+                        .map(c -> voteCookieManager.toPrincipalKey(memberId, c))
+                        .toList();
+
+        return episodeRepository.getCandidateFormDto(episodeId, principalKeys)
+                .orElseThrow(() -> new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+    }
 }

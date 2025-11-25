@@ -378,15 +378,41 @@ public class VoteCommandService {
             );
         }
 
-        //=== 제출 및 투표 ===//
-        EpisodeStar episodeStar = createOrGetSubmissionAndCreateOrUpdateStar(
-                inlcudedWeek,
-                episode,
-                member,
-                cookieId,
-                requestRaw,
-                request.getStarScore()
-        );
+        Long episodeStarId = request.getEpisodeStarId();
+        EpisodeStar episodeStar;
+        if (episodeStarId != null) {
+            //=== 수정 ===//
+            episodeStar = episodeStarRepository.findById(episodeStarId).orElseThrow(() ->
+                    new VoteHandler(ErrorStatus.STAR_NOT_FOUND));
+            boolean isBlocked = episodeStar.getWeekVoteSubmission().isBlocked();
+            Integer starScore = request.getStarScore();
+
+            //=== 표 수정 권한 검증 ===//
+            boolean isProperEpisode = episodeStar.getEpisode()
+                    .equals(episode);
+
+            String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+            boolean isProperVoter = episodeStar.getWeekVoteSubmission().getPrincipalKey()
+                    .equals(principalKey);
+
+            if (!isProperEpisode || !isProperVoter) {
+                throw new AuthHandler(ErrorStatus.STAR_UNAUTHORIZED);
+            }
+
+            // 별점 반영
+            episodeStar.updateStarScore(isBlocked, starScore);
+
+        } else {
+            //=== 제출 및 투표 ===//
+            episodeStar = createOrGetSubmissionAndCreateOrUpdateStar(
+                    inlcudedWeek,
+                    episode,
+                    member,
+                    cookieId,
+                    requestRaw,
+                    request.getStarScore()
+            );
+        }
 
         return VoteResultDto.builder()
                 .episodeStarId(episodeStar.getId())
@@ -394,7 +420,7 @@ public class VoteCommandService {
                 .info(
                         StarInfoDto.of(
                                 episodeStar.getWeekVoteSubmission().isBlocked(),
-                                episodeStar.getStarScore(),
+                                episodeStar,
                                 episode
                         )
                 )
@@ -522,65 +548,63 @@ public class VoteCommandService {
 
         return StarInfoDto.of(
                 episodeStar.getWeekVoteSubmission().isBlocked(),
-                episodeStar.getStarScore(),
+                episodeStar,
                 episode
         );
     }
     
     public void withdrawStar(
             Long episodeId,
+            Long episodeStarId,
             Long memberId,
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw
     ) {
-        //=== 투표 유효성(방영시간으로부터 36시간 이내인지) ===//
+        //=== 투표 유효성( VOTING_WINDOW 상태인지 ) ===//
         Episode episode = episodeRepository.findById(episodeId)
                 .orElseThrow(() -> new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime scheduledAt = episode.getScheduledAt();
-        Boolean isBreak = episode.getIsBreak();
-
-        // 유효 투표 조건: 방송 이후 36시간 동안
-        boolean isValid = !now.isBefore(scheduledAt) && now.isBefore(scheduledAt.plusHours(36)) &&
-                // 그리고 휴방 아님
-                (isBreak == null || !isBreak);
-
-        if (!isValid) {
+        if (episode.getEvaluateState() != EpEvaluateState.VOTING_WINDOW) {
             throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
         }
 
-        //=== 제출 정보 찾기 ===//
-        Week currentWeek = weekService.getWeekByTime(scheduledAt);
+        // ** 방영된 에피소드가 속한 주
+        Week inlcudedWeek = weekService.getWeekByTime(episode.getScheduledAt());
 
-        Quarter quarter = currentWeek.getQuarter();
-        String cookieId = voteCookieManager.ensureVoteCookie(
-                requestRaw,
-                responseRaw,
-                quarter.getYearValue(),
-                quarter.getQuarterValue(),
-                currentWeek.getWeekValue()
-        );
+        //=== 멤버와 쿠키 ID 찾기 ===//
+        String cookieId;
+        if (memberId != null) {
+            memberRepository.findById(memberId).orElseThrow(() ->
+                    new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+            cookieId = null;
+        } else {
+            Quarter quarter = inlcudedWeek.getQuarter();
+            cookieId = voteCookieManager.ensureVoteCookie(
+                    requestRaw,
+                    responseRaw,
+                    quarter.getYearValue(),
+                    quarter.getQuarterValue(),
+                    inlcudedWeek.getWeekValue()
+            );
+        }
+
+        //=== 표 수정 권한 검증 ===//
+        EpisodeStar episodeStar = episodeStarRepository.findById(episodeStarId).orElseThrow(() ->
+                new VoteHandler(ErrorStatus.STAR_NOT_FOUND));
+
+        boolean isProperEpisode = episodeStar.getEpisode()
+                .equals(episode);
+
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-        Optional<WeekVoteSubmission> submissionOpt =
-                submissionRepository.findByWeek_IdAndPrincipalKey(currentWeek.getId(), principalKey);
+        boolean isProperVoter = episodeStar.getWeekVoteSubmission().getPrincipalKey()
+                .equals(principalKey);
 
-        if (submissionOpt.isEmpty()) {
-            throw new VoteHandler(ErrorStatus.SUBMISSION_NOT_FOUND);
+        if (!isProperEpisode || !isProperVoter) {
+            throw new AuthHandler(ErrorStatus.STAR_UNAUTHORIZED);
         }
 
-        Map<Long, EpisodeStar> episodeStarMap =
-                episodeStarRepository.findAllByWeekVoteSubmission_Id(submissionOpt.get().getId())
-                        .stream().collect(Collectors.toMap(
-                                es -> es.getEpisode().getId(),
-                                es -> es
-                        ));
-
-        EpisodeStar target = episodeStarMap.get(episodeId);
-        if (target == null) {
-            throw new VoteHandler(ErrorStatus.STAR_NOT_FOUND);
-        }
-        target.withdrawScore();
+        // 별점 회수
+        episodeStar.withdrawScore();
     }
 
     public void refreshEpisodeStatsByWeekId(Long weekId) {

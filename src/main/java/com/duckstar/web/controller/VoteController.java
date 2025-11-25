@@ -32,14 +32,14 @@ public class VoteController {
     @Operation(summary = "실시간 투표 리스트 조회 API",
             description = "now - 36시간 ~ now 범위의 에피소드들 (VOTING_WINDOW 상태) 조회")
     @GetMapping("/star")
-    public ApiResponse<StarCandidateListDto> getStarCandidates(
+    public ApiResponse<LiveCandidateListDto> getLiveCandidates(
             @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest requestRaw
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
         return ApiResponse.onSuccess(
-                episodeQueryService.getStarCandidatesByWindow(memberId, requestRaw));
+                episodeQueryService.getLiveCandidatesByWindow(memberId, requestRaw));
     }
 
     @Operation(summary = "실시간 투표/수정 API (비로그인 허용)",
@@ -66,14 +66,38 @@ public class VoteController {
     public ApiResponse<List<WeekCandidateDto>> getWeekCandidatesByYQW(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
-            @PathVariable Integer week
+            @PathVariable Integer week,
+            @AuthenticationPrincipal MemberPrincipal principal,
+            HttpServletRequest requestRaw
     ) {
-        return ApiResponse.onSuccess(
-                episodeQueryService.getWeekCandidatesByYQW());
+        Long memberId = principal == null ? null : principal.getId();
+
+        return ApiResponse.onSuccess(episodeQueryService.getWeekCandidatesByYQW(
+                        year,
+                        quarter,
+                        week,
+                        memberId,
+                        requestRaw
+                )
+        );
     }
 
+    @Operation(summary = "후보 단건 조회 API", description = "단일 후보 모달에 사용")
+    @GetMapping("/episodes/{episodeId}")
+    public ApiResponse<CandidateFormDto> getEpisode(
+            @PathVariable Long episodeId,
+            @AuthenticationPrincipal MemberPrincipal principal,
+            HttpServletRequest requestRaw
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
 
-    // 마지막 후보 투표시간 끝나고 ~ 주차 발표 전까지 공백 ??
+        return ApiResponse.onSuccess(episodeQueryService.getCandidateForm(
+                        episodeId,
+                        memberId,
+                        requestRaw
+                )
+        );
+    }
 
     @Operation(summary = "늦참 투표 API (로그인 ONLY)",
             description = "TVA 투표 : Episode 기반, " +
@@ -96,10 +120,12 @@ public class VoteController {
 //            description = "Episode 기반, 지난 주차")
 //    @PostMapping()
 
+
     @Operation(summary = "별점 회수 API", description = "starScore 를 null 로 셋팅")
-    @PostMapping("/withdraw/{episodeId}")
+    @PostMapping("/withdraw/{episodeId}/{episodeStarId}")
     public ApiResponse<Void> withdrawStar(
             @PathVariable Long episodeId,
+            @PathVariable Long episodeStarId,
             @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest requestRaw,
             HttpServletResponse responseRaw) {
@@ -108,6 +134,7 @@ public class VoteController {
 
         voteCommandService.withdrawStar(
                 episodeId,
+                episodeStarId,
                 memberId,
                 requestRaw,
                 responseRaw

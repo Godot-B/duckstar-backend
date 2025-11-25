@@ -198,7 +198,7 @@ public class ChartService {
                 voterCountList.add(0);
 
             } else {
-                //=== 같은 ip 에서 같은 점수 3개 이상 준 경우 감지 ===//
+                //=== 같은 ip 에서 같은 점수 4개 이상 준 경우 감지 ===//
                 Map<String, List<Integer>> ipHashScoresMap = thisEpisodeStars.stream()
                         .collect(Collectors.groupingBy(
                                         es -> es.getWeekVoteSubmission().getIpHash(),
@@ -213,7 +213,7 @@ public class ChartService {
                             .collect(Collectors.groupingBy(s -> s, Collectors.counting()));
 
                     boolean hasRepeatedScore = scoreCountMap.values().stream()
-                            .anyMatch(count -> count >= 3);
+                            .anyMatch(count -> count >= 4);
 
                     if (hasRepeatedScore) {
                         blockedIpHashes.add(entry.getKey());

@@ -35,6 +35,8 @@ public class VoteRequestDto {
         @Min(1)
         @Max(10)
         Integer starScore;
+
+        Long episodeStarId;  // 추가
     }
 
     @AnimeVoteConstraint
