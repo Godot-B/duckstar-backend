@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("prod-db")
+@ActiveProfiles("local-db")
 public class TempTest {
 
     @Autowired
