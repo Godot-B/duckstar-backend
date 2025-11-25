@@ -4,8 +4,6 @@ import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.EpisodeQueryService;
 import com.duckstar.service.VoteCommandService;
-import com.duckstar.web.support.IdentifierExtractor;
-import com.duckstar.web.support.Hasher;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static com.duckstar.web.dto.VoteRequestDto.*;
 import static com.duckstar.web.dto.VoteResponseDto.*;
@@ -29,12 +29,13 @@ public class VoteController {
      * 별점 투표 방식
      */
 
-    @Operation(summary = "실시간 투표 리스트 조회 API", description = "now - 36시간 ~ now 범위의 에피소드들 (VOTING_WINDOW 상태) 조회")
+    @Operation(summary = "실시간 투표 리스트 조회 API",
+            description = "now - 36시간 ~ now 범위의 에피소드들 (VOTING_WINDOW 상태) 조회")
     @GetMapping("/star")
     public ApiResponse<StarCandidateListDto> getStarCandidates(
             @AuthenticationPrincipal MemberPrincipal principal,
-            HttpServletRequest requestRaw) {
-
+            HttpServletRequest requestRaw
+    ) {
         Long memberId = principal == null ? null : principal.getId();
 
         return ApiResponse.onSuccess(
@@ -44,7 +45,7 @@ public class VoteController {
     @Operation(summary = "실시간 투표/수정 API (비로그인 허용)",
             description = "TVA 투표: Episode 기반, 방송 후 36시간 동안 오픈.")
     @PostMapping("/star")
-    public ApiResponse<StarInfoDto> voteOrUpdateStar(
+    public ApiResponse<VoteResultDto> voteOrUpdateStar(
             @Valid @RequestBody StarRequestDto request,
             @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest requestRaw,
@@ -60,23 +61,33 @@ public class VoteController {
         ));
     }
 
+    @Operation(summary = "주차 후보 목록 조회 API")
+    @GetMapping("/episodes/{year}/{quarter}/{week}")
+    public ApiResponse<List<WeekCandidateDto>> getWeekCandidatesByYQW(
+            @PathVariable Integer year,
+            @PathVariable Integer quarter,
+            @PathVariable Integer week
+    ) {
+        return ApiResponse.onSuccess(
+                episodeQueryService.getWeekCandidatesByYQW());
+    }
+
+
     // 마지막 후보 투표시간 끝나고 ~ 주차 발표 전까지 공백 ??
 
-    @Operation(summary = "늦참 투표/수정 API (로그인 ONLY)",
+    @Operation(summary = "늦참 투표 API (로그인 ONLY)",
             description = "TVA 투표 : Episode 기반, " +
                     "방송 후 투표시간 끝나고 주차 마감 전까지, Comment 5글자 이상 필수")
     @PostMapping("/star-late")
     public ApiResponse<StarInfoDto> lateVoteOrUpdateStar(
             @Valid @RequestBody LateStarRequestDto request,
             @AuthenticationPrincipal MemberPrincipal principal,
-            HttpServletRequest requestRaw,
-            HttpServletResponse responseRaw
+            HttpServletRequest requestRaw
     ) {
-        return ApiResponse.onSuccess(voteCommandService.lateVoteOrUpdateStar(
+        return ApiResponse.onSuccess(voteCommandService.voteStarWithLoginAndComment(
                 request,
                 principal,
-                requestRaw,
-                responseRaw
+                requestRaw
         ));
     }
 

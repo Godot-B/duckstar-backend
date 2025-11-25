@@ -45,8 +45,8 @@ public class ScheduleHandler {
         // ** 어드민 모드와의 상태 충돌 해소 플래그 없음 주의
 
         LocalDateTime newWeekStartAt = LocalDateTime.of(
-                LocalDate.now()
-                , LocalTime.of(18, 0)
+                LocalDate.now(),
+                LocalTime.of(18, 0)
         );
 
         Week lastWeek = weekService.getWeekByTime(newWeekStartAt.minusWeeks(1));

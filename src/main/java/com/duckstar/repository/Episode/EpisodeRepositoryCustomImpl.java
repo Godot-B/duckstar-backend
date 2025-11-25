@@ -10,6 +10,7 @@ import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QEpisode;
+import com.duckstar.domain.mapping.QEpisodeStar;
 import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.util.QuarterUtil;
 import com.duckstar.web.dto.OttDto;
@@ -48,6 +49,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     private final QAnimeOtt animeOtt = QAnimeOtt.animeOtt;
     private final QOtt ott = QOtt.ott;
     private final QWeek week = QWeek.week;
+    private final QEpisodeStar episodeStar = QEpisodeStar.episodeStar;
 
     @Override
     public List<EpisodeDto> getEpisodeDtosByAnimeId(Long animeId) {
@@ -77,6 +79,93 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                                 .nextEpScheduledAt(t.get(episode.nextEpScheduledAt))
                                 .build()
                 )
+                .toList();
+    }
+
+    @Override
+    public List<StarCandidateDto> getStarCandidatesOnVotingWindow(List<String> principalKeys) {
+        List<Tuple> tuples = queryFactory.select(
+                        anime.id,
+                        anime.status,
+                        anime.mainThumbnailUrl,
+                        anime.titleKor,
+                        anime.dayOfWeek,
+                        anime.genre,
+                        anime.medium,
+                        anime.premiereDateTime,
+                        anime.airTime,
+                        episode,
+                        episodeStar.starScore,
+                        episodeStar.weekVoteSubmission.isBlocked
+                )
+                .from(episode)
+                .join(episode.anime, anime)
+                .leftJoin(episodeStar).on(
+                        episodeStar.episode.eq(episode),
+                        episodeStar.weekVoteSubmission.principalKey.in(principalKeys),
+                        episodeStar.starScore.isNotNull()
+                )
+                .where(episode.evaluateState.eq(EpEvaluateState.VOTING_WINDOW)
+
+                        // 극장판은 일단 보류
+
+                        /*.or(
+                                anime.status.eq(AnimeStatus.NOW_SHOWING)
+                                        .and(anime.medium.eq(Medium.MOVIE))
+                        )*/)
+                .orderBy(episode.scheduledAt.asc())
+                .fetch();
+
+        return tuples.stream()
+                .map(t -> {
+                    Episode episode = t.get(this.episode);
+                    if (episode == null) {
+                        return null;
+                    }
+
+                    Medium medium = t.get(anime.medium);
+                    LocalDateTime time = t.get(anime.premiereDateTime);
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
+                    String formatted = null;
+                    if (time != null) {
+                        formatted = time.format(formatter);
+                    }
+                    AnimeStatus status = t.get(anime.status);
+
+                    String airTime = (medium == Medium.MOVIE || status == AnimeStatus.UPCOMING) ?
+                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
+                            t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
+
+                    //=== 에피소드가 속한 주 계산 ===//
+                    LocalDateTime scheduledAt = episode.getScheduledAt();
+                    QuarterUtil.YQWRecord record = scheduledAt != null ?
+                            QuarterUtil.getThisWeekRecord(scheduledAt) :
+                            null;
+
+                    StarInfoDto info = null;
+                    Integer userStarScore = t.get(episodeStar.starScore);
+                    if (userStarScore != null) {
+                        Boolean isBlocked = t.get(episodeStar.weekVoteSubmission.isBlocked);
+                        info = StarInfoDto.of(isBlocked, userStarScore, episode);
+                    }
+
+                    return StarCandidateDto.builder()
+                            .year(record != null ? record.yearValue() : null)
+                            .quarter(record != null ? record.quarterValue() : null)
+                            .week(record != null ? record.weekValue() : null)
+                            .episodeId(episode.getId())
+                            .voterCount(episode.getVoterCount())
+                            .animeId(t.get(anime.id))
+                            .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
+                            .titleKor(t.get(anime.titleKor))
+                            .dayOfWeek(t.get(anime.dayOfWeek))
+                            .scheduledAt(scheduledAt)
+                            .airTime(airTime)
+                            .genre(t.get(anime.genre))
+                            .medium(medium)
+                            .info(info)
+                            .build();
+                })
                 .toList();
     }
 
@@ -140,7 +229,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .quarter(record != null ? record.quarterValue() : null)
                             .week(record != null ? record.weekValue() : null)
                             .episodeId(t.get(episode.id))
-                            .state(t.get(episode.evaluateState))
+//                            .state(t.get(episode.evaluateState))
                             .voterCount(t.get(episode.voterCount))
                             .animeId(t.get(anime.id))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
@@ -150,7 +239,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .airTime(airTime)
                             .genre(t.get(anime.genre))
                             .medium(medium)
-                            .hasVoted(false)
+//                            .hasVoted(false)
                             .build();
                 })
                 .toList();

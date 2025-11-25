@@ -7,6 +7,8 @@ import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.*;
+import com.duckstar.domain.mapping.comment.AnimeComment;
+import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Week.WeekRepository;
@@ -49,6 +51,7 @@ public class VoteCommandService {
     private final Hasher hasher;
     private final WeekRepository weekRepository;
     private final ShadowBanService shadowBanService;
+    private final AnimeCommentRepository animeCommentRepository;
 
     /**
      * 일반-보너스 투표 방식
@@ -338,7 +341,7 @@ public class VoteCommandService {
 //        submission.setUpdatedAt(LocalDateTime.now());
 //    }
 
-    public StarInfoDto voteOrUpdateStar(
+    public VoteResultDto voteOrUpdateStar(
             StarRequestDto request,
             Long memberId,
             HttpServletRequest requestRaw,
@@ -349,71 +352,105 @@ public class VoteCommandService {
         Episode episode = episodeRepository.findById(episodeId)
                 .orElseThrow(() -> new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
 
-        EpEvaluateState state = episode.getEvaluateState();
-
-        if (state != EpEvaluateState.VOTING_WINDOW) {
+        if (episode.getEvaluateState() != EpEvaluateState.VOTING_WINDOW) {
             throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
         }
 
-        //=== 멤버 찾기 ===//
-        Member member = memberId != null ?
-                memberRepository.findById(memberId).orElseThrow(() ->
-                        new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND)) :
-                null;
-
         // ** 방영된 에피소드가 속한 주
-        Week currentWeek = weekService.getWeekByTime(episode.getScheduledAt());
+        Week inlcudedWeek = weekService.getWeekByTime(episode.getScheduledAt());
 
-        //=== 제출 정보 찾기 ===//
-        Quarter quarter = currentWeek.getQuarter();
-        String cookieId = voteCookieManager.ensureVoteCookie(
+        //=== 멤버와 쿠키 ID 찾기 ===//
+        Member member;
+        String cookieId;
+        if (memberId != null) {
+            member = memberRepository.findById(memberId).orElseThrow(() ->
+                    new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+            cookieId = null;
+        } else {
+            member = null;
+            Quarter quarter = inlcudedWeek.getQuarter();
+            cookieId = voteCookieManager.ensureVoteCookie(
+                    requestRaw,
+                    responseRaw,
+                    quarter.getYearValue(),
+                    quarter.getQuarterValue(),
+                    inlcudedWeek.getWeekValue()
+            );
+        }
+
+        //=== 제출 및 투표 ===//
+        EpisodeStar episodeStar = createOrGetSubmissionAndCreateOrUpdateStar(
+                inlcudedWeek,
+                episode,
+                member,
+                cookieId,
                 requestRaw,
-                responseRaw,
-                quarter.getYearValue(),
-                quarter.getQuarterValue(),
-                currentWeek.getWeekValue()
+                request.getStarScore()
         );
 
+        return VoteResultDto.builder()
+                .episodeStarId(episodeStar.getId())
+                .voterCount(episode.getVoterCount())
+                .info(
+                        StarInfoDto.of(
+                                episodeStar.getWeekVoteSubmission().isBlocked(),
+                                episodeStar.getStarScore(),
+                                episode
+                        )
+                )
+                .build();
+    }
+
+    private EpisodeStar createOrGetSubmissionAndCreateOrUpdateStar(
+            Week week,
+            Episode episode,
+            Member member,
+            String cookieId,
+            HttpServletRequest requestRaw,
+            Integer starScore
+    ) {
+        //=== 제출 정보 찾기 ===//
+        Long memberId = member != null ? member.getId() : null;
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
         Optional<WeekVoteSubmission> submissionOpt =
-                submissionRepository.findByWeek_IdAndPrincipalKey(currentWeek.getId(), principalKey);
+                submissionRepository.findByWeek_IdAndPrincipalKey(week.getId(), principalKey);
 
-        String ip = identifierExtractor.extract(requestRaw);
-        String ipHash = hasher.hash(ip);
+        WeekVoteSubmission submission = submissionOpt.orElseGet(() -> {
+            String ip = identifierExtractor.extract(requestRaw);
+            String ipHash = hasher.hash(ip);
 
-        boolean isBanned = shadowBanService.isBanned(ipHash);
+            boolean isBanned = shadowBanService.isBanned(ipHash);
 
-        // 일단 기록용으로만 둔다
-        String userAgent = identifierExtractor.safeUserAgent(requestRaw);
-        String fpHash = identifierExtractor.safeFpHash(requestRaw);
+            // 일단 기록용으로만 둔다
+            String userAgent = identifierExtractor.safeUserAgent(requestRaw);
+            String fpHash = identifierExtractor.safeFpHash(requestRaw);
 
-        WeekVoteSubmission submission = submissionOpt.orElseGet(() ->
-                submissionRepository.save(WeekVoteSubmission.create(
-                        isBanned,
-                        currentWeek,
-                        member,
-                        cookieId,
-                        ipHash,
-                        userAgent,
-                        fpHash,
-                        voteCookieManager.toPrincipalKey(memberId, cookieId),
-                        null,
-                        ContentType.ANIME
-                ))
-        );
+            return submissionRepository.save(WeekVoteSubmission.create(
+                    isBanned,
+                    week,
+                    member,
+                    cookieId,
+                    ipHash,
+                    userAgent,
+                    fpHash,
+                    voteCookieManager.toPrincipalKey(memberId, cookieId),
+                    null,
+                    ContentType.ANIME
+            ));
+        });
 
         //=== 별점 반영 ===//
-        Integer starScore = request.getStarScore();
-
         Optional<EpisodeStar> episodeStarOpt = episodeStarRepository
-                .findByEpisode_IdAndWeekVoteSubmission_Id(episodeId, submission.getId());
+                .findByEpisode_IdAndWeekVoteSubmission_Id(episode.getId(), submission.getId());
 
         boolean isBlocked = submission.isBlocked();  // 차단 유저는 통계 반영 X
 
+        EpisodeStar episodeStar;
         if (episodeStarOpt.isPresent()) {
-            episodeStarOpt.get().updateStarScore(isBlocked, starScore);
+            episodeStar = episodeStarOpt.get();
+            episodeStar.updateStarScore(isBlocked, starScore);
         } else {
-            episodeStarRepository.save(
+            episodeStar = episodeStarRepository.save(
                     EpisodeStar.create(
                             isBlocked,
                             submission,
@@ -423,27 +460,71 @@ public class VoteCommandService {
             );
         }
 
-        return StarInfoDto.of(isBlocked, starScore, episode);
+        return episodeStar;
     }
 
-    public StarInfoDto lateVoteOrUpdateStar(
+    /**
+     * TODO
+     *  - 업데이트 로직
+     *  - 응답 Dto
+     */
+    public StarInfoDto voteStarWithLoginAndComment(
             LateStarRequestDto request,
             MemberPrincipal principal,
-            HttpServletRequest requestRaw,
-            HttpServletResponse responseRaw
+            HttpServletRequest requestRaw
     ) {
         if (principal == null) {
             throw new AuthHandler(ErrorStatus.LATE_STAR_UNAUTHORIZED);
         }
-
-        Episode episode = episodeRepository.findById(request.getEpisodeId()).orElseThrow(() ->
-                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() ->
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
+        //=== 투표 유효성( LOGIN_REQUIRED 상태인지 ) ===//
+        Episode episode = episodeRepository.findById(request.getEpisodeId()).orElseThrow(() ->
+                new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+        if (episode.getEvaluateState() != EpEvaluateState.LOGIN_REQUIRED) {
+            throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
+        }
+
+        //=== 제출 및 투표 ===//
+        Week inlcudedWeek = weekService.getWeekByTime(episode.getScheduledAt());
+
+        EpisodeStar episodeStar = createOrGetSubmissionAndCreateOrUpdateStar(
+                inlcudedWeek,
+                episode,
+                member,
+                null,
+                requestRaw,
+                request.getStarScore()
+        );
+
+        //=== 댓글 저장 ===//
 
 
-        return null;
+        int voteCount = episodeStarRepository
+                .countAllByEpisode_Anime_IdAndWeekVoteSubmission_Member_Id(
+                        episode.getAnime().getId(),
+                        member.getId()
+                );
+
+        AnimeComment animeComment = AnimeComment.create(
+                episode.getAnime(),
+                episode,
+                member,
+                true,  // 댓글에 화수 명시
+                voteCount,
+                null,
+                request.getBody()
+        );
+        animeComment.setEpisodeStar(episodeStar);  // episode_star 관계 셋팅
+
+        AnimeComment saved = animeCommentRepository.save(animeComment);
+
+        return StarInfoDto.of(
+                episodeStar.getWeekVoteSubmission().isBlocked(),
+                episodeStar.getStarScore(),
+                episode
+        );
     }
     
     public void withdrawStar(

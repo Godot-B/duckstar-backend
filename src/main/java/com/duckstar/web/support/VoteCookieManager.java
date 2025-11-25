@@ -13,6 +13,9 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import static com.duckstar.util.QuarterUtil.*;
@@ -67,6 +70,22 @@ public class VoteCookieManager {
             if (cookieName.equals(c.getName())) return c.getValue();
         }
         return null;
+    }
+
+    public List<String> readAllCookies(HttpServletRequest req) {
+        if (req.getCookies() == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> result = new ArrayList<>();
+
+        for (Cookie c : req.getCookies()) {
+            if (c.getName().startsWith(BASE_VOTE_COOKIE)) {
+                result.add(c.getName());
+            }
+        }
+
+        return result;
     }
 
     private void setCookie(HttpServletResponse res, String name, String value, Duration ttl) {

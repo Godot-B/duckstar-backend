@@ -11,6 +11,17 @@ import java.util.List;
 public class VoteResponseDto {
 
     @Getter
+    public static class WeekCandidateDto {
+        Long episodeId;
+
+        EpEvaluateState state;
+
+        String mainThumbnailUrl;
+
+        String titleKor;
+    }
+
+    @Getter
     @Builder
     @AllArgsConstructor
     public static class StarCandidateListDto {
@@ -33,7 +44,7 @@ public class VoteResponseDto {
         Integer week;
 
         Long episodeId;
-        EpEvaluateState state;
+//        EpEvaluateState state;
         Integer voterCount;
 
         /**
@@ -60,15 +71,18 @@ public class VoteResponseDto {
          */
         StarInfoDto info;  // VOTING_WINDOW 전용
 
-        Boolean hasVoted;  // LOGIN_REQUIRED 전용
+//        Boolean hasVoted;  // LOGIN_REQUIRED 전용
+    }
 
-        public void setUserHistory(StarInfoDto info) {
-            this.info = info;
-        }
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class VoteResultDto {
+        Long episodeStarId;
 
-        public void setVoted(Boolean hasVoted) {
-            this.hasVoted = hasVoted;
-        }
+        Integer voterCount;
+
+        StarInfoDto info;
     }
 
     @Getter
