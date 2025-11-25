@@ -6,8 +6,10 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentSortType;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.mapping.CommentLike;
 import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.EpisodeStar;
 import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
@@ -260,6 +262,12 @@ public class CommentService {
 
         } else {
             throw new CommentHandler(ErrorStatus.DELETE_UNAUTHORIZED);
+        }
+
+        //=== 만약 늦참에 의해 생성된 댓글이라면 별점도 회수 ===//
+        EpisodeStar episodeStar = comment.getEpisodeStar();
+        if (episodeStar.isLateParticipating()) {
+            episodeStar.withdrawScore();
         }
 
         return DeleteResultDto.builder()

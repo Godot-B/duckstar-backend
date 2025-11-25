@@ -83,10 +83,6 @@ public abstract class Comment extends BaseEntity {
         this.body = body;
     }
 
-    public void setStatus(CommentStatus status) {
-        this.status = status;
-    }
-
     public void addLikeCount() {
         likeCount += 1;
     }
@@ -105,5 +101,9 @@ public abstract class Comment extends BaseEntity {
 
     public void setEpisode(Episode episode) {
         this.episode = episode;
+    }
+
+    public void updateBody(String body) {
+        this.body = body;
     }
 }

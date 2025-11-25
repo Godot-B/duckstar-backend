@@ -23,11 +23,7 @@ public class VoteResponseDto {
 
         String mainThumbnailUrl;
 
-        StarInfoDto info;
-
-        String body;
-
-        LocalDateTime commentUpdatedAt;
+        VoteFormResultDto result;
     }
 
     @Getter
@@ -67,8 +63,6 @@ public class VoteResponseDto {
         Integer week;
 
         Long episodeId;
-//        EpEvaluateState state;
-        Integer voterCount;
 
         /**
          * 애니 정보
@@ -92,17 +86,30 @@ public class VoteResponseDto {
         /**
          * 유저 기록
          */
-        StarInfoDto info;  // VOTING_WINDOW 전용
+        VoteResultDto result;
+    }
 
-//        Boolean hasVoted;  // LOGIN_REQUIRED 전용
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class VoteFormResultDto {
+        Boolean isLateParticipating;
+
+        Integer voterCount;
+
+        StarInfoDto info;
+
+        LocalDateTime voteUpdatedAt;
+
+        Long commentId;
+
+        String body;
     }
 
     @Getter
     @Builder
     @AllArgsConstructor
     public static class VoteResultDto {
-        Long episodeStarId;
-
         Integer voterCount;
 
         StarInfoDto info;

@@ -24,6 +24,8 @@ public class VoteRequestDto {
         @NotBlank
         @Size(min = 5, max = 1000)
         String body;
+
+        Long episodeStarId;  // 추가
     }
 
     @Getter

@@ -99,18 +99,20 @@ public class VoteController {
         );
     }
 
-    @Operation(summary = "늦참 투표 API (로그인 ONLY)",
+    @Operation(summary = "투표 폼(모달) 투표/수정 API (로그인 ONLY)",
             description = "TVA 투표 : Episode 기반, " +
-                    "방송 후 투표시간 끝나고 주차 마감 전까지, Comment 5글자 이상 필수")
-    @PostMapping("/star-late")
-    public ApiResponse<StarInfoDto> lateVoteOrUpdateStar(
+                    "방송 후 투표시간부터 주차 마감 전까지, Comment 5글자 이상 필수")
+    @PostMapping("/star-form")
+    public ApiResponse<VoteFormResultDto> voteOrUpdateWithStarForm(
             @Valid @RequestBody LateStarRequestDto request,
             @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest requestRaw
     ) {
+        Long memberId = principal == null ? null : principal.getId();
+
         return ApiResponse.onSuccess(voteCommandService.voteStarWithLoginAndComment(
                 request,
-                principal,
+                memberId,
                 requestRaw
         ));
     }
@@ -119,7 +121,6 @@ public class VoteController {
 //    @Operation(summary = "상시 평가/수정 API (로그인 ONLY)",
 //            description = "Episode 기반, 지난 주차")
 //    @PostMapping()
-
 
     @Operation(summary = "별점 회수 API", description = "starScore 를 null 로 셋팅")
     @PostMapping("/withdraw/{episodeId}/{episodeStarId}")

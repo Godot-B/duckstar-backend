@@ -2,6 +2,7 @@ package com.duckstar.domain.mapping.comment;
 
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
+import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.EpisodeStar;
 import jakarta.persistence.*;
@@ -66,5 +67,14 @@ public class AnimeComment extends Comment {
 
     public void setEpisodeStar(EpisodeStar episodeStar) {
         this.episodeStar = episodeStar;
+    }
+
+    public void setStatus(CommentStatus status) {
+        if (status == CommentStatus.DELETED
+            || status == CommentStatus.ADMIN_DELETED) {
+
+            episodeStar = null;
+        }
+        setStatus(status);
     }
 }

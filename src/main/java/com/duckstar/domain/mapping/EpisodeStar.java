@@ -1,6 +1,7 @@
 package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.common.BaseEntity;
+import com.duckstar.domain.enums.EpEvaluateState;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,14 +34,18 @@ public class EpisodeStar extends BaseEntity {
 
     private Integer starScore;  // null: 별점 회수 , 1점 ~ 10점 :별 0.5개 ~ 5.0개
 
+    private Boolean isLateParticipating = false;  // 늦참 투표로 생성됐는지 여부
+
     protected EpisodeStar(
             WeekVoteSubmission weekVoteSubmission,
             Episode episode,
-            Integer starScore
+            Integer starScore,
+            Boolean isLateParticipating
     ) {
         this.weekVoteSubmission = weekVoteSubmission;
         this.episode = episode;
         this.starScore = starScore;
+        this.isLateParticipating = isLateParticipating;
     }
 
     public static EpisodeStar create(
@@ -58,7 +63,8 @@ public class EpisodeStar extends BaseEntity {
         return new EpisodeStar(
                 weekVoteSubmission,
                 episode,
-                starScore
+                starScore,
+                episode.getEvaluateState() == EpEvaluateState.LOGIN_REQUIRED
         );
     }
 
@@ -88,5 +94,9 @@ public class EpisodeStar extends BaseEntity {
         this.starScore = null;
         this.episode.removeVoterCount();
         this.episode.removeStar(oldScore);
+    }
+
+    public boolean isLateParticipating() {
+        return isLateParticipating;
     }
 }

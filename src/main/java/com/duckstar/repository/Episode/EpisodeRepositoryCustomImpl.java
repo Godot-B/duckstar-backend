@@ -139,6 +139,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             QuarterUtil.getThisWeekRecord(scheduledAt) :
                             null;
 
+                    // EpisodeStar 존재 시 별점 통계 셋팅
                     StarInfoDto info = null;
                     EpisodeStar episodeStar = t.get(this.episodeStar);
                     if (episodeStar != null) {
@@ -146,12 +147,18 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         info = StarInfoDto.of(isBlocked, episodeStar, episode);
                     }
 
+                    // VoteResultDto 구성
+                    VoteResultDto result = VoteResultDto.builder()
+                            .voterCount(episode.getVoterCount())
+                            .info(info)
+                            .build();
+
+                    // 최종 DTO 리턴
                     return LiveCandidateDto.builder()
                             .year(record != null ? record.yearValue() : null)
                             .quarter(record != null ? record.quarterValue() : null)
                             .week(record != null ? record.weekValue() : null)
                             .episodeId(episode.getId())
-                            .voterCount(episode.getVoterCount())
                             .animeId(t.get(anime.id))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
                             .titleKor(t.get(anime.titleKor))
@@ -160,7 +167,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .airTime(airTime)
                             .genre(t.get(anime.genre))
                             .medium(medium)
-                            .info(info)
+                            .result(result)
                             .build();
                 })
                 .toList();
@@ -429,8 +436,9 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         episodeStar.weekVoteSubmission.isBlocked,
                         anime.id,
                         anime.mainThumbnailUrl,
+                        animeComment.id,
                         animeComment.body,
-                        animeComment.updatedAt
+                        episodeStar.updatedAt
                 )
                 .from(episode)
                 .join(episode.anime, anime)
@@ -454,17 +462,33 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
         }
         Integer voterCount = episode.getVoterCount();
 
-        // EpisodeStar 존재 시 별점 통계 셋팅
+        // EpisodeStar 존재 시 별점 통계 등 셋팅
         EpisodeStar episodeStar = t.get(this.episodeStar);
 
+        LocalDateTime voteUpdatedAt = null;
         StarInfoDto info = null;
+        Boolean isLateParticipating = null;
         if (episodeStar != null) {
+            voteUpdatedAt = episodeStar.getUpdatedAt();
+
             info = StarInfoDto.of(
                     t.get(this.episodeStar.weekVoteSubmission.isBlocked),
                     episodeStar,
                     episode
             );
+
+            isLateParticipating = episodeStar.getIsLateParticipating();
         }
+
+        // VoteFormResultDto 구성
+        VoteFormResultDto result = VoteFormResultDto.builder()
+                .isLateParticipating(isLateParticipating)
+                .voterCount(voterCount)
+                .info(info)
+                .voteUpdatedAt(voteUpdatedAt)
+                .commentId(t.get(animeComment.id))
+                .body(t.get(animeComment.body))
+                .build();
 
         // 최종 DTO 리턴
         return Optional.of(
@@ -473,9 +497,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .voterCount(voterCount)
                 .animeId(t.get(anime.id))
                 .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
-                .body(t.get(animeComment.body))
-                .commentUpdatedAt(t.get(animeComment.updatedAt))
-                .info(info)
+                .result(result)
                 .build()
         );
     }

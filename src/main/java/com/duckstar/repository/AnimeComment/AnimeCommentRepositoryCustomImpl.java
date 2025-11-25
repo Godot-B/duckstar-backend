@@ -4,6 +4,7 @@ import com.duckstar.domain.enums.CommentSortType;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.QCommentLike;
 import com.duckstar.domain.mapping.QEpisode;
+import com.duckstar.domain.mapping.QEpisodeStar;
 import com.duckstar.domain.mapping.QReply;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
 import com.duckstar.domain.mapping.comment.QComment;
@@ -34,10 +35,11 @@ import static com.duckstar.web.dto.CommentResponseDto.*;
 public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-    private final QComment comment = QComment.comment;
+    private final QAnimeComment animeComment = QAnimeComment.animeComment;
     private final QCommentLike commentLike = QCommentLike.commentLike;
     private final QReply reply = QReply.reply;
     private final QEpisode episode = QEpisode.episode;
+    private final QEpisodeStar episodeStar = QEpisodeStar.episodeStar;
 
     @Override
     public List<CommentDto> getCommentDtos(
@@ -61,7 +63,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                     .select(commentLike.id)
                     .from(commentLike)
                     .where(
-                            commentLike.comment.id.eq(comment.id),
+                            commentLike.comment.id.eq(animeComment.id),
                             commentLike.member.id.eq(principalId)
                     )
                     .limit(1);
@@ -70,7 +72,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                     .select(commentLike.isLiked)
                     .from(commentLike)
                     .where(
-                            commentLike.comment.id.eq(comment.id),
+                            commentLike.comment.id.eq(animeComment.id),
                             commentLike.member.id.eq(principalId)
                     )
                     .limit(1);
@@ -82,8 +84,8 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
             isLikedExpression = Expressions.constant(false);
         }
 
-        BooleanExpression animeCondition = comment.dtype.eq("A").and(
-                comment.contentIdForIdx.eq(animeId));
+        BooleanExpression animeCondition = animeComment.dtype.eq("A").and(
+                animeComment.contentIdForIdx.eq(animeId));
 
         BooleanExpression episodeCondition = episodeIds.isEmpty() ? null : episode.id.in(episodeIds);
 
@@ -91,27 +93,30 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
         List<Tuple> tuples = queryFactory.select(
                         likeIdSubquery,
                         isLikedExpression,
-                        comment.status,
-                        comment.id,
-                        comment.likeCount,
-                        comment.author.id,
-                        comment.author.nickname,
-                        comment.author.profileImageUrl,
-                        comment.isUserTaggedEp,
-                        comment.voteCount,
-                        comment.episode.episodeNumber,
-                        comment.createdAt,
-                        comment.attachedImageUrl,
-                        comment.body,
-                        comment.replyCount
+                        animeComment.status,
+                        animeComment.id,
+                        animeComment.likeCount,
+                        animeComment.author.id,
+                        animeComment.author.nickname,
+                        animeComment.author.profileImageUrl,
+                        animeComment.isUserTaggedEp,
+                        animeComment.voteCount,
+                        animeComment.createdAt,
+                        animeComment.attachedImageUrl,
+                        animeComment.body,
+                        animeComment.replyCount,
+                        episode.episodeNumber,
+                        episodeStar.starScore,
+                        episodeStar.isLateParticipating
                 )
-                .from(comment)
-                .leftJoin(comment.episode, episode)
+                .from(animeComment)
+                .leftJoin(animeComment.episode, episode)
+                .leftJoin(animeComment.episodeStar, episodeStar)
                 .where(
                         animeCondition,
                         episodeCondition,
-                        comment.status.eq(CommentStatus.NORMAL)
-                                .or(comment.replyCount.gt(0))
+                        animeComment.status.eq(CommentStatus.NORMAL)
+                                .or(animeComment.replyCount.gt(0))
                 )
                 .orderBy(getOrder(sortBy))  // 정렬
                 .offset((long) pageable.getPageNumber() * (pageSize - 1))
@@ -119,7 +124,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .fetch();
 
         List<Long> commentIds = tuples.stream()
-                .map(t -> t.get(comment.id))
+                .map(t -> t.get(animeComment.id))
                 .toList();
         if (commentIds.isEmpty()) {
             return List.of();
@@ -127,17 +132,17 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
 
         return tuples.stream()
                 .map(t -> {
-                    Long commentId = t.get(comment.id);
+                    Long commentId = t.get(animeComment.id);
 
-                    CommentStatus status = t.get(comment.status);
-                    LocalDateTime createdAt = t.get(comment.createdAt);
+                    CommentStatus status = t.get(animeComment.status);
+                    LocalDateTime createdAt = t.get(animeComment.createdAt);
 
-                    Boolean isUserTaggedEp = t.get(comment.isUserTaggedEp);
+                    Boolean isUserTaggedEp = t.get(animeComment.isUserTaggedEp);
                     Integer episodeNumber = Boolean.TRUE.equals(isUserTaggedEp) ?
-                            t.get(comment.episode.episodeNumber) :
+                            t.get(animeComment.episode.episodeNumber) :
                             null;
 
-                    Integer replyCount = t.get(comment.replyCount);
+                    Integer replyCount = t.get(animeComment.replyCount);
 
                     if (status != CommentStatus.NORMAL) {
                         return CommentDto.ofDeleted(
@@ -149,7 +154,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                         );
                     }
 
-                    Long authorId = t.get(comment.author.id);
+                    Long authorId = t.get(animeComment.author.id);
                     boolean canDelete = Objects.equals(authorId, principalId) || isAdmin;
 
                     return CommentDto.builder()
@@ -160,20 +165,22 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
 
                             .isLiked(t.get(isLikedExpression))
                             .commentLikeId(t.get(likeIdSubquery))
-                            .likeCount(t.get(comment.likeCount))
+                            .likeCount(t.get(animeComment.likeCount))
 
                             .authorId(authorId)
-                            .nickname(t.get(comment.author.nickname))
-                            .profileImageUrl(t.get(comment.author.profileImageUrl))
-                            .voteCount(t.get(comment.voteCount))
+                            .nickname(t.get(animeComment.author.nickname))
+                            .profileImageUrl(t.get(animeComment.author.profileImageUrl))
+                            .voteCount(t.get(animeComment.voteCount))
                             .episodeNumber(
                                     episodeNumber
                             )
                             .createdAt(createdAt)
-                            .attachedImageUrl(t.get(comment.attachedImageUrl))
-                            .body(t.get(comment. body))
+                            .attachedImageUrl(t.get(animeComment.attachedImageUrl))
+                            .body(t.get(animeComment. body))
 
                             .replyCount(replyCount)
+                            .starScore(t.get(episodeStar.starScore))
+                            .isLateParticipating(t.get(episodeStar.isLateParticipating))
                             .build();
                 })
                 .toList();
@@ -181,25 +188,25 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
 
     @Override
     public Integer countTotalElements(Long animeId, List<Long> episodeIds) {
-        BooleanExpression animeCondition = comment.dtype.eq("A")
-                .and(comment.contentIdForIdx.eq(animeId));
+        BooleanExpression animeCondition = animeComment.dtype.eq("A")
+                .and(animeComment.contentIdForIdx.eq(animeId));
 
         BooleanExpression episodeCondition = episodeIds.isEmpty() ? null : episode.id.in(episodeIds);
 
-        Long commentsCount = queryFactory.select(comment.count())
-                .from(comment)
-                .leftJoin(comment.episode, episode)
+        Long commentsCount = queryFactory.select(animeComment.count())
+                .from(animeComment)
+                .leftJoin(animeComment.episode, episode)
                 .where(
                         animeCondition,
-                        comment.status.eq(CommentStatus.NORMAL),
+                        animeComment.status.eq(CommentStatus.NORMAL),
                         episodeCondition
                 )
                 .fetchOne();
 
         Long repliesCount = queryFactory.select(reply.count())
                 .from(reply)
-                .join(reply.parent, comment)
-                .leftJoin(comment.episode, episode)
+                .join(animeComment).on(animeComment.id.eq(reply.parent.id))
+                .leftJoin(animeComment.episode, episode)
                 .where(
                         animeCondition,
                         reply.status.eq(CommentStatus.NORMAL),
@@ -214,12 +221,12 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
     private OrderSpecifier<?>[] getOrder(CommentSortType sortBy) {
         return switch (sortBy) {
             case POPULAR -> new OrderSpecifier<?>[]{
-                    comment.likeCount.desc(),
-                    comment.replyCount.desc(),
-                    comment.createdAt.desc()
+                    animeComment.likeCount.desc(),
+                    animeComment.replyCount.desc(),
+                    animeComment.createdAt.desc()
             };
-            case RECENT -> new OrderSpecifier<?>[]{comment.createdAt.desc()};
-            case OLDEST -> new OrderSpecifier<?>[]{comment.createdAt.asc()};
+            case RECENT -> new OrderSpecifier<?>[]{animeComment.createdAt.desc()};
+            case OLDEST -> new OrderSpecifier<?>[]{animeComment.createdAt.asc()};
         };
     }
 }

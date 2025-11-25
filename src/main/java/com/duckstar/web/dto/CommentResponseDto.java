@@ -2,10 +2,8 @@ package com.duckstar.web.dto;
 
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
-import com.duckstar.domain.mapping.CommentLike;
-import com.duckstar.domain.mapping.Episode;
-import com.duckstar.domain.mapping.Reply;
-import com.duckstar.domain.mapping.ReplyLike;
+import com.duckstar.domain.mapping.*;
+import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.domain.mapping.comment.Comment;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -66,11 +64,17 @@ public class CommentResponseDto {
 
         Integer replyCount;
 
+        // 늦참 기능에 의해 추가 (2025/11/25)
+        Integer starScore;
+        Boolean isLateParticipating;
+
         public static CommentDto ofCreated(
-                Comment comment,
+                AnimeComment comment,
                 Member author,
                 int voteCount
         ) {
+            EpisodeStar episodeStar = comment.getEpisodeStar();
+
             return CommentDto.builder()
                     .status(comment.getStatus())
                     .commentId(comment.getId())
@@ -87,8 +91,8 @@ public class CommentResponseDto {
 
                     .episodeNumber(
                             Boolean.TRUE.equals(comment.getIsUserTaggedEp()) ?
-                            comment.getEpisode().getEpisodeNumber() :
-                            null
+                                    comment.getEpisode().getEpisodeNumber() :
+                                    null
                     )
 
                     .createdAt(comment.getCreatedAt())
@@ -96,6 +100,17 @@ public class CommentResponseDto {
                     .body(comment.getBody())
 
                     .replyCount(0)
+
+                    .starScore(
+                            episodeStar != null ?
+                                    episodeStar.getStarScore() :
+                                    null
+                    )
+                    .isLateParticipating(
+                            episodeStar != null ?
+                                    episodeStar.getIsLateParticipating() :
+                                    null
+                    )
                     .build();
         }
 
