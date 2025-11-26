@@ -12,7 +12,7 @@ import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.ChartService;
-import com.duckstar.service.VoteCommandService;
+import com.duckstar.service.VoteCommandServiceImpl;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class TempTest {
     @Autowired
     private EpisodeStarRepository episodeStarRepository;
     @Autowired
-    private VoteCommandService voteCommandService;
+    private VoteCommandServiceImpl voteCommandServiceImpl;
 
     @Test
     @Transactional
@@ -51,7 +51,7 @@ public class TempTest {
     public void 에피소드_별점_리프레시() {
         Long weekId = 26L;
 
-        voteCommandService.refreshEpisodeStatsByWeekId(weekId);
+        voteCommandServiceImpl.refreshEpisodeStatsByWeekId(weekId);
     }
 
     @Test

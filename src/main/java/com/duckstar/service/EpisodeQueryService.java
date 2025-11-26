@@ -21,7 +21,6 @@ import static com.duckstar.web.dto.WeekResponseDto.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EpisodeQueryService {
-
     private final EpisodeRepository episodeRepository;
 
     private final VoteCookieManager voteCookieManager;

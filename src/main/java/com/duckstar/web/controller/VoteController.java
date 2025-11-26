@@ -3,7 +3,7 @@ package com.duckstar.web.controller;
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.EpisodeQueryService;
-import com.duckstar.service.VoteCommandService;
+import com.duckstar.service.VoteCommandServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,7 +22,7 @@ import static com.duckstar.web.dto.VoteResponseDto.*;
 @RequiredArgsConstructor
 public class VoteController {
 
-    private final VoteCommandService voteCommandService;
+    private final VoteCommandServiceImpl voteCommandServiceImpl;
     private final EpisodeQueryService episodeQueryService;
 
     /**
@@ -53,7 +53,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        return ApiResponse.onSuccess(voteCommandService.voteOrUpdateStar(
+        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdate(
                 request,
                 memberId,
                 requestRaw,
@@ -110,7 +110,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        return ApiResponse.onSuccess(voteCommandService.voteStarWithLoginAndComment(
+        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdateWithLoginAndComment(
                 request,
                 memberId,
                 requestRaw
@@ -133,7 +133,7 @@ public class VoteController {
 
         Long memberId = principal == null ? null : principal.getId();
 
-        voteCommandService.withdrawStar(
+        voteCommandServiceImpl.withdrawVote(
                 episodeId,
                 episodeStarId,
                 memberId,
