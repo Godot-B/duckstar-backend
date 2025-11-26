@@ -148,8 +148,8 @@ public class VoteResponseDto {
 
             return StarInfoDto.builder()
                     .isBlocked(isBlocked)
-                    .episodeStarId(episodeStar.getId())
-                    .userStarScore(episodeStar.getStarScore())
+                    .episodeStarId(episodeStar != null ? episodeStar.getId() : null)
+                    .userStarScore(episodeStar != null ? episodeStar.getStarScore() : null)
                     .starAverage(episode.getStarAverage())
                     .star_0_5(episode.getStar_0_5())
                     .star_1_0(episode.getStar_1_0())

@@ -173,18 +173,18 @@ public class ChartService {
         Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
         // 차트 계산, 발표 준비 완료
-        buildDuckstars(weekId);
+        buildDuckstars(weekId, false);
 
         // 배너 생성
         createBanners(weekId);
     }
 
     @Transactional
-    public void buildDuckstars(Long lastWeekId) {
+    public void buildDuckstars(Long lastWeekId, Boolean isForOrganizing) {
         Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
-        if (lastWeek.getAnnouncePrepared()) {
+        if (!isForOrganizing && lastWeek.getAnnouncePrepared()) {
             throw new WeekHandler(ErrorStatus.WEEK_ANNOUNCED_ALREADY);
         }
 
@@ -207,8 +207,9 @@ public class ChartService {
             List<EpisodeStar> thisEpisodeStars =
                     episodeStarMap.get(episode.getId());
 
-            // 모든 에피소드가 주차 마감을 기다리는 상태여야 함
-            if (episode.getEvaluateState() != EpEvaluateState.LOGIN_REQUIRED) {
+            if (!isForOrganizing
+                    // 모든 에피소드가 주차 마감을 기다리는 상태여야 함
+                    && episode.getEvaluateState() != EpEvaluateState.LOGIN_REQUIRED) {
                 throw new WeekHandler(ErrorStatus.WEEK_NOT_CLOSED);
             }
 
@@ -288,12 +289,18 @@ public class ChartService {
                 .mapToDouble(Episode::getWeightedSum)
                 .sum();  // 전체 합계 10점 만점 스케일로 맞춤
 
-        int size = votedEpisodes.size();
+        // === median 리스트 만들기 === //
+        List<Integer> medianList = votedEpisodes.stream()
+                .map(Episode::getVoterCount)
+                .sorted()
+                .toList();
 
-        int median = votedEpisodes.isEmpty() ? 0 :
+        int size = medianList.size();
+
+        int median = (size == 0) ? 0 :
                 (size % 2 == 1)
-                        ? votedCountList.get(size / 2)
-                        : (votedCountList.get(size / 2 - 1) + votedCountList.get(size / 2)) / 2;
+                        ? medianList.get(size / 2)
+                        : (medianList.get(size / 2 - 1) + medianList.get(size / 2)) / 2;
 
         double C = totalVotes == 0 ? 0.0 : weightedSum / totalVotes;
 

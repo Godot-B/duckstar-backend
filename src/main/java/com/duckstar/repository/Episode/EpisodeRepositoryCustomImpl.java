@@ -380,7 +380,11 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .weeksOnTop10(rankInfo != null ? rankInfo.getWeeksOnTop10() : null)
                             .build();
 
-                    StarInfoDto starInfoDto = StarInfoDto.of(null, null, episodeEntity);
+                    StarInfoDto starInfoDto = StarInfoDto.of(
+                            null,
+                            null,
+                            episodeEntity
+                    );
 
                     return AnimeRankDto.builder()
                             .rankPreviewDto(rankPreviewDto)

@@ -184,14 +184,13 @@ public class AdminController {
             @PathVariable Integer year,
             @PathVariable Integer quarter,
             @PathVariable Integer week,
-            @ModelAttribute @Schema(type = "string", format = "binary")
-            MultipartFile anilabCsv
+            @ModelAttribute AbroadRequestDto request
     ) throws IOException {
 
         // 바로 발표 준비 완료됨 주의
         chartService.calculateRankByYQW(year, quarter, week);
 
-        csvImportService.importAbroad(year, quarter, week, anilabCsv);
+        csvImportService.importAbroad(year, quarter, week, request);
 
         return ApiResponse.onSuccess(null);
     }

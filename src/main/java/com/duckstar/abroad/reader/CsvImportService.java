@@ -94,17 +94,6 @@ public class CsvImportService {
         importAnilab(weekId, request.getAnilabCsv());
     }
 
-    public void importAbroad(
-            Integer year,
-            Integer quarter,
-            Integer weekValue,
-            MultipartFile anilabCsv
-    ) throws IOException {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, weekValue);
-
-        importAnilab(weekId, anilabCsv);
-    }
-
     private void importAnimeCorner(Long weekId, MultipartFile animeCornerCsv) throws IOException {
         if (animeCornerCsv == null || animeCornerCsv.isEmpty()) {
             return;
