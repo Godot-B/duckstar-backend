@@ -51,7 +51,7 @@ public class SearchService {
                                     .mainThumbnailUrl(anime.getMainThumbnailUrl())
                                     .status(anime.getStatus())
                                     .isBreak(
-                                            currentEpisode != null ? currentEpisode.getIsBreak() : null
+                                            currentEpisode != null ? currentEpisode.isBreak() : null
                                     )
                                     .titleKor(anime.getTitleKor())
                                     .dayOfWeek(anime.getDayOfWeek())

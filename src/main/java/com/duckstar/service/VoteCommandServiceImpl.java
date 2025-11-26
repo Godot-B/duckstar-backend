@@ -668,7 +668,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
                 .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
                         lastWeek.getStartDateTime(), lastWeek.getEndDateTime())
                 .stream()
-                .filter(e -> e.getIsBreak() == null || !e.getIsBreak())
+                .filter(e -> !e.isBreak())
                 .toList();
 
         for (Episode episode : episodes) {

@@ -2,7 +2,6 @@ package com.duckstar.web.dto;
 
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.enums.WeekVoteStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,8 +12,6 @@ public class WeekResponseDto {
     @Builder
     @Getter
     public static class WeekDto {
-        WeekVoteStatus voteStatus;
-
         Integer year;
 
         Integer quarter;
@@ -28,7 +25,6 @@ public class WeekResponseDto {
         public static WeekDto of(Week week) {
             Quarter quarter = week.getQuarter();
             return WeekDto.builder()
-                    .voteStatus(week.getStatus())
                     .year(quarter.getYearValue())
                     .quarter(quarter.getQuarterValue())
                     .week(week.getWeekValue())

@@ -2,20 +2,13 @@ package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
-import com.duckstar.domain.Anime;
 import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.BannerType;
 import com.duckstar.domain.enums.EpEvaluateState;
-import com.duckstar.domain.enums.Gender;
-import com.duckstar.domain.enums.WeekVoteStatus;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.EpisodeStar;
-import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
-import com.duckstar.domain.mapping.legacy_vote.AnimeVote;
 import com.duckstar.domain.vo.RankInfo;
-import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
-import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.HomeBannerRepository;
@@ -23,7 +16,6 @@ import com.duckstar.repository.Week.WeekRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -33,8 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChartService {
 
-    private final AnimeCandidateRepository animeCandidateRepository;
-    private final AnimeVoteRepository animeVoteRepository;
     private final WeekRepository weekRepository;
     private final EpisodeRepository episodeRepository;
     private final EpisodeStarRepository episodeStarRepository;
@@ -209,7 +199,7 @@ public class ChartService {
                 .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
                         lastWeek.getStartDateTime(), lastWeek.getEndDateTime())
                 .stream()
-                .filter(e -> e.getIsBreak() == null || !e.getIsBreak())
+                .filter(e -> !e.isBreak())
                 .toList();
 
         List<Integer> voterCountList = new ArrayList<>();

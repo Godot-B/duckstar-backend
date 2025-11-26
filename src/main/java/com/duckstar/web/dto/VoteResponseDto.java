@@ -221,8 +221,6 @@ public class VoteResponseDto {
     @Builder
     @Getter
     public static class AnimeCandidateListDto {
-        WeekVoteStatus voteStatus;
-
         Long weekId;
 
         WeekDto weekDto;
@@ -231,12 +229,6 @@ public class VoteResponseDto {
         Integer candidatesCount;
 
         Gender memberGender;
-
-        public static AnimeCandidateListDto ofEmpty(WeekVoteStatus status) {
-            return AnimeCandidateListDto.builder()
-                    .voteStatus(status)
-                    .build();
-        }
     }
 
     @Getter
