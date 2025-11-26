@@ -1,7 +1,6 @@
 package com.duckstar.domain;
 
 import com.duckstar.domain.common.BaseEntity;
-import com.duckstar.domain.enums.WeekVoteStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,10 +30,10 @@ public class Week extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quarter_id", nullable = false)
     private Quarter quarter;
-
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(10)")
-    private WeekVoteStatus status;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(columnDefinition = "varchar(10)")
+//    private WeekVoteStatus status;
 
     @Column(nullable = false)
     private Integer weekValue;
@@ -61,13 +60,11 @@ public class Week extends BaseEntity {
 
     protected Week(
             Quarter quarter,
-            WeekVoteStatus status,
             Integer weekValue,
             LocalDateTime startDateTime,
             LocalDateTime endDateTime
     ) {
         this.quarter = quarter;
-        this.status = status;
         this.weekValue = weekValue;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
@@ -80,27 +77,18 @@ public class Week extends BaseEntity {
     ) {
         return new Week(
                 quarter,
-                WeekVoteStatus.CLOSED,
                 weekValue,
                 startDateTime,
                 startDateTime.plusWeeks(1)
         );
     }
 
-    public void closeVote() {
-        if (status != WeekVoteStatus.CLOSED) {
-            status = WeekVoteStatus.CLOSED;
-        }
-    }
-
-    public void openVote() {
-        if (status != WeekVoteStatus.OPEN) {
-            status = WeekVoteStatus.OPEN;
-        }
-    }
-
     public void updateAnimeVotes(int animeVotes, int animeVoterCount) {
         this.animeVotes = animeVotes;
         this.animeVoterCount = animeVoterCount;
+    }
+
+    public void setAnnouncePrepared(boolean announcePrepared) {
+        this.announcePrepared = announcePrepared;
     }
 }

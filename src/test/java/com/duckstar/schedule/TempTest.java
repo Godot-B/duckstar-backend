@@ -124,13 +124,7 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void calculateRankManual() {
-        Long weekId = 27L;
-
-        Week week = weekRepository.findById(weekId).get();
-
-        chartService.buildDuckstars(week.getEndDateTime(), weekId);
-
-        chartService.createBanners(weekId);
+        chartService.calculateRankByYQW(2025, 4, 8);
     }
 
     @Test
@@ -183,7 +177,7 @@ public class TempTest {
                 .toList();
         week3Episodes.forEach(episode -> episode.setRankInfo(null, null));
 
-        chartService.buildDuckstars(week3.getEndDateTime(), 22L);
+        chartService.buildDuckstars(22L);
 
 
 
@@ -196,7 +190,7 @@ public class TempTest {
                 .toList();
         week4Episodes.forEach(episode -> episode.setRankInfo(null, null));
 
-        chartService.buildDuckstars(week4.getEndDateTime(), 23L);
+        chartService.buildDuckstars(23L);
     }
 
 //    @Test

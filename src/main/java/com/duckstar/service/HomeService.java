@@ -4,7 +4,6 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.enums.WeekVoteStatus;
 import com.duckstar.repository.HomeBannerRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.HomeDto;
@@ -42,7 +41,7 @@ public class HomeService {
         Week currentWeek = nowToPast12Weeks.get(0);
 
         List<Week> pastWeeks = nowToPast12Weeks.stream()
-                .filter(week -> week.getStatus() == WeekVoteStatus.CLOSED && week.getAnnouncePrepared())
+                .filter(Week::getAnnouncePrepared)
                 .toList();
         Week lastWeek = pastWeeks.stream()
                 .findFirst()

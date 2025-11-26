@@ -49,11 +49,16 @@ public class ScheduleHandler {
                 LocalTime.of(18, 0)
         );
 
-        Week lastWeek = weekService.getWeekByTime(newWeekStartAt.minusWeeks(1));
-        Long lastWeekId = lastWeek.getId();
+        LocalDateTime lastWeekStartedAt = newWeekStartAt.minusWeeks(1);
 
         YQWRecord newWeekRecord = getThisWeekRecord(newWeekStartAt);
-        weekService.setupWeeklyVote(lastWeekId, newWeekStartAt, newWeekRecord);  // 1. 새로운 주 생성
+
+        // 새로운 주 생성
+        weekService.setupWeeklyVote(
+                lastWeekStartedAt,
+                newWeekStartAt,
+                newWeekRecord
+        );
     }
 
     /**
@@ -75,26 +80,4 @@ public class ScheduleHandler {
 //            scheduleState.stopRunning();
 //        }
 //    }
-
-    public void closeOldWeek(LocalDateTime newWeekStartAt) {
-        log.info("✈️ 주간 마무리 작업 시작 - {}", newWeekStartAt.format(FORMATTER));
-        try {
-            Week lastWeek = weekService.getWeekByTime(newWeekStartAt.minusWeeks(1));
-            Long lastWeekId = lastWeek.getId();
-
-            // ** 이미 월요일 18시에 새로운 주 생성
-//            YQWRecord newWeekRecord = getThisWeekRecord(newWeekStartAt);
-//            weekService.setupWeeklyVote(lastWeekId, newWeekStartAt, newWeekRecord);
-
-            chartService.buildDuckstars(newWeekStartAt, lastWeekId);  // 2. 지난 주 덕스타 결과 분석
-
-            chartService.createBanners(lastWeekId);  // 3. 결과에 의한 배너 생성
-
-            //TODO 4. 해외 순위 수집
-
-            log.info("✅ 주간 마무리 작업 완료 - {}", newWeekStartAt.format(FORMATTER));
-        } catch (Exception e) {
-            log.error("❌ 주간 마무리 작업 실패 - {}", newWeekStartAt.format(FORMATTER), e);
-        }
-    }
 }

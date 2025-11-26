@@ -6,6 +6,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 @Component
@@ -16,6 +17,8 @@ public class EpisodeStartupInitializer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void updateEvaluateStateOnce() {
+        LocalDateTime now = LocalDateTime.now();
+
         String sql = """
                 UPDATE episode
                 SET evaluate_state = CASE

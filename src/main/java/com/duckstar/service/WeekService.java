@@ -10,7 +10,6 @@ import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.SeasonType;
-import com.duckstar.domain.enums.WeekVoteStatus;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
@@ -198,13 +197,13 @@ public class WeekService {
     }
 
     @Transactional
-    public void setupWeeklyVote(Long lastWeekId, LocalDateTime now, YQWRecord record) {
-        Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
-                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+    public void setupWeeklyVote(
+            LocalDateTime lastWeekStartedAt,
+            LocalDateTime now,
+            YQWRecord record
+    ) {
+        Week lastWeek = getWeekByTime(lastWeekStartedAt);
         int lastWeekQuarterValue = lastWeek.getQuarter().getQuarterValue();
-
-        //=== 지난 투표 주 마감 ===//
-        lastWeek.closeVote();
 
         int thisQuarterValue = record.quarterValue();
 
@@ -231,13 +230,11 @@ public class WeekService {
 
         // TODO 캐릭터 후보군 생성
 
-        //=== 새로운 주의 투표 오픈 ===//
-        newWeek.openVote();
     }
 
     public List<WeekDto> getAllWeeks() {
         return weekRepository.findAll().stream()
-                .filter(week -> week.getStatus() == WeekVoteStatus.CLOSED && week.getAnnouncePrepared())
+                .filter(Week::getAnnouncePrepared)
                 .sorted(Comparator.comparing(Week::getStartDateTime))
                 .map(WeekDto::of)
                 .toList();

@@ -6,7 +6,9 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.HomeBanner;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.BannerType;
+import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.enums.Gender;
+import com.duckstar.domain.enums.WeekVoteStatus;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.EpisodeStar;
 import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
@@ -21,6 +23,7 @@ import com.duckstar.repository.Week.WeekRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,6 +39,7 @@ public class ChartService {
     private final EpisodeRepository episodeRepository;
     private final EpisodeStarRepository episodeStarRepository;
     private final HomeBannerRepository homeBannerRepository;
+    private final WeekService weekService;
 
 //    @Transactional
 //    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
@@ -171,9 +175,28 @@ public class ChartService {
 //    }
 
     @Transactional
-    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId) {
+    public void calculateRankByYQW(
+            Integer year,
+            Integer quarter,
+            Integer week
+    ) {
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
+
+        // 차트 계산, 발표 준비 완료
+        buildDuckstars(weekId);
+
+        // 배너 생성
+        createBanners(weekId);
+    }
+
+    @Transactional
+    public void buildDuckstars(Long lastWeekId) {
         Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+
+        if (lastWeek.getAnnouncePrepared()) {
+            throw new WeekHandler(ErrorStatus.WEEK_ANNOUNCED_ALREADY);
+        }
 
         //=== 회수된 표 제외 === //
         List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllEligibleByWeekId(lastWeekId);
@@ -193,6 +216,11 @@ public class ChartService {
         for (Episode episode : episodes) {
             List<EpisodeStar> thisEpisodeStars =
                     episodeStarMap.get(episode.getId());
+
+            // 모든 에피소드가 주차 마감을 기다리는 상태여야 함
+            if (episode.getEvaluateState() != EpEvaluateState.LOGIN_REQUIRED) {
+                throw new WeekHandler(ErrorStatus.WEEK_NOT_CLOSED);
+            }
 
             if (thisEpisodeStars == null || thisEpisodeStars.isEmpty()) {
                 voterCountList.add(0);
@@ -237,6 +265,9 @@ public class ChartService {
                 }
 
                 episode.setStats(voterCount, scores);
+
+                // 투표 마감
+                episode.setEvaluateState(EpEvaluateState.ALWAYS_OPEN);
             }
         }
 
@@ -304,6 +335,7 @@ public class ChartService {
         //=== Anime 스트릭과 결합, RankInfo 셋팅 ===//
         for (Map.Entry<Integer, List<Episode>> entry : chart.entrySet()) {
             int rank = entry.getKey();
+            LocalDateTime lastWeekEndAt = lastWeek.getEndDateTime();
             for (Episode episode : entry.getValue()) {  // 동점자 각각 처리
                 RankInfo rankInfo = RankInfo.create(
                         episode.getAnime(),
@@ -316,6 +348,9 @@ public class ChartService {
                 episode.setRankInfo(lastWeek, rankInfo);
             }
         }
+
+        // 발표 준비 완료
+        lastWeek.setAnnouncePrepared(true);
     }
 
     private int computeP75(List<Integer> voterCountList) {

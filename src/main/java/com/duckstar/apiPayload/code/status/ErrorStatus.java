@@ -26,6 +26,8 @@ public enum ErrorStatus implements BaseErrorCode {
     ROTATION_POLICY_VIOLATION(HttpStatus.BAD_REQUEST, "WEEK4002", "초기화 시간 정책을 준수해주세요."),
     SCHEDULE_RUNNING(HttpStatus.BAD_REQUEST, "WEEK4003", "주간 초기화 작업이 진행 중입니다. 나중에 시도해 주세요."),
     ANNOUNCEMENT_NOT_PREPARED(HttpStatus.BAD_REQUEST, "WEEK4004", "해당 주차의 발표는 준비되지 않았습니다."),
+    WEEK_NOT_CLOSED(HttpStatus.BAD_REQUEST, "WEEK4005", "투표가 마감되지 않은 주차입니다."),
+    WEEK_ANNOUNCED_ALREADY(HttpStatus.BAD_REQUEST, "WEEK4006", "이미 발표가 완료된 주차입니다."),
 
     // 순위 정보
     MEDAL_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "RANK4001", "허용되지 않는 메달 타입입니다."),

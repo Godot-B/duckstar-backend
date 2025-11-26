@@ -1,5 +1,6 @@
 package com.duckstar.web.controller;
 
+import com.duckstar.abroad.reader.CsvImportService;
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AdminHandler;
@@ -8,26 +9,32 @@ import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.service.ShadowBanService;
 import com.duckstar.service.AdminActionLogService;
 import com.duckstar.service.AnimeService;
+import com.duckstar.service.ChartService;
 import com.duckstar.service.SubmissionService;
 import com.duckstar.web.dto.admin.AdminLogDto;
 import com.duckstar.web.dto.admin.AdminLogDto.IpManagementLogSliceDto;
+import com.duckstar.web.dto.admin.CsvRequestDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
 
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
+import static com.duckstar.web.dto.admin.CsvRequestDto.*;
 import static com.duckstar.web.dto.admin.SubmissionResponseDto.*;
 
 @RestController
@@ -41,6 +48,8 @@ public class AdminController {
     private final SubmissionService submissionService;
     private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final AdminActionLogService adminActionLogService;
+    private final CsvImportService csvImportService;
+    private final ChartService chartService;
 
     @Operation(summary = "애니메이션 총 화수 수정 API")
     @PostMapping("/{animeId}/total-episodes")
@@ -164,6 +173,25 @@ public class AdminController {
                 ipHash,
                 reason
         );
+
+        return ApiResponse.onSuccess(null);
+    }
+
+    @Operation(summary = "편의용 주간 마감 API",
+            description = "주간 덕스타 차트 계산, AniLab 차트 csv 읽고 등록")
+    @PostMapping(value = "/chart/{year}/{quarter}/{week}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Void> calculateRankAndImportAniLab(
+            @PathVariable Integer year,
+            @PathVariable Integer quarter,
+            @PathVariable Integer week,
+            @ModelAttribute @Schema(type = "string", format = "binary")
+            MultipartFile anilabCsv
+    ) throws IOException {
+
+        // 바로 발표 준비 완료됨 주의
+        chartService.calculateRankByYQW(year, quarter, week);
+
+        csvImportService.importAbroad(year, quarter, week, anilabCsv);
 
         return ApiResponse.onSuccess(null);
     }
