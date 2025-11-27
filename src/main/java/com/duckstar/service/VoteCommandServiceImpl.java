@@ -552,7 +552,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
 
         AnimeComment comment;
         Optional<AnimeComment> commentOpt =
-                animeCommentRepository.findByEpisodeStar_Id(episodeStarId);
+                animeCommentRepository.findByEpisodeStar_Id(episodeStar.getId());
         if (commentOpt.isPresent() && commentOpt.get().getStatus() == CommentStatus.NORMAL) {
             //=== 수정 ===//
             comment = commentOpt.get();

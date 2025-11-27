@@ -441,8 +441,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         anime.id,
                         anime.mainThumbnailUrl,
                         animeComment.id,
-                        animeComment.body,
-                        episodeStar.updatedAt
+                        animeComment.body
                 )
                 .from(episode)
                 .join(episode.anime, anime)

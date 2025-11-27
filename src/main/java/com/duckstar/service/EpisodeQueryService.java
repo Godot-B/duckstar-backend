@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,10 +37,12 @@ public class EpisodeQueryService {
     ) {
         // 사용자의 principal_key 최대 2개 (2주 걸치는 시간 존재)
         List<String> cookies = voteCookieManager.readAllCookies(requestRaw);
-        List<String> principalKeys = cookies.stream()
-                .map(c -> voteCookieManager.toPrincipalKey(memberId, c))
-                .filter(Objects::nonNull)
-                .toList();
+        List<String> principalKeys = cookies.isEmpty() ?
+                List.of(voteCookieManager.toPrincipalKey(memberId, null)) :
+                cookies.stream()
+                        .map(c -> voteCookieManager.toPrincipalKey(memberId, c))
+                        .filter(Objects::nonNull)
+                        .toList();
 
         // 전체 VOTING_WINDOW 상태 에피소드들 조회
         List<LiveCandidateDto> candidates = episodeRepository
@@ -95,10 +98,12 @@ public class EpisodeQueryService {
     ) {
         // 사용자의 principal_key 최대 2개 (2주 걸치는 시간 존재)
         List<String> cookies = voteCookieManager.readAllCookies(requestRaw);
-        List<String> principalKeys = cookies.stream()
-                .map(c -> voteCookieManager.toPrincipalKey(memberId, c))
-                .filter(Objects::nonNull)
-                .toList();
+        List<String> principalKeys = cookies.isEmpty() ?
+                List.of(voteCookieManager.toPrincipalKey(memberId, null)) :
+                cookies.stream()
+                        .map(c -> voteCookieManager.toPrincipalKey(memberId, c))
+                        .filter(Objects::nonNull)
+                        .toList();
 
         return episodeRepository.getCandidateFormDto(episodeId, principalKeys)
                 .orElseThrow(() -> new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
