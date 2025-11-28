@@ -364,10 +364,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
         return tuples.stream()
                 .map(t -> {
                     Long animeId = t.get(anime.id);
-                    Episode episodeEntity = t.get(episode);
-                    RankInfo rankInfo = episodeEntity != null ? episodeEntity.getRankInfo() : null;
+                    Episode episode = t.get(this.episode);
+                    RankInfo rankInfo = episode != null ? episode.getRankInfo() : null;
 
-                    RankPreviewDto rankPreviewDto = RankPreviewDto.of(episodeEntity);
+                    RankPreviewDto rankPreviewDto = RankPreviewDto.of(episode);
 
                     List<MedalPreviewDto> medalPreviews =
                             medalDtosMap.getOrDefault(animeId, List.of());
@@ -383,14 +383,19 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                     StarInfoDto starInfoDto = StarInfoDto.of(
                             null,
                             null,
-                            episodeEntity
+                            episode
                     );
+
+                    VoteResultDto result = VoteResultDto.builder()
+                            .voterCount(episode != null ? episode.getVoterCount() : null)
+                            .info(starInfoDto)
+                            .build();
 
                     return AnimeRankDto.builder()
                             .rankPreviewDto(rankPreviewDto)
                             .medalPreviews(medalPreviews)
                             .animeStatDto(animeStatDto)
-                            .starInfoDto(starInfoDto)
+                            .voteResultDto(result)
                             .build();
                 })
                 .toList();

@@ -49,7 +49,7 @@ public class AnimeResponseDto {
 
         AnimeStatDto animeStatDto;
 
-        StarInfoDto starInfoDto;
+        VoteResultDto voteResultDto;
     }
 
     @Builder
