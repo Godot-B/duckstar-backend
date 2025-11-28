@@ -2,7 +2,7 @@ package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
-import com.duckstar.service.EpisodeQueryService;
+import com.duckstar.service.EpisodeService.EpisodeQueryService;
 import com.duckstar.service.VoteCommandServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;

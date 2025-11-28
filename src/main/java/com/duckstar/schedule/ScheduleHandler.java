@@ -1,7 +1,6 @@
 package com.duckstar.schedule;
 
-import com.duckstar.domain.Week;
-import com.duckstar.service.AnimeService;
+import com.duckstar.service.AnimeService.AnimeCommandService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.WeekService;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +24,8 @@ public class ScheduleHandler {
     private final ChartService chartService;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private final AnimeService animeService;
     private final ScheduleState scheduleState;
+    private final AnimeCommandService animeCommandService;
 
     // 매 분마다 시작 or 종영 체크
     @Scheduled(cron = "0 * * * * *")
@@ -35,7 +34,7 @@ public class ScheduleHandler {
             return;
         }
 
-        animeService.updateStatesByWindows();
+        animeCommandService.updateStatesByWindows();
     }
 
     // 매주 월요일 18시

@@ -22,6 +22,7 @@ import com.duckstar.repository.Reply.ReplyRepository;
 import com.duckstar.s3.S3Uploader;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.repository.MemberRepository;
+import com.duckstar.service.AnimeService.AnimeQueryService;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
 import com.duckstar.web.dto.PageInfo;
@@ -44,13 +45,12 @@ import static com.duckstar.web.dto.BoardRequestDto.*;
 public class CommentService {
 
     private final AnimeCommentRepository animeCommentRepository;
-    private final AnimeVoteRepository animeVoteRepository;
     private final EpisodeRepository episodeRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final MemberRepository memberRepository;
     private final AnimeRepository animeRepository;
 
-    private final AnimeService animeService;
+    private final AnimeQueryService animeQueryService;
     private final S3Uploader s3Uploader;
     private final EpisodeStarRepository episodeStarRepository;
 
@@ -91,7 +91,7 @@ public class CommentService {
             }
         } else {
             LocalDateTime now = LocalDateTime.now();
-            episode = animeService.findCurrentEpisode(anime, now)
+            episode = animeQueryService.findCurrentEpisode(anime, now)
                     .orElse(null);
         }
 

@@ -1,13 +1,13 @@
 package com.duckstar.repository.Episode;
 
 import com.duckstar.domain.Week;
+import com.duckstar.service.AnimeService.AnimeCommandServiceImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.duckstar.service.AnimeService.*;
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.SearchResponseDto.*;
@@ -26,7 +26,7 @@ public interface EpisodeRepositoryCustom {
 
     List<AnimeRankDto> getAnimeRankDtosByWeekIdWithOverFetch(Long weekId, LocalDateTime weekEndDateTime, Pageable pageable);
 
-    List<PremieredEpRecord> findPremieredEpRecordsInWindow(LocalDateTime windowStart, LocalDateTime windowEnd);
+    List<AnimeCommandServiceImpl.PremieredEpRecord> findPremieredEpRecordsInWindow(LocalDateTime windowStart, LocalDateTime windowEnd);
 
     Optional<CandidateFormDto> getCandidateFormDto(Long episodeId, List<String> principalKeys);
 }

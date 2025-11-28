@@ -9,6 +9,7 @@ import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
+import com.duckstar.service.AnimeService.AnimeQueryService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
@@ -25,7 +25,8 @@ import java.util.List;
 @ActiveProfiles("test")
 public class AnimeServiceTest extends TestContainersConfig {
 
-    @Autowired AnimeService animeService;
+    @Autowired
+    AnimeQueryService animeQueryService;
     @Autowired
     private SeasonRepository seasonRepository;
     @Autowired
@@ -34,20 +35,6 @@ public class AnimeServiceTest extends TestContainersConfig {
     private WeekRepository weekRepository;
     @Autowired
     private AnimeRepository animeRepository;
-
-    @Test
-    @Transactional
-    public void testCandidates() {
-        Season season = seasonRepository.findById(2L).get();
-        List<Anime> animes = animeService.getAnimesForCandidate(
-                season, LocalDateTime.of(2025, 10, 3, 19, 0)
-        );
-
-        System.out.println("후보 수: " + animes.size());
-        for (Anime anime : animes) {
-            System.out.println("animeTitle: " + anime.getTitleKor() + " 첫 방영일: " + anime.getPremiereDateTime());
-        }
-    }
 
     @Test
     @Transactional

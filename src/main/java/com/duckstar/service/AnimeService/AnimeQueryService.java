@@ -24,6 +24,6 @@ public interface AnimeQueryService {
 
     Optional<Episode> findCurrentEpisode(Anime anime, LocalDateTime now);
 
-    // legacy
-    List<Anime> getAnimesForCandidate(Season season, LocalDateTime now);
+//    // legacy
+//    List<Anime> getAnimesForCandidate(Season season, LocalDateTime now);
 }

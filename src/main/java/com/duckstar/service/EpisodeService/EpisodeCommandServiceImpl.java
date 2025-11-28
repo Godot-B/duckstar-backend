@@ -1,9 +1,10 @@
-package com.duckstar.service;
+package com.duckstar.service.EpisodeService;
 
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.repository.Episode.EpisodeRepository;
+import com.duckstar.service.WeekService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class EpisodeCommandService {
+public class EpisodeCommandServiceImpl implements EpisodeCommandService {
     private final EpisodeRepository episodeRepository;
     private final WeekService weekService;
 

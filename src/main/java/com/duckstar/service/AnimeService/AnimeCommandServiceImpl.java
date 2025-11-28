@@ -1,38 +1,36 @@
-package com.duckstar.service;
+package com.duckstar.service.AnimeService;
 
-import com.duckstar.abroad.aniLab.Anilab;
-import com.duckstar.abroad.aniLab.AnilabRepository;
+
 import com.duckstar.abroad.reader.CsvImportService;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
-import com.duckstar.abroad.animeCorner.AnimeCorner;
-import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
-import com.duckstar.domain.*;
+import com.duckstar.domain.Anime;
+import com.duckstar.domain.Ott;
+import com.duckstar.domain.Quarter;
+import com.duckstar.domain.Season;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.AnimeOtt;
 import com.duckstar.domain.mapping.AnimeSeason;
 import com.duckstar.domain.mapping.Episode;
 import com.duckstar.domain.mapping.comment.AnimeComment;
-import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
-import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.AnimeRepository;
-import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
+import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.OttRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.s3.S3Uploader;
 import com.duckstar.schedule.ScheduleState;
-import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
+import com.duckstar.service.SeasonService;
+import com.duckstar.web.dto.EpisodeResponseDto;
 import com.duckstar.web.dto.OttDto;
-import com.duckstar.web.dto.RankInfoDto.DuckstarRankPreviewDto;
+import com.duckstar.web.dto.admin.AnimeRequestDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,131 +41,24 @@ import java.time.MonthDay;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.duckstar.web.dto.AnimeResponseDto.*;
-import static com.duckstar.web.dto.EpisodeResponseDto.*;
-import static com.duckstar.web.dto.RankInfoDto.*;
-import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
-
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class AnimeService {
+@Transactional
+public class AnimeCommandServiceImpl implements AnimeCommandService {
 
-    private final AnimeRepository animeRepository;
-    private final AnimeCandidateRepository animeCandidateRepository;
-    private final AnimeSeasonRepository animeSeasonRepository;
-    private final AnimeOttRepository animeOttRepository;
-    private final AnimeCharacterRepository animeCharacterRepository;
-    private final EpisodeRepository episodeRepository;
     private final AnimeCommentRepository animeCommentRepository;
     private final WeekRepository weekRepository;
 
     private final ScheduleState scheduleState;
-    private final AnimeCornerRepository animeCornerRepository;
-    private final AnilabRepository anilabRepository;
 
     private final CsvImportService csvImportService;
     private final SeasonService seasonService;
     private final OttRepository ottRepository;
     private final S3Uploader s3Uploader;
-
-    public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
-        List<Episode> episodes =
-                episodeRepository.findEpisodesByWeekOrdered(
-                        weekId,
-                        PageRequest.of(0, size)
-                );
-
-        return episodes.stream()
-                .map(DuckstarRankPreviewDto::of)
-                .toList();
-    }
-
-    public List<RankPreviewDto> getAnimeCornerPreviewsByWeekId(Long weekId, int size) {
-        List<AnimeCorner> animeCorners =
-                animeCornerRepository.findAllByWeek_Id(
-                        weekId,
-                        PageRequest.of(0, size)
-                );
-
-        return animeCorners.stream()
-                .map(RankPreviewDto::of)
-                .toList();
-    }
-
-    public List<RankPreviewDto> getAnilabPreviewsByWeekId(Long weekId, int size) {
-        List<Anilab> anilabs =
-                anilabRepository.findAllByWeek_Id(
-                        weekId,
-                        PageRequest.of(0, size)
-                );
-
-        return anilabs.stream()
-                .map(RankPreviewDto::of)
-                .toList();
-    }
-
-    public List<Long> getAllAnimeIds() {
-        return animeRepository.findAll().stream()
-                .map(Anime::getId)
-                .toList();
-    }
-
-    public AnimeHomeDto getAnimeHomeDtoById(Long animeId) {
-        // 애니 정보, 분기 성적 통계
-        Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
-                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
-
-        LocalDateTime premiereDateTime = anime.getPremiereDateTime();
-
-        AnimeInfoDto animeInfoDto = AnimeInfoDto.builder()
-                .medium(anime.getMedium())
-                .status(anime.getStatus())
-                .totalEpisodes(anime.getTotalEpisodes())
-                .premiereDateTime(premiereDateTime)
-                .titleKor(anime.getTitleKor())
-                .titleOrigin(anime.getTitleOrigin())
-                .dayOfWeek(anime.getDayOfWeek())
-                .airTime(anime.getAirTime())
-                .synopsis(anime.getSynopsis())
-                .corp(anime.getCorp())
-                .director(anime.getDirector())
-                .genre(anime.getGenre())
-                .author(anime.getAuthor())
-                .minAge(anime.getMinAge())
-                .officalSite(anime.getOfficialSite())
-                .mainImageUrl(anime.getMainImageUrl())
-                .mainThumbnailUrl(anime.getMainThumbnailUrl())
-                .seasonDtos(
-                        animeSeasonRepository.getSeasonDtosByAnimeId(animeId)
-                )
-                .ottDtos(
-                        animeOttRepository.getOttDtosByAnimeId(animeId)
-                )
-                .build();
-
-        AnimeStatDto animeStatDto = AnimeStatDto.builder()
-                .debutRank(anime.getDebutRank())
-                .debutDate(anime.getDebutDate())
-                .peakRank(anime.getPeakRank())
-                .peakDate(anime.getPeakDate())
-                .weeksOnTop10(anime.getWeeksOnTop10())
-                .build();
-
-        return AnimeHomeDto.builder()
-                .animeInfoDto(animeInfoDto)
-                .animeStatDto(animeStatDto)
-                .episodeResponseDtos(
-                        episodeRepository.getEpisodeDtosByAnimeId(animeId)
-                )
-                .rackUnitDtos(
-                        animeCandidateRepository.getRackUnitDtosByAnimeId(animeId)
-                )
-                .castPreviews(
-                        animeCharacterRepository.getAllCharacterHomePreviewsByAnimeId(animeId)
-                )
-                .build();
-    }
+    private final AnimeSeasonRepository animeSeasonRepository;
+    private final AnimeRepository animeRepository;
+    private final EpisodeRepository episodeRepository;
+    private final AnimeOttRepository animeOttRepository;
 
     @Transactional
     public List<Anime> getAnimesForCandidate(Season season, LocalDateTime now) {
@@ -222,7 +113,7 @@ public class AnimeService {
                 Episode episode = record.episode;
                 episode.setEvaluateState(EpEvaluateState.LOGIN_REQUIRED);
 
-            // 24분 전 윈도우 내
+                // 24분 전 윈도우 내
             } else if (premiereFinished) {
                 // 방영 상태 체크
                 Anime anime = record.anime;
@@ -230,7 +121,7 @@ public class AnimeService {
                     anime.setStatus(AnimeStatus.ENDED);
                 }
 
-            // 1분 전 윈도우 내
+                // 1분 전 윈도우 내
             } else {
                 Episode episode = record.episode;
                 episode.setEvaluateState(EpEvaluateState.VOTING_WINDOW);
@@ -247,7 +138,7 @@ public class AnimeService {
     }
 
     @Transactional
-    public Long addAnime(PostRequestDto request) throws IOException {
+    public Long addAnime(AnimeRequestDto.PostRequestDto request) throws IOException {
         LocalDateTime premiereDateTime = request.getPremiereDateTime();
 
         Integer totalEpisodes = request.getTotalEpisodes();
@@ -353,8 +244,8 @@ public class AnimeService {
             Map<OttType, Ott> ottMap = ottRepository.findAll()
                     .stream()
                     .collect(Collectors.toMap(
-                            Ott::getType,
-                            ott -> ott
+                                    Ott::getType,
+                                    ott -> ott
                             )
                     );
             ottDtos.forEach(ottDto ->
@@ -373,7 +264,7 @@ public class AnimeService {
     }
 
     @Transactional
-    public Long updateAnimeImage(Long animeId, ImageRequestDto request) throws IOException {
+    public Long updateAnimeImage(Long animeId, AnimeRequestDto.ImageRequestDto request) throws IOException {
         Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
@@ -408,7 +299,7 @@ public class AnimeService {
     }
 
     @Transactional
-    public EpisodeResultDto updateTotalEpisodes(Long animeId, EpisodeRequestDto request) {
+    public EpisodeResponseDto.EpisodeResultDto updateTotalEpisodes(Long animeId, EpisodeRequestDto request) {
         if (scheduleState.isWeeklyScheduleRunning()) {
             throw new WeekHandler(ErrorStatus.SCHEDULE_RUNNING);
         }
@@ -428,7 +319,7 @@ public class AnimeService {
 
             if (oldTotalEpisodes.equals(newTotalEpisodes)) {
                 anime.updateTotalEpisodes(12);
-                return EpisodeResultDto.builder()
+                return EpisodeResponseDto.EpisodeResultDto.builder()
                         .message("에피소드 수 변화 없음")
                         .build();
 
@@ -440,7 +331,7 @@ public class AnimeService {
                 LocalDateTime scheduledAt = lastEpisode.getNextEpScheduledAt();
 
                 LocalDateTime nextEpScheduledAt;
-                List<EpisodePreviewDto> addedEpisodes = new ArrayList<>();
+                List<EpisodeResponseDto.EpisodePreviewDto> addedEpisodes = new ArrayList<>();
                 for (int i = 0; i < diff; i++) {
                     int episodeNumber = lastEpisodeNumber + i + 1;
                     nextEpScheduledAt = scheduledAt.plusWeeks(1);
@@ -455,14 +346,14 @@ public class AnimeService {
                     Episode saved = episodeRepository.save(episode);
 
                     animeCommentRepository.findAllByAnime_IdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
-                            anime.getId(), scheduledAt, nextEpScheduledAt)
-                    .forEach(ac -> ac.setEpisode(saved));
+                                    anime.getId(), scheduledAt, nextEpScheduledAt)
+                            .forEach(ac -> ac.setEpisode(saved));
 
-                    addedEpisodes.add(EpisodePreviewDto.of(episode));
+                    addedEpisodes.add(EpisodeResponseDto.EpisodePreviewDto.of(episode));
 
                     scheduledAt = scheduledAt.plusWeeks(1);
                 }
-                return EpisodeResultDto.builder()
+                return EpisodeResponseDto.EpisodeResultDto.builder()
                         .message("에피소드 추가: " + diff + "개")
                         .addedEpisodes(addedEpisodes)
                         .build();
@@ -478,7 +369,7 @@ public class AnimeService {
                         .map(Episode::getId)
                         .toList();
 
-                List<EpisodePreviewDto> deletedEpisodes = new ArrayList<>();
+                List<EpisodeResponseDto.EpisodePreviewDto> deletedEpisodes = new ArrayList<>();
                 int episodeNumber = newLastEpisodeNumber + 1;
                 for (Long episodeId : episodeIdsToDelete) {
                     List<AnimeComment> comments = animeCommentRepository.findAllByEpisode_Id(episodeId);
@@ -487,7 +378,7 @@ public class AnimeService {
                     comments.forEach(ac -> ac.setEpisode(null));
 
                     deletedEpisodes.add(
-                            EpisodePreviewDto.builder()
+                            EpisodeResponseDto.EpisodePreviewDto.builder()
                                     .episodeId(episodeId)
                                     .episodeNumber(episodeNumber)
                                     .build()
@@ -497,7 +388,7 @@ public class AnimeService {
                 episodeRepository.deleteAllById(episodeIdsToDelete);
 
                 int diff = oldTotalEpisodes - newTotalEpisodes;
-                return EpisodeResultDto.builder()
+                return EpisodeResponseDto.EpisodeResultDto.builder()
                         .message("에피소드 삭제: " + diff + "개")
                         .deletedEpisodes(deletedEpisodes)
                         .build();
@@ -508,13 +399,8 @@ public class AnimeService {
         }
     }
 
-    public Optional<Episode> findCurrentEpisode(Anime anime, LocalDateTime now) {
-        return episodeRepository
-                .findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(anime, now, now);
-    }
-
     @Transactional
-    public EpisodeResultDto setUnknown(Long animeId) {
+    public EpisodeResponseDto.EpisodeResultDto setUnknown(Long animeId) {
         if (scheduleState.isWeeklyScheduleRunning()) {
             throw new WeekHandler(ErrorStatus.SCHEDULE_RUNNING);
         }
@@ -526,7 +412,7 @@ public class AnimeService {
 
             anime.updateTotalEpisodes(null);
 
-            return EpisodeResultDto.builder()
+            return EpisodeResponseDto.EpisodeResultDto.builder()
                     .message("에피소드 수 미정")
                     .build();
 

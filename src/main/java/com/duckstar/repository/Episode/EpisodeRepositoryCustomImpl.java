@@ -10,6 +10,7 @@ import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.*;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
 import com.duckstar.domain.vo.RankInfo;
+import com.duckstar.service.AnimeService.AnimeCommandServiceImpl;
 import com.duckstar.util.QuarterUtil;
 import com.duckstar.web.dto.OttDto;
 import com.querydsl.core.Tuple;
@@ -27,7 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.duckstar.service.AnimeService.*;
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.MedalDto.*;
@@ -397,7 +397,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     }
 
     @Override
-    public List<PremieredEpRecord> findPremieredEpRecordsInWindow(LocalDateTime windowStart, LocalDateTime windowEnd) {
+    public List<AnimeCommandServiceImpl.PremieredEpRecord> findPremieredEpRecordsInWindow(LocalDateTime windowStart, LocalDateTime windowEnd) {
         // 방영 종료 체크: scheduledAt + 24분이 윈도우 안에 있는 경우
         // 즉, scheduledAt이 (windowStart - 24분) ~ (windowEnd - 24분) 범위에 있어야 함
         LocalDateTime finishedEpWindowStart = windowStart.minusMinutes(24);
@@ -409,7 +409,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
 
         return queryFactory.select(
                         Projections.constructor(
-                                PremieredEpRecord.class,
+                                AnimeCommandServiceImpl.PremieredEpRecord.class,
                                 episode,
                                 episode.scheduledAt.eq(anime.premiereDateTime),  // 첫 번째 에피소드인지
                                 episode.isLastEpisode,  // 마지막 에피소드인지

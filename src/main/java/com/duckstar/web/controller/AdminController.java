@@ -8,15 +8,12 @@ import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.service.ShadowBanService;
 import com.duckstar.service.AdminActionLogService;
-import com.duckstar.service.AnimeService;
+import com.duckstar.service.AnimeService.AnimeCommandService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.SubmissionService;
-import com.duckstar.web.dto.admin.AdminLogDto;
 import com.duckstar.web.dto.admin.AdminLogDto.IpManagementLogSliceDto;
-import com.duckstar.web.dto.admin.CsvRequestDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,38 +39,38 @@ import static com.duckstar.web.dto.admin.SubmissionResponseDto.*;
 @Validated
 public class AdminController {
 
-    private final AnimeService animeService;
     private final ShadowBanService shadowBanService;
     private final SubmissionService submissionService;
     private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final AdminActionLogService adminActionLogService;
     private final CsvImportService csvImportService;
     private final ChartService chartService;
+    private final AnimeCommandService animeCommandService;
 
     @Operation(summary = "애니메이션 총 화수 수정 API")
     @PostMapping("/{animeId}/total-episodes")
     public ApiResponse<EpisodeResultDto> updateTotalEpisodes(
             @PathVariable Long animeId, @Valid @RequestBody EpisodeRequestDto request) {
-        return ApiResponse.onSuccess(animeService.updateTotalEpisodes(animeId, request));
+        return ApiResponse.onSuccess(animeCommandService.updateTotalEpisodes(animeId, request));
     }
 
     @Operation(summary = "애니메이션 총 화수 알 수 없음 Set API")
     @PatchMapping("/{animeId}/total-episodes/unknown")
     public ApiResponse<EpisodeResultDto> updateTotalEpisodes(@PathVariable Long animeId) {
-        return ApiResponse.onSuccess(animeService.setUnknown(animeId));
+        return ApiResponse.onSuccess(animeCommandService.setUnknown(animeId));
     }
 
     @Operation(summary = "애니메이션 등록 API")
     @PostMapping("/animes")
     public ApiResponse<Long> addAnime(@Valid @ModelAttribute PostRequestDto request) throws IOException {
-        return ApiResponse.onSuccess(animeService.addAnime(request));
+        return ApiResponse.onSuccess(animeCommandService.addAnime(request));
     }
 
     @Operation(summary = "애니메이션 메인 이미지 수정 API")
     @PostMapping("/animes/{animeId}")
     public ApiResponse<Long> updateAnimeImage(@PathVariable Long animeId,
                                       @ModelAttribute ImageRequestDto request) throws IOException {
-        return ApiResponse.onSuccess(animeService.updateAnimeImage(animeId, request));
+        return ApiResponse.onSuccess(animeCommandService.updateAnimeImage(animeId, request));
     }
 
     @Operation(summary = "에피소드 휴방 API")

@@ -1,9 +1,10 @@
-package com.duckstar.service;
+package com.duckstar.service.EpisodeService;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.domain.Week;
 import com.duckstar.repository.Episode.EpisodeRepository;
+import com.duckstar.service.WeekService;
 import com.duckstar.web.support.VoteCookieManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -22,7 +22,7 @@ import static com.duckstar.web.dto.WeekResponseDto.*;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class EpisodeQueryService {
+public class EpisodeQueryServiceImpl implements EpisodeQueryService {
     private final EpisodeRepository episodeRepository;
 
     private final VoteCookieManager voteCookieManager;

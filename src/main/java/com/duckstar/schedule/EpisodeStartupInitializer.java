@@ -1,6 +1,6 @@
 package com.duckstar.schedule;
 
-import com.duckstar.service.EpisodeCommandService;
+import com.duckstar.service.EpisodeService.EpisodeCommandServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class EpisodeStartupInitializer {
 
-    private final EpisodeCommandService episodeCommandService;
+    private final EpisodeCommandServiceImpl episodeCommandService;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onReady() {

@@ -4,7 +4,7 @@ import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.domain.enums.CommentSortType;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.security.MemberPrincipal;
-import com.duckstar.service.AnimeService;
+import com.duckstar.service.AnimeService.AnimeQueryService;
 import com.duckstar.service.CommentService;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeHomeDto;
 import com.duckstar.web.dto.BoardRequestDto.CommentRequestDto;
@@ -28,7 +28,7 @@ import static com.duckstar.web.dto.EpisodeResponseDto.*;
 @RequiredArgsConstructor
 public class AnimeController {
 
-    private final AnimeService animeService;
+    private final AnimeQueryService animeQueryService;
     private final CommentService commentService;
     private final EpisodeRepository episodeRepository;
 
@@ -71,7 +71,7 @@ public class AnimeController {
     @GetMapping("/{animeId}")
     public ApiResponse<AnimeHomeDto> getAnimeHomeById(@PathVariable Long animeId) {
         return ApiResponse.onSuccess(
-                animeService.getAnimeHomeDtoById(animeId));
+                animeQueryService.getAnimeHomeDtoById(animeId));
     }
 
     @Operation(summary = "애니메이션 에피소드 조회 API")
@@ -84,7 +84,7 @@ public class AnimeController {
     @Operation(summary = "모든 애니메이션 ID 조회 API (SEO용)")
     @GetMapping("/ids")
     public ApiResponse<List<Long>> getAllAnimeIds() {
-        return ApiResponse.onSuccess(animeService.getAllAnimeIds());
+        return ApiResponse.onSuccess(animeQueryService.getAllAnimeIds());
     }
 
 //    @Operation(summary = "애니메이션 등장인물 전체 조회 API")
