@@ -38,7 +38,7 @@ public class AdminLogDto {
 
         String ipHash;
 
-        AdminTaskType adminTaskType;
+        AdminTaskType taskType;
         String reason;
 
         Boolean isUndoable;  // undo 가능한지 여부
