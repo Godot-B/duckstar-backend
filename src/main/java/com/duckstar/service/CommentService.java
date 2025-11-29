@@ -254,6 +254,12 @@ public class CommentService {
         boolean isAuthor = Objects.equals(comment.getAuthor().getId(), principal.getId());
         boolean isAdmin = principal.isAdmin();
 
+        //=== 만약 늦참에 의해 생성된 댓글이라면 별점도 회수 ===//
+        EpisodeStar episodeStar = comment.getEpisodeStar();
+        if (episodeStar.isLateParticipating()) {
+            episodeStar.withdrawScore();
+        }
+
         if (isAuthor) {
             comment.setStatus(CommentStatus.DELETED);
 
@@ -262,12 +268,6 @@ public class CommentService {
 
         } else {
             throw new CommentHandler(ErrorStatus.DELETE_UNAUTHORIZED);
-        }
-
-        //=== 만약 늦참에 의해 생성된 댓글이라면 별점도 회수 ===//
-        EpisodeStar episodeStar = comment.getEpisodeStar();
-        if (episodeStar.isLateParticipating()) {
-            episodeStar.withdrawScore();
         }
 
         return DeleteResultDto.builder()

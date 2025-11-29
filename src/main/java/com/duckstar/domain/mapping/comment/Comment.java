@@ -59,7 +59,7 @@ public abstract class Comment extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(15)", nullable = false)
-    private CommentStatus status = CommentStatus.NORMAL;
+    protected CommentStatus status = CommentStatus.NORMAL;
 
     private Integer likeCount = 0;
 

@@ -75,6 +75,6 @@ public class AnimeComment extends Comment {
 
             episodeStar = null;
         }
-        setStatus(status);
+        this.status = status;
     }
 }
