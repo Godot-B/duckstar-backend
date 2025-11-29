@@ -81,7 +81,7 @@ public class VoteCookieManager {
 
         for (Cookie c : req.getCookies()) {
             if (c.getName().startsWith(BASE_VOTE_COOKIE)) {
-                result.add(c.getName());
+                result.add(c.getValue());
             }
         }
 
