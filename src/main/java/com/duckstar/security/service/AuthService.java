@@ -194,6 +194,10 @@ public class AuthService {
                 isMigrated = true;
             } else {
                 WeekVoteSubmission memberSubmission = memberSubmissionOpt.get();
+
+                // ⭐⭐⭐  영속성 보장 (TransientObjectException 완전 차단)
+                memberSubmission = submissionRepository.getReferenceById(memberSubmission.getId());
+
                 Map<Long, EpisodeStar> memberEpisodeStarMap =
                         episodeStarRepository.findAllByWeekVoteSubmission_Id(memberSubmission.getId())
                         .stream()

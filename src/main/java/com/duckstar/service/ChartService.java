@@ -31,6 +31,9 @@ public class ChartService {
     private final HomeBannerRepository homeBannerRepository;
     private final WeekService weekService;
 
+    // 0.5(중간 수준) -> 0.1 작아질 수록 평점 가중치 우선됨
+    private static final double BASE_WEIGHT = 0.5;
+
 //    @Transactional
 //    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
 //        Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
@@ -460,7 +463,7 @@ public class ChartService {
 
     private double epsDynamic(int a, int b) {
         // 작은 표본 쪽 불확실성 우선 반영
-        double base = 0.1 * (1/Math.sqrt(a) + 1/Math.sqrt(b));
+        double base = BASE_WEIGHT * (1/Math.sqrt(a) + 1/Math.sqrt(b));
 
         // 최소 허용치
         double min = 0.005;
