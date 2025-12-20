@@ -5,6 +5,9 @@ import com.duckstar.apiPayload.exception.handler.*;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Survey;
+import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
+import com.duckstar.domain.mapping.surveyVote.SurveyVote;
+import com.duckstar.domain.mapping.surveyVote.SurveyVoteSubmission;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.SurveyRepository;
 import com.duckstar.domain.Week;
@@ -16,23 +19,29 @@ import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
+import com.duckstar.repository.SurveyVote.SurveyVoteRepository;
+import com.duckstar.repository.SurveyVoteSubmissionRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.service.ShadowBanService;
 import com.duckstar.service.WeekService;
+import com.duckstar.web.dto.SurveyRequestDto;
 import com.duckstar.web.support.Hasher;
 import com.duckstar.web.support.IdentifierExtractor;
 import com.duckstar.web.support.VoteCookieManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.duckstar.web.dto.SurveyRequestDto.*;
 import static com.duckstar.web.dto.SurveyResponseDto.*;
 import static com.duckstar.web.dto.VoteRequestDto.*;
 import static com.duckstar.web.dto.VoteResponseDto.*;
@@ -54,155 +63,111 @@ public class VoteCommandServiceImpl implements VoteCommandService {
 
     private final WeekService weekService;
     private final ShadowBanService shadowBanService;
+    private final SurveyRepository surveyRepository;
+    private final SurveyVoteSubmissionRepository surveyVoteSubmissionRepository;
+    private final SurveyCandidateRepository surveyCandidateRepository;
+    private final SurveyVoteRepository surveyVoteRepository;
 
-//    @Transactional
-//    public void voteAnime(
-//            AnimeVoteRequest request,
-//            Long memberId,
-//            String cookieId,
-//            String ipHash,
-//            HttpServletRequest requestRaw,
-//            HttpServletResponse responseRaw
-//    ) {
-//        /**
-//         * request 에서 week 빼고,
-//         * candidate 의 week 유효성 검사만 하는 것으로 추후 수정
-//         */
-//
-//        //=== 투표 주차 유효성 검사 ===//
-//        Long ballotWeekId = request.getWeekId();
-//        Week ballotWeek = weekRepository.findWeekById(ballotWeekId).orElseThrow(() ->
-//                new VoteHandler(ErrorStatus.WEEK_NOT_FOUND));
-//        Week currentWeek = weekService.getCurrentWeek();
-//
-//        boolean isValidWeek =
-//                ballotWeek.getStatus() == VoteStatus.OPEN &&
-//                        ballotWeek.getId().equals(currentWeek.getId());  // 안전하게 PK 비교
-//
-//        if (!isValidWeek) {
-//            throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
-//        }
-//
-//        Member member = memberId != null ?
-//                memberRepository.findById(memberId).orElseThrow(() ->
-//                        new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND)) :
-//                null;
-//
-//        Gender gender = request.getGender();
-//
-//        boolean isConsecutive = false;
-//        if (member != null) {
-//            member.setGender(gender);
-//            LocalDateTime lastWeekStartedAt = ballotWeek.getStartDateTime().minusWeeks(1);
-//            Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
-//
-//            isConsecutive = weekVoteSubmissionRepository.existsByWeek_IdAndMember_Id(
-//                    lastWeek.getId(), member.getId());
-//        }
-//
-//        //=== 중복 투표 방지 ===//
-//        WeekVoteSubmission submission = WeekVoteSubmission.create(
-//                currentWeek,
-//                member,
-//                cookieId,
-//                ipHash,
-//                voteCookieManager.toPrincipalKey(memberId, cookieId),
-//                gender,
-//                VoteCategory.ANIME
-//        );
-//        WeekVoteSubmission savedSubmission;
-//        try {
-//            savedSubmission = weekVoteSubmissionRepository.save(submission);
-//        } catch (DataIntegrityViolationException e) {
-//            throw new VoteHandler(ErrorStatus.ALREADY_VOTED);
-//        }
-//
-//        //=== 실제 투표지 검사: 후보 유효성(중복 포함됨, 이번 주 후보 아님) ===//
-//        List<BallotRequestDto> ballotRequests = request.getBallotRequests();
-//
-//        List<Long> candidateIds = ballotRequests.stream()
-//                .map(BallotRequestDto::getCandidateId)
-//                .toList();
-//
-//        Set<Long> uniq = new HashSet<>(candidateIds);
-//        if (uniq.size() != candidateIds.size()) {
-//            throw new VoteHandler(ErrorStatus.DUPLICATE_CANDIDATE_INCLUDED);
-//        }
-//
-//        Set<Long> valid = new HashSet<>(
-//                animeCandidateRepository.findValidIdsForWeek(ballotWeekId, candidateIds)
-//        );
-//        if (valid.size() != uniq.size()) {
-//            throw new VoteHandler(ErrorStatus.INVALID_CANDIDATE_INCLUDED);
-//        }
-//
-//        //=== 저장 ===//
-//
-//        List<AnimeVote> rows = new ArrayList<>();
-//        for (BallotRequestDto dto : ballotRequests) {
-//            AnimeCandidate candidate =
-//                    animeCandidateRepository.getReferenceById(dto.getCandidateId()); // 프록시 객체 반환
-//
-//            AnimeVote animeVote = AnimeVote.create(
-//                    savedSubmission,
-//                    candidate,
-//                    dto.getBallotType()
-//            );
-//            rows.add(animeVote);
-//        }
-//
-//        animeVoteRepository.saveAll(rows);
-//        if (member != null) member.updateStreak(isConsecutive);
-//
-//        voteCookieManager.markVotedThisWeek(requestRaw, responseRaw);
-//    }
-//
-//    public AnimeVoteHistoryDto getAnimeVoteHistory(Long memberId, String cookieId) {
-//        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-//
-//        if (principalKey == null) {
-//            return AnimeVoteHistoryDto.ofEmpty(memberId);
-//        }
-//
-//        Week currentWeek = weekService.getCurrentWeek();
-//
-//        Optional<WeekVoteSubmission> submissionOpt =
-//                weekVoteSubmissionRepository.findByWeek_IdAndPrincipalKey(currentWeek.getId(), principalKey);
-//
-//        Optional<Long> submissionIdOpt = submissionOpt.map(WeekVoteSubmission::getId);
-//        if (submissionIdOpt.isEmpty()) {
-//            return AnimeVoteHistoryDto.ofEmpty(memberId);
-//        }
-//
-//        Long submissionId = submissionIdOpt.get();
-//        WeekVoteSubmission submission = weekVoteSubmissionRepository.findById(submissionId)
-//                .orElseThrow(() -> new VoteHandler(ErrorStatus.NOT_VOTED_YET));
-//
-//        if (!submission.getPrincipalKey().equals(principalKey)) {
-//            throw new VoteHandler(ErrorStatus.VOTE_HISTORY_ACCESS_DENIED);
-//        }
-//
-//        List<AnimeBallotDto> ballotDtos = animeVoteRepository.getVoteHistoryBySubmissionId(submissionId);
-//        int size = ballotDtos.size();
-//        int normalCount = (int) ballotDtos.stream()
-//                .filter(dto -> dto.getBallotType() == BallotType.NORMAL)
-//                .count();
-//
-//        return AnimeVoteHistoryDto.builder()
-//                .hasVoted(true)
-//                .memberId(memberId)
-//                .nickName(memberId != null ? submission.getMember().getNickname() : null)
-//                .submissionId(submissionId)
-//                .weekDto(WeekDto.of(currentWeek))
-//                .category(VoteCategory.ANIME)
-//                .normalCount(normalCount)
-//                .bonusCount(size - normalCount)
-//                .submittedAt(submission.getUpdatedAt())
-//                .animeBallotDtos(ballotDtos)
-//                .build();
-//    }
-//
-//    @Transactional
+    @Override
+    public void voteSurvey(
+            AnimeVoteRequest request,
+            Long memberId,
+            HttpServletRequest requestRaw,
+            HttpServletResponse responseRaw
+    ) {
+        //=== 서베이 존재, 투표 가능 검사 ===//
+        Long surveyId = request.getSurveyId();
+        Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
+                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
+        if (survey.getStatus() != SurveyStatus.OPEN) {
+            throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
+        }
+
+        //=== 멤버와 쿠키 ID 찾기 ===//
+        Gender gender = request.getGender();
+        AgeGroup ageGroup = request.getAgeGroup();
+        Member member;
+        String cookieId;
+        if (memberId != null) {
+            member = memberRepository.findById(memberId).orElseThrow(() ->
+                    new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+            cookieId = null;
+
+            if (member != null) {
+                member.setGender(gender);
+                member.setAgeGroup(ageGroup);
+            }
+        } else {
+            member = null;
+            cookieId = voteCookieManager.ensureSurveyCookie(
+                    requestRaw,
+                    responseRaw,
+                    survey.getSurveyType(),
+                    survey.getEndDateTime()
+            );
+        }
+
+        //=== Submission, 중복 투표 방지 ===//
+        String ip = identifierExtractor.extract(requestRaw);
+        String ipHash = hasher.hash(ip);
+        // 일단 기록용으로만 둔다
+        String userAgent = identifierExtractor.safeUserAgent(requestRaw);
+        String fpHash = identifierExtractor.safeFpHash(requestRaw);
+
+        SurveyVoteSubmission submission = SurveyVoteSubmission.create(
+                survey,
+                voteCookieManager.toPrincipalKey(memberId, cookieId),
+                member,
+                cookieId,
+                ipHash,
+                userAgent,
+                fpHash,
+                gender,
+                ageGroup
+        );
+        SurveyVoteSubmission savedSubmission;
+        try {
+            savedSubmission = surveyVoteSubmissionRepository.save(submission);
+        } catch (DataIntegrityViolationException e) {
+            throw new VoteHandler(ErrorStatus.ALREADY_VOTED);
+        }
+
+        //=== 실제 투표지 검사: 후보 유효성(중복 포함됨, 이번 주 후보 아님) ===//
+        List<BallotRequestDto> ballotRequests = request.getBallotRequests();
+
+        List<Long> candidateIds = ballotRequests.stream()
+                .map(BallotRequestDto::getCandidateId)
+                .toList();
+
+        Set<Long> uniq = new HashSet<>(candidateIds);
+        if (uniq.size() != candidateIds.size()) {
+            throw new VoteHandler(ErrorStatus.DUPLICATE_CANDIDATE_INCLUDED);
+        }
+
+        Set<Long> valid = new HashSet<>(
+                surveyCandidateRepository.findValidIdsForSurvey(surveyId, candidateIds)
+        );
+        if (valid.size() != uniq.size()) {
+            throw new VoteHandler(ErrorStatus.INVALID_CANDIDATE_INCLUDED);
+        }
+
+        //=== 저장 ===//
+        List<SurveyVote> rows = new ArrayList<>();
+        for (BallotRequestDto dto : ballotRequests) {
+            SurveyCandidate candidate =
+                    surveyCandidateRepository.getReferenceById(dto.getCandidateId()); // 프록시 객체 반환
+
+            SurveyVote surveyVote = SurveyVote.create(
+                    savedSubmission,
+                    candidate,
+                    dto.getBallotType()
+            );
+            rows.add(surveyVote);
+        }
+
+        surveyVoteRepository.saveAll(rows);
+    }
+
 //    public void revoteAnime(
 //            Long submissionId,
 //            AnimeRevoteRequest request,
@@ -314,7 +279,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
 //    }
 
     @Override
-    public VoteResultDto voteOrUpdate(
+    public VoteResultDto voteOrUpdateStar(
             StarRequestDto request,
             Long memberId,
             HttpServletRequest requestRaw,
@@ -461,7 +426,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
     }
 
     @Override
-    public VoteFormResultDto voteOrUpdateWithLoginAndComment(
+    public VoteFormResultDto voteOrUpdateStarWithLoginAndComment(
             LateStarRequestDto request,
             Long memberId,
             HttpServletRequest requestRaw
@@ -575,7 +540,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
     }
     
     @Override
-    public void withdrawVote(
+    public void withdrawStar(
             Long episodeId,
             Long episodeStarId,
             Long memberId,

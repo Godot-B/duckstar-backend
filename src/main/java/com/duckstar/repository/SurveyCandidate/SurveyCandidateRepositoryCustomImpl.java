@@ -31,4 +31,15 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                 .orderBy(surveyCandidate.title.asc())
                 .fetch();
     }
+
+    @Override
+    public List<Long> findValidIdsForSurvey(Long surveyId, List<Long> candidateIds) {
+        if (candidateIds == null || candidateIds.isEmpty()) return List.of();
+
+        return queryFactory.select(surveyCandidate.id)
+                .from(surveyCandidate)
+                .where(surveyCandidate.survey.id.eq(surveyId),
+                        surveyCandidate.id.in(candidateIds))
+                .fetch();
+    }
 }

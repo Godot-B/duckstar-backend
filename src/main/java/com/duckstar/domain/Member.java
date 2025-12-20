@@ -171,6 +171,10 @@ public class Member extends BaseEntity {
         this.gender = gender;
     }
 
+    public void setAgeGroup(AgeGroup ageGroup) {
+        this.ageGroup = ageGroup;
+    }
+
 //    public void updateStreak(boolean isConsecutive, Long weekId) {
 //        if (isConsecutive) {
 //            currentStreak += 1;

@@ -3,6 +3,7 @@ package com.duckstar.web.controller;
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.EpisodeService.EpisodeQueryService;
+import com.duckstar.service.VoteService.VoteCommandService;
 import com.duckstar.service.VoteService.VoteCommandServiceImpl;
 import com.duckstar.service.VoteService.VoteQueryService;
 import com.duckstar.web.support.VoteCookieManager;
@@ -30,6 +31,7 @@ public class VoteController {
     private final EpisodeQueryService episodeQueryService;
     private final VoteCookieManager voteCookieManager;
     private final VoteQueryService voteQueryService;
+    private final VoteCommandService voteCommandService;
 
     /**
      * 별점 투표 방식
@@ -58,7 +60,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdate(
+        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdateStar(
                 request,
                 memberId,
                 requestRaw,
@@ -115,7 +117,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdateWithLoginAndComment(
+        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdateStarWithLoginAndComment(
                 request,
                 memberId,
                 requestRaw
@@ -138,7 +140,7 @@ public class VoteController {
 
         Long memberId = principal == null ? null : principal.getId();
 
-        voteCommandServiceImpl.withdrawVote(
+        voteCommandServiceImpl.withdrawStar(
                 episodeId,
                 episodeStarId,
                 memberId,
@@ -208,14 +210,12 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-//        voteService.voteAnime(
-//                request,
-//                memberId,
-//                cookieId,
-//                ipHash,
-//                requestRaw,
-//                responseRaw
-//        );
+        voteCommandService.voteSurvey(
+                request,
+                memberId,
+                requestRaw,
+                responseRaw
+        );
 
         return ApiResponse.onSuccess(null);
     }
