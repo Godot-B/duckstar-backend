@@ -1,4 +1,4 @@
-package com.duckstar.domain.mapping;
+package com.duckstar.domain.mapping.weeklyVote;
 
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Week;

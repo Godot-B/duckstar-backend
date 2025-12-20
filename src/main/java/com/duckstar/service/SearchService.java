@@ -1,7 +1,7 @@
 package com.duckstar.service;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.service.AnimeService.AnimeQueryService;

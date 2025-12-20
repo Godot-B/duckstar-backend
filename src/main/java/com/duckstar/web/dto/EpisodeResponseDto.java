@@ -1,6 +1,6 @@
 package com.duckstar.web.dto;
 
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import lombok.Builder;
 import lombok.Getter;
 

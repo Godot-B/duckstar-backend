@@ -12,7 +12,7 @@ import com.duckstar.domain.Season;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.AnimeOtt;
 import com.duckstar.domain.mapping.AnimeSeason;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;

@@ -4,19 +4,16 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.*;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
-import com.duckstar.domain.mapping.CommentLike;
 import com.duckstar.domain.mapping.Reply;
 import com.duckstar.domain.mapping.ReplyLike;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
-import com.duckstar.repository.AnimeVote.AnimeVoteRepository;
+import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
 import com.duckstar.repository.ReplyLikeRepository;
 import com.duckstar.s3.S3Uploader;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.repository.MemberRepository;
-import com.duckstar.web.dto.BoardRequestDto;
-import com.duckstar.web.dto.CommentResponseDto;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -38,12 +35,12 @@ import static com.duckstar.web.dto.CommentResponseDto.*;
 public class ReplyService {
 
     private final ReplyRepository replyRepository;
-    private final AnimeVoteRepository animeVoteRepository;
     private final ReplyLikeRepository replyLikeRepository;
     private final MemberRepository memberRepository;
     private final AnimeCommentRepository animeCommentRepository;
 
     private final S3Uploader s3Uploader;
+    private final EpisodeStarRepository episodeStarRepository;
 
     private ReplyLike findLikeByIdOrThrow(Long replyLikeId) {
         return replyLikeRepository.findById(replyLikeId)
@@ -67,8 +64,8 @@ public class ReplyService {
         Member author = memberRepository.findById(memberId).orElseThrow(() ->
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        int voteCount = animeVoteRepository
-                .countAllByAnimeCandidate_Anime_IdAndWeekVoteSubmission_Member_Id(
+        int voteCount = episodeStarRepository
+                .countAllByEpisode_Anime_IdAndWeekVoteSubmission_Member_Id(
                         comment.getAnime().getId(),
                         memberId
                 );

@@ -1,7 +1,7 @@
 package com.duckstar.service.EpisodeService;
 
 import com.duckstar.domain.enums.EpEvaluateState;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

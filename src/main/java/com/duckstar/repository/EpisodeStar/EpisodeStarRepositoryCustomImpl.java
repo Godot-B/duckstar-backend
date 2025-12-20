@@ -1,6 +1,7 @@
 package com.duckstar.repository.EpisodeStar;
 
 import com.duckstar.domain.mapping.*;
+import com.duckstar.domain.mapping.weeklyVote.*;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

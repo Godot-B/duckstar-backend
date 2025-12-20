@@ -1,8 +1,7 @@
 package com.duckstar.service.AnimeService;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.Season;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 
 import java.time.LocalDateTime;
 import java.util.List;

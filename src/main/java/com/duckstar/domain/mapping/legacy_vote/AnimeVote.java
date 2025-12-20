@@ -2,7 +2,7 @@ package com.duckstar.domain.mapping.legacy_vote;
 
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.BallotType;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

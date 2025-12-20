@@ -2,9 +2,8 @@ package com.duckstar.service;
 
 import com.duckstar.TestContainersConfig;
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
@@ -17,7 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @SpringBootTest

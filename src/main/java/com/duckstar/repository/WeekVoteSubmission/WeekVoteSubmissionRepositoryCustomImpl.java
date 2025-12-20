@@ -1,11 +1,10 @@
 package com.duckstar.repository.WeekVoteSubmission;
 
 import com.duckstar.domain.QWeek;
-import com.duckstar.domain.mapping.QEpisodeStar;
-import com.duckstar.domain.mapping.QWeekVoteSubmission;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.weeklyVote.QEpisodeStar;
+import com.duckstar.domain.mapping.weeklyVote.QWeekVoteSubmission;
+import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import com.duckstar.security.domain.QShadowBan;
-import com.duckstar.web.dto.admin.SubmissionResponseDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

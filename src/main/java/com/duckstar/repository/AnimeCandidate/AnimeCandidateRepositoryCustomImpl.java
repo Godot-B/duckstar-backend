@@ -3,8 +3,8 @@ package com.duckstar.repository.AnimeCandidate;
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.enums.ContentType;
-import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.domain.mapping.legacy_vote.QAnimeCandidate;
+import com.duckstar.domain.mapping.weeklyVote.QEpisode;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeRank_legacyDto;
 import com.duckstar.web.dto.AnimeResponseDto.AnimeStatDto;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
@@ -55,23 +55,23 @@ public class AnimeCandidateRepositoryCustomImpl implements AnimeCandidateReposit
      * - 후보 목록에서 시즌 정보 달라야.
      * AnimeSeason 리스트를, Anime 단위로 캐싱 (OneToMany 리스트 관리) 필요
      */
-    @Override
-    public List<AnimeCandidateDto> getAnimeCandidateDtosByWeekId(Long weekId) {
-        return queryFactory.select(
-                        Projections.constructor(
-                                AnimeCandidateDto.class,
-                                animeCandidate.id,
-                                anime.mainThumbnailUrl,
-                                anime.titleKor,
-                                anime.medium
-                        )
-                )
-                .from(animeCandidate)
-                .join(animeCandidate.anime, anime)
-                .where(animeCandidate.week.id.eq(weekId))
-                .orderBy(anime.titleKor.asc())
-                .fetch();
-    }
+//    @Override
+//    public List<AnimeCandidateDto> getAnimeCandidateDtosByWeekId(Long weekId) {
+//        return queryFactory.select(
+//                        Projections.constructor(
+//                                AnimeCandidateDto.class,
+//                                animeCandidate.id,
+//                                anime.mainThumbnailUrl,
+//                                anime.titleKor,
+//                                anime.medium
+//                        )
+//                )
+//                .from(animeCandidate)
+//                .join(animeCandidate.anime, anime)
+//                .where(animeCandidate.week.id.eq(weekId))
+//                .orderBy(anime.titleKor.asc())
+//                .fetch();
+//    }
 
     @Override
     public List<AnimeRank_legacyDto> getAnimeRankDtosByWeekId(Long weekId, Pageable pageable) {

@@ -1,9 +1,7 @@
 package com.duckstar.repository.Episode;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.mapping.Episode;
-import com.duckstar.domain.mapping.legacy_vote.AnimeCandidate;
-import org.springframework.data.domain.Limit;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

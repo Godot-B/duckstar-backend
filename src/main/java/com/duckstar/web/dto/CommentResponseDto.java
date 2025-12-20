@@ -4,7 +4,7 @@ import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.*;
 import com.duckstar.domain.mapping.comment.AnimeComment;
-import com.duckstar.domain.mapping.comment.Comment;
+import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;

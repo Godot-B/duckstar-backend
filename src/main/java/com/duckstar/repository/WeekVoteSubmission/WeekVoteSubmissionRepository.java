@@ -1,8 +1,7 @@
 package com.duckstar.repository.WeekVoteSubmission;
 
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;

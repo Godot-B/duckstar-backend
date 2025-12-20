@@ -11,7 +11,7 @@ import com.duckstar.domain.Character;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.AnimeCharacter;
 import com.duckstar.domain.mapping.AnimeSeason;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
@@ -35,7 +35,6 @@ import org.apache.commons.io.input.BOMInputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;

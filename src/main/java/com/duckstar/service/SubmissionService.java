@@ -6,7 +6,7 @@ import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.enums.AdminTaskType;
 import com.duckstar.domain.mapping.AdminActionLog;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import com.duckstar.repository.AdminActionLog.AdminActionLogRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;

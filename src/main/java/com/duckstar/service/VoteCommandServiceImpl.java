@@ -6,8 +6,10 @@ import com.duckstar.domain.Member;
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.*;
-import com.duckstar.domain.mapping.*;
 import com.duckstar.domain.mapping.comment.AnimeComment;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
+import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
+import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
@@ -454,7 +456,6 @@ public class VoteCommandServiceImpl implements VoteCommandService {
                     userAgent,
                     fpHash,
                     voteCookieManager.toPrincipalKey(memberId, cookieId),
-                    null,
                     ContentType.ANIME
             ));
         });

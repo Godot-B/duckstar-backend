@@ -7,8 +7,8 @@ import com.duckstar.domain.Member;
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.CommentStatus;
-import com.duckstar.domain.mapping.EpisodeStar;
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
+import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
@@ -189,7 +189,7 @@ public class AuthService {
                         voteCookieManager.toPrincipalKey(member.getId(), null)
                 );
 
-                member.setGender(localSubmission.getGender());
+//                member.setGender(/*localSubmission.getGender()*/);
 
                 isMigrated = true;
             } else {

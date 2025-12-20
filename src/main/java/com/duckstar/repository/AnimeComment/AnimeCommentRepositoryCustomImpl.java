@@ -3,13 +3,11 @@ package com.duckstar.repository.AnimeComment;
 import com.duckstar.domain.enums.CommentSortType;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.QCommentLike;
-import com.duckstar.domain.mapping.QEpisode;
-import com.duckstar.domain.mapping.QEpisodeStar;
 import com.duckstar.domain.mapping.QReply;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
-import com.duckstar.domain.mapping.comment.QComment;
+import com.duckstar.domain.mapping.weeklyVote.QEpisode;
+import com.duckstar.domain.mapping.weeklyVote.QEpisodeStar;
 import com.duckstar.security.MemberPrincipal;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
@@ -23,10 +21,8 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.duckstar.web.dto.CommentResponseDto.*;
 

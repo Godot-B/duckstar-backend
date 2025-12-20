@@ -1,7 +1,7 @@
 package com.duckstar.repository.EpisodeStar;
 
-import com.duckstar.domain.mapping.Episode;
-import com.duckstar.domain.mapping.EpisodeStar;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
+import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 
 import java.util.List;
 import java.util.Map;

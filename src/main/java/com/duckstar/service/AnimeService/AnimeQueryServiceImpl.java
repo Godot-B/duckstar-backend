@@ -8,7 +8,7 @@ import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;

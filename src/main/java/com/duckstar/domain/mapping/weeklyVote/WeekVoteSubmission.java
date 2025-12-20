@@ -1,4 +1,4 @@
-package com.duckstar.domain.mapping;
+package com.duckstar.domain.mapping.weeklyVote;
 
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
@@ -56,8 +56,8 @@ public class WeekVoteSubmission extends BaseEntity {
     @Column(length = 80, nullable = false)
     private String principalKey;
 
-    @Enumerated(EnumType.STRING)
-    private Gender gender;  // 일반 투표 방식에서 필요
+//    @Enumerated(EnumType.STRING)
+//    private Gender gender;  // 일반 투표 방식에서 필요
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)
@@ -72,7 +72,7 @@ public class WeekVoteSubmission extends BaseEntity {
             String userAgent,
             String fpHash,
             String principalKey,
-            Gender gender,
+//            Gender gender,
             ContentType category
     ) {
         this.isBlocked = isBlocked;
@@ -83,7 +83,7 @@ public class WeekVoteSubmission extends BaseEntity {
         this.userAgent = userAgent;
         this.fpHash = fpHash;
         this.principalKey = principalKey;
-        this.gender = gender;
+//        this.gender = gender;
         this.category = category;
     }
 
@@ -96,7 +96,7 @@ public class WeekVoteSubmission extends BaseEntity {
             String userAgent,
             String fpHash,
             String principalKey,
-            Gender gender,
+//            Gender gender,
             ContentType category
     ) {
         return new WeekVoteSubmission(
@@ -108,7 +108,7 @@ public class WeekVoteSubmission extends BaseEntity {
                 userAgent,
                 fpHash,
                 principalKey,
-                gender,
+//                gender,
                 category
         );
     }

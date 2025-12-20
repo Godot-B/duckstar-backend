@@ -1,4 +1,4 @@
-package com.duckstar.domain.mapping;
+package com.duckstar.domain.mapping.weeklyVote;
 
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.EpEvaluateState;
@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         indexes = {
-                @Index(name = "idx_episode_star_e",
-                        columnList = "episode_id"),
                 @Index(name = "idx_episode_star_s",
                         columnList = "submission_id"),
+                @Index(name = "idx_episode_star_e",
+                        columnList = "episode_id"),
         }
 )
 public class EpisodeStar extends BaseEntity {

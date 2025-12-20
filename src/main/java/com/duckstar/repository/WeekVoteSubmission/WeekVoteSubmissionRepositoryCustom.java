@@ -1,6 +1,6 @@
 package com.duckstar.repository.WeekVoteSubmission;
 
-import com.duckstar.domain.mapping.WeekVoteSubmission;
+import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;

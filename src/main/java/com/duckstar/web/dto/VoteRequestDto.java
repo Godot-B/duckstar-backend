@@ -40,40 +40,40 @@ public class VoteRequestDto {
 
         Long episodeStarId;  // 추가
     }
-
-    @AnimeVoteConstraint
-    @Getter
-    public static class AnimeVoteRequest {
-        @NotNull
-        Long weekId;
-
-        @NotNull
-        Gender gender;
-
-        @Valid
-        @NotEmpty
-        List<BallotRequestDto> ballotRequests;
-    }
-    
-    @Getter
-    public static class BallotRequestDto {
-        @NotNull
-        Long candidateId;
-
-        @NotNull
-        BallotType ballotType;
-    }
-
-    @Getter
-    public static class AnimeRevoteRequest {
-        @NotNull
-        Long weekId;
-
-        @NotNull
-        Gender gender;
-
-        List<BallotRequestDto> added;
-        List<BallotRequestDto> removed;
-        List<BallotRequestDto> updated;
-    }
+//
+//    @AnimeVoteConstraint
+//    @Getter
+//    public static class AnimeVoteRequest {
+//        @NotNull
+//        Long weekId;
+//
+//        @NotNull
+//        Gender gender;
+//
+//        @Valid
+//        @NotEmpty
+//        List<BallotRequestDto> ballotRequests;
+//    }
+//
+//    @Getter
+//    public static class BallotRequestDto {
+//        @NotNull
+//        Long candidateId;
+//
+//        @NotNull
+//        BallotType ballotType;
+//    }
+//
+//    @Getter
+//    public static class AnimeRevoteRequest {
+//        @NotNull
+//        Long weekId;
+//
+//        @NotNull
+//        Gender gender;
+//
+//        List<BallotRequestDto> added;
+//        List<BallotRequestDto> removed;
+//        List<BallotRequestDto> updated;
+//    }
 }

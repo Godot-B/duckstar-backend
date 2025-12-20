@@ -3,7 +3,7 @@ package com.duckstar.domain.mapping.comment;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.CommentStatus;
-import com.duckstar.domain.mapping.Episode;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

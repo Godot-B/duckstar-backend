@@ -5,18 +5,15 @@ import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QAnimeSeason;
-import com.duckstar.domain.mapping.QEpisode;
 import com.duckstar.web.dto.OttDto;
 import com.duckstar.web.dto.AnimeResponseDto.SeasonDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
