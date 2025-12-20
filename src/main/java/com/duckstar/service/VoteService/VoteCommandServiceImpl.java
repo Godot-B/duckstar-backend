@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.SurveyRequestDto.*;
 import static com.duckstar.web.dto.SurveyResponseDto.*;
@@ -168,115 +169,114 @@ public class VoteCommandServiceImpl implements VoteCommandService {
         surveyVoteRepository.saveAll(rows);
     }
 
-//    public void revoteAnime(
-//            Long submissionId,
-//            AnimeRevoteRequest request,
-//            Long memberId
-//    ) {
-//        if (memberId == null) {
-//            throw new VoteHandler(ErrorStatus.MEMBER_NOT_FOUND);
-//        }
-//        Member member = memberRepository.findById(memberId).orElseThrow(() ->
-//                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-//
-//        //=== 투표 주차 유효성 검사 ===//
-//        Long ballotWeekId = request.getWeekId();
-//        Week ballotWeek = weekRepository.findWeekById(ballotWeekId).orElseThrow(() ->
-//                new VoteHandler(ErrorStatus.WEEK_NOT_FOUND));
-//        Week currentWeek = weekService.getCurrentWeek();
-//        boolean isValidWeek =
-//                ballotWeek.getStatus() == VoteStatus.OPEN &&
-//                        ballotWeek.getId().equals(currentWeek.getId());  // 안전하게 PK 비교
-//
-//        if (!isValidWeek) {
-//            throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
-//        }
-//
-//        Gender gender = request.getGender();
-//        member.setGender(gender);
-//
-//        //=== 실제 투표지 검사: 후보 유효성(중복 포함됨, 이번 주 후보 아님) ===//
-//        List<BallotRequestDto> addRequests = request.getAdded();
-//        List<Long> addReqIds = List.of();
-//        if (addRequests != null && !addRequests.isEmpty()) {
-//            addReqIds = addRequests.stream()
-//                    .map(BallotRequestDto::getCandidateId)
-//                    .toList();
-//        }
-//        List<BallotRequestDto> updateRequests = request.getUpdated();
-//        List<Long> updateReqIds = List.of();
-//        if (updateRequests != null && !updateRequests.isEmpty()) {
-//            updateReqIds = updateRequests.stream()
-//                    .map(BallotRequestDto::getCandidateId)
-//                    .toList();
-//        }
-//        List<BallotRequestDto> removed = request.getRemoved();
-//        List<Long> removeReqIds = List.of();
-//        if (removed != null && !removed.isEmpty()) {
-//            removeReqIds = request.getRemoved().stream()
-//                    .map(BallotRequestDto::getCandidateId)
-//                    .toList();
-//        }
-//
-//        List<Long> allIds = Stream.of(addReqIds, removeReqIds, updateReqIds)
-//                .flatMap(List::stream)
-//                .toList();
-//
-//        if (allIds.size() != new HashSet<>(allIds).size()) {
-//            throw new VoteHandler(ErrorStatus.DUPLICATE_CANDIDATE_INCLUDED);
-//        }
-//
-//        Set<Long> valid = new HashSet<>(
-//                animeCandidateRepository.findValidIdsForWeek(ballotWeekId, allIds)
-//        );
-//        if (valid.size() != allIds.size()) {
-//            throw new VoteHandler(ErrorStatus.INVALID_CANDIDATE_INCLUDED);
-//        }
-//
-//        //=== 삭제 ===//
-//        if (!removeReqIds.isEmpty()) {
-//            animeVoteRepository.deleteAllByWeekVoteSubmission_IdAndAnimeCandidate_IdIn(
-//                    submissionId, removeReqIds);
-//        }
-//
-//        WeekVoteSubmission submission = weekVoteSubmissionRepository.findById(submissionId)
-//                .orElseThrow(() -> new VoteHandler(ErrorStatus.SUBMISSION_NOT_FOUND));
-//
-//        //=== 수정 ===//
-//        if (!updateReqIds.isEmpty()) {
-//            List<AnimeVote> votesToUpdate = animeVoteRepository
-//                    .findAllByWeekVoteSubmission_IdAndAnimeCandidate_IdIn(submission.getId(), updateReqIds);
-//
-//            Map<Long, BallotType> map = updateRequests.stream()
-//                    .collect(Collectors.toMap(
-//                            BallotRequestDto::getCandidateId,
-//                            BallotRequestDto::getBallotType
-//                    ));
-//
-//            for (AnimeVote vote : votesToUpdate) {
-//                vote.updateScore(map.get(vote.getAnimeCandidate().getId()));
-//            }
-//        }
-//
-//        //=== 추가 ===//
-//        if (!addReqIds.isEmpty()) {
-//            List<AnimeVote> rows = new ArrayList<>();
-//            for (BallotRequestDto dto : addRequests) {
-//                AnimeCandidate candidate =
-//                        animeCandidateRepository.getReferenceById(dto.getCandidateId()); // 프록시 객체 반환
-//
-//                AnimeVote animeVote = AnimeVote.create(
-//                        submission,
-//                        candidate,
-//                        dto.getBallotType()
-//                );
-//                rows.add(animeVote);
-//            }
-//            animeVoteRepository.saveAll(rows);
-//        }
-//
-//        submission.setUpdatedAt(LocalDateTime.now());
-//    }
+    @Override
+    public void revoteSurvey(
+            Long submissionId,
+            AnimeRevoteRequest request,
+            Long memberId
+    ) {
+        // 회원 검사
+        if (memberId == null) {
+            throw new VoteHandler(ErrorStatus.MEMBER_NOT_FOUND);
+        }
+        Member member = memberRepository.findById(memberId).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        Gender gender = request.getGender();
+        AgeGroup ageGroup = request.getAgeGroup();
+        member.setGender(gender);
+        member.setAgeGroup(ageGroup);
+
+        //=== 서베이 존재, 투표 가능 검사 ===//
+        Long surveyId = request.getSurveyId();
+        Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
+                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
+        if (survey.getStatus() != SurveyStatus.OPEN) {
+            throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
+        }
+
+        //=== 실제 투표지 검사: 후보 유효성(중복 포함됨, 이번 주 후보 아님) ===//
+        List<BallotRequestDto> addRequests = request.getAdded();
+        List<Long> addReqIds = List.of();
+        if (addRequests != null && !addRequests.isEmpty()) {
+            addReqIds = addRequests.stream()
+                    .map(BallotRequestDto::getCandidateId)
+                    .toList();
+        }
+        List<BallotRequestDto> updateRequests = request.getUpdated();
+        List<Long> updateReqIds = List.of();
+        if (updateRequests != null && !updateRequests.isEmpty()) {
+            updateReqIds = updateRequests.stream()
+                    .map(BallotRequestDto::getCandidateId)
+                    .toList();
+        }
+        List<BallotRequestDto> removed = request.getRemoved();
+        List<Long> removeReqIds = List.of();
+        if (removed != null && !removed.isEmpty()) {
+            removeReqIds = request.getRemoved().stream()
+                    .map(BallotRequestDto::getCandidateId)
+                    .toList();
+        }
+
+        List<Long> allIds = Stream.of(addReqIds, removeReqIds, updateReqIds)
+                .flatMap(List::stream)
+                .toList();
+
+        if (allIds.size() != new HashSet<>(allIds).size()) {
+            throw new VoteHandler(ErrorStatus.DUPLICATE_CANDIDATE_INCLUDED);
+        }
+
+        Set<Long> valid = new HashSet<>(
+                surveyCandidateRepository.findValidIdsForSurvey(surveyId, allIds)
+        );
+        if (valid.size() != allIds.size()) {
+            throw new VoteHandler(ErrorStatus.INVALID_CANDIDATE_INCLUDED);
+        }
+
+        //=== 삭제 ===//
+        if (!removeReqIds.isEmpty()) {
+            surveyVoteRepository.deleteAllBySurveyVoteSubmission_IdAndSurveyCandidate_IdIn(
+                    submissionId, removeReqIds);
+        }
+
+        SurveyVoteSubmission submission = surveyVoteSubmissionRepository.findById(submissionId)
+                .orElseThrow(() -> new VoteHandler(ErrorStatus.SUBMISSION_NOT_FOUND));
+
+        //=== 수정 ===//
+        if (!updateReqIds.isEmpty()) {
+            List<SurveyVote> votesToUpdate = surveyVoteRepository
+                    .findAllBySurveyVoteSubmission_IdAndSurveyCandidate_IdIn(submission.getId(), updateReqIds);
+
+            Map<Long, BallotType> map = updateRequests.stream()
+                    .collect(Collectors.toMap(
+                            BallotRequestDto::getCandidateId,
+                            BallotRequestDto::getBallotType
+                    ));
+
+            for (SurveyVote vote : votesToUpdate) {
+                vote.updateScore(map.get(vote.getSurveyCandidate().getId()));
+            }
+        }
+
+        //=== 추가 ===//
+        if (!addReqIds.isEmpty()) {
+            List<SurveyVote> rows = new ArrayList<>();
+            for (BallotRequestDto dto : addRequests) {
+                SurveyCandidate candidate =
+                        surveyCandidateRepository.getReferenceById(dto.getCandidateId()); // 프록시 객체 반환
+
+                SurveyVote surveyVote = SurveyVote.create(
+                        submission,
+                        candidate,
+                        dto.getBallotType()
+                );
+                rows.add(surveyVote);
+            }
+            surveyVoteRepository.saveAll(rows);
+        }
+
+        submission.setUpdatedAt(LocalDateTime.now());
+    }
 
     @Override
     public VoteResultDto voteOrUpdateStar(

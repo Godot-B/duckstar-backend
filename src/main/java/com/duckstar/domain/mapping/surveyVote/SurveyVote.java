@@ -65,4 +65,9 @@ public class SurveyVote extends BaseEntity {
                 typeOrder
         );
     }
+
+    public void updateScore(BallotType type) {
+        this.ballotType = type;
+        this.score = type.getScore();
+    }
 }

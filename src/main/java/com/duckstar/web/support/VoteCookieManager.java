@@ -101,7 +101,7 @@ public class VoteCookieManager {
             SurveyType type
     ) {
         // 예: survey_cookie_id_Q1_END
-        String cookieName = BASE_VOTE_COOKIE + "_" + type.name();
+        String cookieName = BASE_SURVEY_COOKIE + "_" + type.name();
 
         if (req.getCookies() == null) return null;
         for (Cookie c : req.getCookies()) {

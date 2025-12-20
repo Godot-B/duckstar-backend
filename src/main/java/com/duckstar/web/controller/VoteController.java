@@ -34,7 +34,7 @@ public class VoteController {
     private final VoteCommandService voteCommandService;
 
     /**
-     * 별점 투표 방식
+     * 주간 투표 - 별점 투표 방식
      */
     @Operation(summary = "실시간 투표 리스트 조회 API",
             description = "now - 36시간 ~ now 범위의 에피소드들 (VOTING_WINDOW 상태) 조회")
@@ -124,7 +124,7 @@ public class VoteController {
         ));
     }
 
-    // 개발 연기
+// 개발 연기
 //    @Operation(summary = "상시 평가/수정 API (로그인 ONLY)",
 //            description = "Episode 기반, 지난 주차")
 //    @PostMapping()
@@ -152,7 +152,7 @@ public class VoteController {
     }
 
     /**
-     * 객관식 투표 방식
+     * 어워드 - 객관식 투표 방식
      */
     @Operation(summary = "Survey 정보 리스트 조회 API")
     @GetMapping("/surveys")
@@ -229,7 +229,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-//        voteService.revoteAnime(submissionId, request, memberId);
+        voteCommandService.revoteSurvey(submissionId, request, memberId);
 
         return ApiResponse.onSuccess(null);
     }

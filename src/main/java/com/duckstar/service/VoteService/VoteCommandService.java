@@ -15,6 +15,12 @@ public interface VoteCommandService {
             HttpServletResponse responseRaw
     );
 
+    void revoteSurvey(
+            Long submissionId,
+            AnimeRevoteRequest request,
+            Long memberId
+    );
+
     VoteResultDto voteOrUpdateStar(
             StarRequestDto request,
             Long memberId,
