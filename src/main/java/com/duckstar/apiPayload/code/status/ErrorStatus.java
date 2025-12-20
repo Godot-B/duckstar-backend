@@ -59,7 +59,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // 별점
     STAR_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40014", "별점 투표 내역이 없습니다."),
     // 설문
-    SURVEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40015", "별점 투표 내역이 없습니다."),
+    SURVEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40015", "존재하지 않는 설문 투표입니다."),
 
     STAR_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "VOTE4011", "잘못된 투표 접근입니다."),
     LATE_STAR_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "VOTE4012", "투표 시간 이후의 참여 권한이 없습니다."),

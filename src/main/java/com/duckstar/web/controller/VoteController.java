@@ -181,18 +181,19 @@ public class VoteController {
             @AuthenticationPrincipal MemberPrincipal principal) {
         Long memberId = principal == null ? null : principal.getId();
         return ApiResponse.onSuccess(
-                voteQueryService.getAnimeCandidateList(surveyId, memberId));
+                voteQueryService.getAnimeCandidateListDto(surveyId, memberId));
     }
 
     @Operation(summary = "Survey 투표 기록 조회 API")
     @GetMapping("/surveys/{surveyId}/me")
-    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteStatus(
+    public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteHistory(
+            @PathVariable Long surveyId,
             @AuthenticationPrincipal MemberPrincipal principal,
             HttpServletRequest req
     ) {
         Long memberId = principal == null ? null : principal.getId();
-
-        return ApiResponse.onSuccess(null);
+        return ApiResponse.onSuccess(
+                voteQueryService.getAnimeVoteHistoryDto(surveyId, memberId, req));
     }
 
     // 결과 차트 조회 API: GET /surveys/{surveyId}/result
