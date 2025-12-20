@@ -3,9 +3,8 @@ package com.duckstar.web.controller;
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.EpisodeService.EpisodeQueryService;
-import com.duckstar.service.VoteCommandServiceImpl;
-import com.duckstar.web.dto.SurveyRequestDto;
-import com.duckstar.web.dto.SurveyResponseDto;
+import com.duckstar.service.VoteService.VoteCommandServiceImpl;
+import com.duckstar.service.VoteService.VoteQueryService;
 import com.duckstar.web.support.VoteCookieManager;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +29,7 @@ public class VoteController {
     private final VoteCommandServiceImpl voteCommandServiceImpl;
     private final EpisodeQueryService episodeQueryService;
     private final VoteCookieManager voteCookieManager;
+    private final VoteQueryService voteQueryService;
 
     /**
      * 별점 투표 방식
@@ -154,29 +154,41 @@ public class VoteController {
      */
     @Operation(summary = "Survey 정보 리스트 조회 API")
     @GetMapping("/surveys")
-    public ApiResponse<List<SurveyDto>> getSurveys() {
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<List<SurveyDto>> getSurveys(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            HttpServletRequest req
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(voteQueryService.getSurveyDtos(memberId, req));
     }
 
     @Operation(summary = "Survey 정보 단건 조회 API")
     @GetMapping("/surveys/{surveyId}")
-    public ApiResponse<SurveyDto> getSurveyStatus(@PathVariable Long surveyId) {
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<SurveyDto> getSurvey(
+            @PathVariable Long surveyId,
+            @AuthenticationPrincipal MemberPrincipal principal,
+            HttpServletRequest req
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(
+                voteQueryService.getSurveyDto(surveyId, memberId, req));
     }
 
     @Operation(summary = "Survey 후보자 리스트 조회 API")
     @GetMapping("/surveys/{surveyId}/candidates")
     public ApiResponse<AnimeCandidateListDto> getAnimeCandidateList(
+            @PathVariable Long surveyId,
             @AuthenticationPrincipal MemberPrincipal principal) {
         Long memberId = principal == null ? null : principal.getId();
-        return ApiResponse.onSuccess(null);
+        return ApiResponse.onSuccess(
+                voteQueryService.getAnimeCandidateList(surveyId, memberId));
     }
 
     @Operation(summary = "Survey 투표 기록 조회 API")
     @GetMapping("/surveys/{surveyId}/me")
     public ApiResponse<AnimeVoteHistoryDto> getAnimeVoteStatus(
             @AuthenticationPrincipal MemberPrincipal principal,
-            @CookieValue(name = "vote_cookie_id", required = false) String cookieId
+            HttpServletRequest req
     ) {
         Long memberId = principal == null ? null : principal.getId();
 

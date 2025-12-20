@@ -12,6 +12,7 @@ import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.repository.ShadowBanRepository;
+import com.duckstar.service.VoteService.VoteCommandService;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

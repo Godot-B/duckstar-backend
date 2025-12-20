@@ -1,5 +1,6 @@
 package com.duckstar.web.support;
 
+import com.duckstar.domain.enums.SurveyType;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ import static com.duckstar.util.QuarterUtil.*;
 @Component
 public class VoteCookieManager {
     private static final String BASE_VOTE_COOKIE = "vote_cookie_id";
+    private static final String BASE_SURVEY_COOKIE = "survey_cookie_id";
 
     @Value("${app.cookie.secure}")
     private boolean secureCookie;
@@ -32,7 +34,7 @@ public class VoteCookieManager {
     private String sameSite;
 
     /**
-     * 정규 정책: 주차명 기반 쿠키 생성 (예: vote_cookie_id_25Q4W2)
+     * 주차명 기반 쿠키 생성 (예: vote_cookie_id_25Q4W2)
      */
     public String ensureVoteCookie(
             HttpServletRequest requestRaw,
@@ -56,6 +58,28 @@ public class VoteCookieManager {
         return cookieId;
     }
 
+    /**
+     * 서베이 기반 쿠키 생성 (예: survey_cookie_id_Q1_END)
+     */
+    public String ensureSurveyCookie(
+            HttpServletRequest requestRaw,
+            HttpServletResponse responseRaw,
+            SurveyType type,
+            LocalDateTime surveyEndAt
+    ) {
+        // 예: survey_cookie_id_Q1_END
+        String cookieName = BASE_SURVEY_COOKIE + "_" + type.name();
+
+        String existing = readCookie(requestRaw, type);
+        if (existing != null) return existing;
+
+        String cookieId = UUID.randomUUID().toString();
+        Duration ttl = Duration.between(LocalDateTime.now(), surveyEndAt);
+
+        setCookie(responseRaw, cookieName, cookieId, ttl);
+        return cookieId;
+    }
+
     public String readCookie(
             HttpServletRequest req,
             int year,
@@ -64,6 +88,20 @@ public class VoteCookieManager {
     ) {
         // 예: vote_cookie_id_25Q4W2
         String cookieName = BASE_VOTE_COOKIE + "_" + year + "Q" + quarter + "W" + week;
+
+        if (req.getCookies() == null) return null;
+        for (Cookie c : req.getCookies()) {
+            if (cookieName.equals(c.getName())) return c.getValue();
+        }
+        return null;
+    }
+
+    public String readCookie(
+            HttpServletRequest req,
+            SurveyType type
+    ) {
+        // 예: survey_cookie_id_Q1_END
+        String cookieName = BASE_VOTE_COOKIE + "_" + type.name();
 
         if (req.getCookies() == null) return null;
         for (Cookie c : req.getCookies()) {
@@ -88,7 +126,12 @@ public class VoteCookieManager {
         return result;
     }
 
-    private void setCookie(HttpServletResponse res, String name, String value, Duration ttl) {
+    private void setCookie(
+            HttpServletResponse res,
+            String name,
+            String value,
+            Duration ttl
+    ) {
         ResponseCookie rc = ResponseCookie.from(name, value)
                 .httpOnly(false) // 민감정보 아님, 복구용 허용
                 .secure(secureCookie)

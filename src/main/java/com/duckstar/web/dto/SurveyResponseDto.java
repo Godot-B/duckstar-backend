@@ -1,5 +1,6 @@
 package com.duckstar.web.dto;
 
+import com.duckstar.domain.Survey;
 import com.duckstar.domain.enums.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +15,7 @@ public class SurveyResponseDto {
     @Builder
     @Getter
     public static class SurveyDto {
+        Boolean hasVoted;
         SurveyStatus status;
 
         Integer year;
@@ -25,8 +27,6 @@ public class SurveyResponseDto {
     @Builder
     @Getter
     public static class AnimeVoteHistoryDto {
-        Boolean hasVoted;
-
         Long memberId;
         String nickName;
 
@@ -63,7 +63,6 @@ public class SurveyResponseDto {
     @Builder
     @Getter
     public static class AnimeCandidateListDto {
-
         List<AnimeCandidateDto> animeCandidates;
         Integer candidatesCount;
 

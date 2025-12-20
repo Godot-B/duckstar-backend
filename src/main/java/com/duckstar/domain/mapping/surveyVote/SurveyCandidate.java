@@ -4,6 +4,7 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Survey;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.MedalType;
+import com.duckstar.domain.enums.Medium;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,6 +28,10 @@ public class SurveyCandidate extends BaseEntity {
 
     @Column(length = 1024)
     private String thumbnailUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(10)", nullable = false)
+    private Medium medium;  // TVA, MOVIE
 
     // anime 관계 필수 아님
     @ManyToOne(fetch = FetchType.LAZY)

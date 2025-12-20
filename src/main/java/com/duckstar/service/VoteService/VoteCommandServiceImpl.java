@@ -1,9 +1,12 @@
-package com.duckstar.service;
+package com.duckstar.service.VoteService;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.*;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Quarter;
+import com.duckstar.domain.Survey;
+import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
+import com.duckstar.repository.SurveyRepository;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.comment.AnimeComment;
@@ -17,6 +20,7 @@ import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.service.ShadowBanService;
+import com.duckstar.service.WeekService;
 import com.duckstar.web.support.Hasher;
 import com.duckstar.web.support.IdentifierExtractor;
 import com.duckstar.web.support.VoteCookieManager;
@@ -29,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.duckstar.web.dto.SurveyResponseDto.*;
 import static com.duckstar.web.dto.VoteRequestDto.*;
 import static com.duckstar.web.dto.VoteResponseDto.*;
 
@@ -50,36 +55,6 @@ public class VoteCommandServiceImpl implements VoteCommandService {
     private final WeekService weekService;
     private final ShadowBanService shadowBanService;
 
-    /**
-     * 일반-보너스 투표 방식
-     */
-//    public AnimeCandidateListDto getAnimeCandidateList(Long memberId) {
-//        Week currentWeek = weekService.getCurrentWeek();
-//
-//        VoteStatus status = currentWeek.getStatus();
-//        if (status != VoteStatus.OPEN) {
-//            return AnimeCandidateListDto.ofEmpty(status);
-//        }
-//
-//        List<AnimeCandidateDto> animeCandidates =
-//                animeCandidateRepository.getAnimeCandidateDtosByWeekId(currentWeek.getId());
-//
-//        Member member = null;
-//        if (memberId != null) {
-//            member = memberRepository.findById(memberId)
-//                    .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
-//        }
-//
-//        return AnimeCandidateListDto.builder()
-//                .status(status)
-//                .weekId(currentWeek.getId())
-//                .weekDto(WeekDto.of(currentWeek))
-//                .animeCandidates(animeCandidates)
-//                .candidatesCount(animeCandidates.size())
-//                .memberGender(member != null ? member.getGender() : Gender.UNKNOWN)
-//                .build();
-//    }
-//
 //    @Transactional
 //    public void voteAnime(
 //            AnimeVoteRequest request,
@@ -337,6 +312,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
 //
 //        submission.setUpdatedAt(LocalDateTime.now());
 //    }
+
     @Override
     public VoteResultDto voteOrUpdate(
             StarRequestDto request,

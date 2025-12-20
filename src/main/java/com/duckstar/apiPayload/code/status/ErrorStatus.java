@@ -56,9 +56,10 @@ public enum ErrorStatus implements BaseErrorCode {
     VOTER_GENDER_REQUIRED(HttpStatus.BAD_REQUEST, "VOTE40011", "투표에서 성별 정보는 필수입니다."),
     SUBMISSION_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40012", "존재하지 않는 제출 정보입니다."),
     HASH_FAILED(HttpStatus.BAD_REQUEST, "VOTE40013", "해싱할 수 없는 IP 주소입니다."),
-
-    // (별점)
+    // 별점
     STAR_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40014", "별점 투표 내역이 없습니다."),
+    // 설문
+    SURVEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "VOTE40015", "별점 투표 내역이 없습니다."),
 
     STAR_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "VOTE4011", "잘못된 투표 접근입니다."),
     LATE_STAR_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "VOTE4012", "투표 시간 이후의 참여 권한이 없습니다."),
