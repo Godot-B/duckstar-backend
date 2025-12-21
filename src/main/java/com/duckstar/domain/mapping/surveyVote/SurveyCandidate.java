@@ -27,6 +27,9 @@ public class SurveyCandidate extends BaseEntity {
     private String title;
 
     @Column(length = 1024)
+    private String imageUrl;
+
+    @Column(length = 1024)
     private String thumbnailUrl;
 
     @Enumerated(EnumType.STRING)
@@ -61,24 +64,49 @@ public class SurveyCandidate extends BaseEntity {
     protected SurveyCandidate(
             Survey survey,
             String title,
+            String imageUrl,
             String thumbnailUrl,
             Medium medium,
             Anime anime
     ) {
         this.survey = survey;
         this.title = title;
+        this.imageUrl = imageUrl;
         this.thumbnailUrl = thumbnailUrl;
         this.medium = medium;
         this.anime = anime;
+    }
+
+    public static SurveyCandidate create(
+            Survey survey,
+            String title,
+            String imageUrl,
+            String thumbnailUrl,
+            Medium medium
+    ) {
+        return new SurveyCandidate(
+                survey,
+                title,
+                imageUrl,
+                thumbnailUrl,
+                medium,
+                null
+        );
     }
 
     public static SurveyCandidate createByAnime(Survey survey, Anime anime) {
         return new SurveyCandidate(
                 survey,
                 anime.getTitleKor(),
+                anime.getMainImageUrl(),
                 anime.getMainThumbnailUrl(),
                 anime.getMedium(),
                 anime
         );
+    }
+
+    public void updateImage(String imageUrl, String thumbnailUrl) {
+        this.imageUrl = imageUrl;
+        this.thumbnailUrl = thumbnailUrl;
     }
 }

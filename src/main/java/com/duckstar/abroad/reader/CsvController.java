@@ -1,5 +1,6 @@
 package com.duckstar.abroad.reader;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,17 @@ public class CsvController {
 
     private final CsvImportService csvImportService;
 
+    @Operation(summary = "연말 어워드 후보 csv를 서버에 변환 및 업로드")
+    @PostMapping(value = "/import/surveys/{surveyId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importYearCandidates(
+            @PathVariable Long surveyId,
+            @ModelAttribute CandidatesCsvRequest request
+    ) throws IOException {
+        csvImportService.importCandidates(surveyId, request.getCandidatesCsv());
+        return ResponseEntity.ok("✅ 데이터 import 성공");
+    }
+
+    @Operation(summary = "새로운 분기 정보 csv를 서버에 변환 및 업로드")
     @PostMapping(value = "/import/{year}/{quarter}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importNewSeason(
             @PathVariable Integer year,

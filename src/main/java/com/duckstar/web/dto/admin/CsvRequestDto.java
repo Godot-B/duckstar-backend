@@ -9,6 +9,13 @@ public class CsvRequestDto {
 
     @Getter
     @Setter
+    public static class CandidatesCsvRequest {
+        @Schema(type = "string", format = "binary")
+        MultipartFile candidatesCsv;
+    }
+
+    @Getter
+    @Setter
     public static class NewSeasonRequestDto {
         @Schema(type = "string", format = "binary")
         MultipartFile animeCsv;

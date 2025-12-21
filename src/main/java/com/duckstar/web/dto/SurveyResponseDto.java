@@ -15,6 +15,7 @@ public class SurveyResponseDto {
     @Builder
     @Getter
     public static class SurveyDto {
+        Long surveyId;
         Boolean hasVoted;
         SurveyStatus status;
 

@@ -66,6 +66,7 @@ public class VoteQueryService {
                 .existsBySurveyAndPrincipalKey(survey, principalKey);
 
         return SurveyDto.builder()
+                .surveyId(survey.getId())
                 .hasVoted(hasVoted)
                 .status(survey.getStatus())
                 .year(survey.getYear())
