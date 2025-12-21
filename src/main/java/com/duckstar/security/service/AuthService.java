@@ -5,13 +5,19 @@ import com.duckstar.apiPayload.exception.handler.AuthHandler;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Quarter;
+import com.duckstar.domain.Survey;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.enums.SurveyStatus;
+import com.duckstar.domain.enums.SurveyType;
+import com.duckstar.domain.mapping.surveyVote.SurveyVoteSubmission;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.duckstar.domain.mapping.weeklyVote.WeekVoteSubmission;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.Reply.ReplyRepository;
+import com.duckstar.repository.SurveyRepository;
+import com.duckstar.repository.SurveyVoteSubmission.SurveyVoteSubmissionRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.domain.MemberToken;
 import com.duckstar.security.jwt.JwtTokenProvider;
@@ -57,7 +63,7 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoApiClient kakaoApiClient;
-    private final WeekVoteSubmissionRepository submissionRepository;
+    private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final VoteCookieManager voteCookieManager;
     private final GoogleApiClient googleApiClient;
     private final NaverApiClient naverApiClient;
@@ -65,6 +71,10 @@ public class AuthService {
     private final EpisodeStarRepository episodeStarRepository;
 
     private static final String BASE_VOTE_COOKIE = "vote_cookie_id";
+    private static final String BASE_SURVEY_COOKIE = "survey_cookie_id";
+
+    private final SurveyRepository surveyRepository;
+    private final SurveyVoteSubmissionRepository surveyVoteSubmissionRepository;
 
     @Value("${app.cookie.same-site}")
     private String sameSite;
@@ -107,49 +117,60 @@ public class AuthService {
         );
 
         // 2. 비회원 투표 마이그레이션 -> 회원의 투표로 저장
+        // 2-1. 주간 투표
         Week week = weekService.getCurrentWeek();
 
-        //=== 월 18시 ~ 화 15시에는 지난 주차와 공존하는 경우 있으므로 확인 ===//
+        //=== 2-1. 월 18시 ~ 화 15시에는 지난 주차와 공존하는 경우 있으므로 확인 ===//
         LocalDateTime hybridStart = week.getStartDateTime();  // 이번 주 월요일 18시
         LocalDateTime hybridEnd = hybridStart.with(DayOfWeek.TUESDAY).withHour(15).withMinute(0);  // 화요일 15시
         boolean isHybrid = !LocalDateTime.now().isBefore(hybridStart) && LocalDateTime.now().isBefore(hybridEnd);
 
+        boolean isWeekVoteMigrated;
         if (isHybrid) {
-            Boolean isCurrentWeekMigrated = migrateWeekVoteSubmission(
+            boolean isCurrentMigrated = migrateWeekVoteSubmission(
                     request,
                     response,
                     week,
                     member
             );
-            boolean currentMigrated = false;
-            if (isCurrentWeekMigrated != null) currentMigrated = isCurrentWeekMigrated;
 
             Week lastWeek = weekService.getWeekByTime(week.getStartDateTime().minusWeeks(1));
-            Boolean isLastWeekMigrated = migrateWeekVoteSubmission(
+            boolean isLastWeekMigrated = migrateWeekVoteSubmission(
                     request,
                     response,
                     lastWeek,
                     member
             );
-            boolean lastMigrated = false;
-            if (isLastWeekMigrated != null) lastMigrated = isLastWeekMigrated;
 
-            return currentMigrated || lastMigrated;
-
+            isWeekVoteMigrated = isCurrentMigrated || isLastWeekMigrated;
         } else {
-            Boolean isMigrated = migrateWeekVoteSubmission(
+            isWeekVoteMigrated = migrateWeekVoteSubmission(
                     request,
                     response,
                     week,
                     member
             );
-            if (isMigrated == null) return false;
-
-            return isMigrated;
         }
+
+        // 2-2. 서베이 투표
+        List<Survey> surveys = surveyRepository.findAllByStatus(SurveyStatus.OPEN);
+
+        boolean isSurveyVoteMigrated = false;
+        if (!surveys.isEmpty()) {
+            isSurveyVoteMigrated = surveys.stream()
+                    .map(s -> migrateSurveyVoteSubmission(
+                            request,
+                            response,
+                            s,
+                            member
+                    )).toList()
+                    .contains(true);
+        }
+
+        return isWeekVoteMigrated || isSurveyVoteMigrated;
     }
 
-    private Boolean migrateWeekVoteSubmission(
+    private boolean migrateWeekVoteSubmission(
             HttpServletRequest request,
             HttpServletResponse response,
             Week week,
@@ -164,85 +185,126 @@ public class AuthService {
         );
         if (voteCookieId == null || voteCookieId.isBlank()) {
             // 쿠키 없는 경우 스킵
-            return null;
+            return false;
         }
 
         Long weekId = week.getId();
         Optional<WeekVoteSubmission> localSubmissionOpt =
-                submissionRepository.findLocalSubmission(weekId, voteCookieId);
+                weekVoteSubmissionRepository.findLocalSubmission(weekId, voteCookieId);
         if (localSubmissionOpt.isEmpty()) {
             // 비로그인 투표 기록 없는 경우 스킵
-            return null;
+            return false;
         }
 
         boolean isMigrated = false;
         WeekVoteSubmission localSubmission = localSubmissionOpt.get();
-        if (localSubmission.getMember() == null) {
 
-            Optional<WeekVoteSubmission> memberSubmissionOpt =
-                    submissionRepository.findByWeek_IdAndMember_Id(weekId, member.getId());
-            //Case 1. 비로그인 투표 기록 ⭕️ -> 투표하지 않은 멤버 로그인
-            if (memberSubmissionOpt.isEmpty()) {
-                // ** 마이그레이션 ** //
-                localSubmission.setMember(
-                        member,
-                        voteCookieManager.toPrincipalKey(member.getId(), null)
-                );
-
-//                member.setGender(/*localSubmission.getGender()*/);
-
-                isMigrated = true;
-            } else {
-                WeekVoteSubmission memberSubmission = memberSubmissionOpt.get();
-
-                // ⭐⭐⭐  영속성 보장 (TransientObjectException 완전 차단)
-                memberSubmission = submissionRepository.getReferenceById(memberSubmission.getId());
-
-                Map<Long, EpisodeStar> memberEpisodeStarMap =
-                        episodeStarRepository.findAllByWeekVoteSubmission_Id(memberSubmission.getId())
-                        .stream()
-                        .collect(Collectors.toMap(
-                                es -> es.getEpisode().getId(),
-                                es -> es
-                        ));
-
-                List<EpisodeStar> localEpisodeStars =
-                        episodeStarRepository.findAllByWeekVoteSubmission_Id(localSubmission.getId())
-                                .stream()
-                                .filter(es -> es.getStarScore() != null)  // 로컬에서 회수한 별점은 제외
-                                .toList();
-
-                if (!localEpisodeStars.isEmpty()) {
-                    List<Long> deleteIds = new ArrayList<>();
-                    for (EpisodeStar localEpisodeStar : localEpisodeStars) {
-                        // 이미 멤버가 투표한 적이 있는 후보인가?
-                        EpisodeStar memberEpisodeStar =
-                                memberEpisodeStarMap.get(localEpisodeStar.getEpisode().getId());
-                        if (memberEpisodeStar != null) {  // 투표한 적이 있음
-                            // 비로그인의 투표 점수로 업데이트
-                            memberEpisodeStar.setStarScore(localEpisodeStar.getStarScore());
-                            // 비로그인 투표는 삭제
-                            deleteIds.add(localEpisodeStar.getId());
-                        } else {
-                            // 새로운 후보에 대한 투표라면, 멤버의 submission 으로 전환
-                            localEpisodeStar.setWeekVoteSubmission(memberSubmission);
-                        }
-                    }
-                    isMigrated = true;
-
-                    episodeStarRepository.deleteAllById(deleteIds);
-                }
-                submissionRepository.delete(localSubmission);
-            }
-
-            //Case 2. 비로그인 투표 기록 ⭕ -> 이미 투표한 🗳 멤버 로그인: 말 없이 쿠키 삭제
-            expireCookie(response,
-                    BASE_VOTE_COOKIE + "_" +
-                            quarter.getYearValue() +
-                            "Q" + quarter.getQuarterValue() +
-                            "W" + week.getWeekValue()
+        Optional<WeekVoteSubmission> memberSubmissionOpt =
+                weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(weekId, member.getId());
+        //Case 1. 비로그인 투표 기록 ⭕️ -> 투표하지 ❌않은 멤버 로그인
+        if (memberSubmissionOpt.isEmpty()) {
+            // ** 마이그레이션 ** //
+            localSubmission.setMember(
+                    member,
+                    voteCookieManager.toPrincipalKey(member.getId(), null)
             );
+
+            isMigrated = true;
+
+        //Case 2. 비로그인 투표 기록 ⭕️ -> 다른 기기에서 ⭕투표한 멤버 로그인
+        //  - 다른 기기에서 투표한 멤버의 기록에 비로그인 투표 기록을 UPSERT
+        } else {
+            WeekVoteSubmission memberSubmission = memberSubmissionOpt.get();
+
+            Map<Long, EpisodeStar> memberEpisodeStarMap =
+                    episodeStarRepository.findAllByWeekVoteSubmission_Id(memberSubmission.getId())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            es -> es.getEpisode().getId(),
+                            es -> es
+                    ));
+
+            List<EpisodeStar> localEpisodeStars =
+                    episodeStarRepository.findAllByWeekVoteSubmission_Id(localSubmission.getId())
+                            .stream()
+                            .filter(es -> es.getStarScore() != null)  // 로컬에서 회수한 별점은 제외
+                            .toList();
+
+            if (!localEpisodeStars.isEmpty()) {
+                List<Long> deleteIds = new ArrayList<>();
+                for (EpisodeStar localEpisodeStar : localEpisodeStars) {
+                    // 이미 멤버가 투표한 적이 있는 후보인가?
+                    EpisodeStar memberEpisodeStar =
+                            memberEpisodeStarMap.get(localEpisodeStar.getEpisode().getId());
+                    if (memberEpisodeStar != null) {  // 투표한 적이 있음
+                        // 비로그인의 투표 점수로 업데이트
+                        memberEpisodeStar.setStarScore(localEpisodeStar.getStarScore());
+                        // 비로그인 투표는 삭제
+                        deleteIds.add(localEpisodeStar.getId());
+                    } else {
+                        // 새로운 후보에 대한 투표라면, 멤버의 submission 으로 전환
+                        localEpisodeStar.setWeekVoteSubmission(memberSubmission);
+                    }
+                }
+                isMigrated = true;
+
+                episodeStarRepository.deleteAllById(deleteIds);
+            }
+            weekVoteSubmissionRepository.delete(localSubmission);
         }
+
+        // 마지막엔 역할을 다 한 쿠키를 반드시 삭제
+        expireCookie(response,
+                BASE_VOTE_COOKIE + "_" +
+                        quarter.getYearValue() +
+                        "Q" + quarter.getQuarterValue() +
+                        "W" + week.getWeekValue()
+        );
+        return isMigrated;
+    }
+
+    @Transactional
+    public boolean migrateSurveyVoteSubmission(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Survey survey,
+            Member member
+    ) {
+        SurveyType surveyType = survey.getSurveyType();
+        String cookieId = voteCookieManager.readCookie(request, surveyType);
+        if (cookieId == null || cookieId.isBlank()) {
+            return false;
+        }
+
+        Long surveyId = survey.getId();
+        Optional<SurveyVoteSubmission> localSubmissionOpt =
+                surveyVoteSubmissionRepository.findLocalSubmission(surveyId, cookieId);
+        if (localSubmissionOpt.isEmpty()) {
+            // 비로그인 투표 기록 없는 경우 스킵
+            return false;
+        }
+
+        boolean isMigrated = false;
+        SurveyVoteSubmission localSubmission = localSubmissionOpt.get();
+
+        Optional<SurveyVoteSubmission> memberSubmissionOpt =
+                surveyVoteSubmissionRepository.findBySurvey_IdAndMember_Id(surveyId, member.getId());
+        //Case 1. 비로그인 투표 기록 ⭕️ -> 투표하지 ❌않은 멤버 로그인
+        if (memberSubmissionOpt.isEmpty()) {
+            localSubmission.setMember(
+                    member,
+                    voteCookieManager.toPrincipalKey(member.getId(), null)
+            );
+
+            isMigrated = true;
+
+            // Case 1에서만 - 역할을 다 한 쿠키를 삭제
+            expireCookie(response, BASE_SURVEY_COOKIE + "_" + surveyType.name());
+
+        //Case 2. 비로그인 투표 기록 ⭕️ -> 다른 기기에서 ⭕투표한 멤버 로그인
+        //  - 서베이 방식에서는 기존 비로그인 투표 기록을 보존한다.
+        } else { /* do nothing */ }
+
         return isMigrated;
     }
 
@@ -304,7 +366,7 @@ public class AuthService {
         LocalDateTime now = LocalDateTime.now();
         Week week = weekService.getWeekByTime(now);
         Optional<WeekVoteSubmission> thisWeekSubmissionOpt =
-                submissionRepository.findByWeek_IdAndMember_Id(week.getId(), member.getId());
+                weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(week.getId(), member.getId());
 
         Long thisWeekSec = 0L;
         if (thisWeekSubmissionOpt.isPresent()) {
@@ -321,7 +383,7 @@ public class AuthService {
                 Week lastWeek = weekService.getWeekByTime(week.getStartDateTime().minusWeeks(1));
 
                 Optional<WeekVoteSubmission> lastWeekSubmissionOpt =
-                        submissionRepository.findByWeek_IdAndMember_Id(lastWeek.getId(), member.getId());
+                        weekVoteSubmissionRepository.findByWeek_IdAndMember_Id(lastWeek.getId(), member.getId());
 
                 if (lastWeekSubmissionOpt.isPresent()) {
                    lastWeekSec = episodeStarRepository
@@ -443,7 +505,7 @@ public class AuthService {
         memberTokenRepository.deleteAllByMember_Id(memberId);
 
         // 투표 기록에서 회원 정보 삭제
-        submissionRepository.findAllByMember_Id(memberId)
+        weekVoteSubmissionRepository.findAllByMember_Id(memberId)
                 .forEach(sub -> {
                     String cookieId = sub.getCookieId();
                     sub.setMember(null, voteCookieManager.toPrincipalKey(null, cookieId));

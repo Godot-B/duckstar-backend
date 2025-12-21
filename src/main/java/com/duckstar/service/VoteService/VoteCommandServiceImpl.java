@@ -20,13 +20,12 @@ import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.SurveyVote.SurveyVoteRepository;
-import com.duckstar.repository.SurveyVoteSubmissionRepository;
+import com.duckstar.repository.SurveyVoteSubmission.SurveyVoteSubmissionRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.security.service.ShadowBanService;
 import com.duckstar.service.WeekService;
-import com.duckstar.web.dto.SurveyRequestDto;
 import com.duckstar.web.support.Hasher;
 import com.duckstar.web.support.IdentifierExtractor;
 import com.duckstar.web.support.VoteCookieManager;
@@ -43,7 +42,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.SurveyRequestDto.*;
-import static com.duckstar.web.dto.SurveyResponseDto.*;
 import static com.duckstar.web.dto.VoteRequestDto.*;
 import static com.duckstar.web.dto.VoteResponseDto.*;
 

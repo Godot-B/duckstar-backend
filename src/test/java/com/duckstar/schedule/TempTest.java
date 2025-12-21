@@ -243,7 +243,7 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void delayEpisode() {
-        Episode targetEp = episodeRepository.findById(1050L).get();
+        Episode targetEp = episodeRepository.findById(2152L).get();
 
         LocalDateTime scheduledAt = targetEp.getScheduledAt();
         Anime anime = targetEp.getAnime();
@@ -257,11 +257,12 @@ public class TempTest {
         }
 
         //=== target 포함 이후 에피소드들: 연기일 기준으로 한주씩 미루기 ===//
-        LocalDate date = LocalDate.of(2025, 12, 2);
+        LocalDate date = LocalDate.of(2026, 1, 4);
         LocalDateTime delayedDate = LocalDateTime.of(date, targetEp.getScheduledAt().toLocalTime());
 
         // 직전 에피소드 nextEp 스케줄 수정
-        episodes.get(idx - 1).setNextEpScheduledAt(delayedDate);
+        int safeIdx = Math.max(0, idx - 1);
+        episodes.get(safeIdx).setNextEpScheduledAt(delayedDate);
         // target 포함 이후 에피소드들 수정
         for (int i = idx; i < episodes.size(); i++) {
             Episode episode = episodes.get(i);
