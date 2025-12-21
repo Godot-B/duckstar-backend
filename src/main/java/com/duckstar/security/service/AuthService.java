@@ -287,14 +287,17 @@ public class AuthService {
         boolean isMigrated = false;
         SurveyVoteSubmission localSubmission = localSubmissionOpt.get();
 
+        Long memberId = member.getId();
         Optional<SurveyVoteSubmission> memberSubmissionOpt =
-                surveyVoteSubmissionRepository.findBySurvey_IdAndMember_Id(surveyId, member.getId());
+                surveyVoteSubmissionRepository.findBySurvey_IdAndMember_Id(surveyId, memberId);
         //Case 1. 비로그인 투표 기록 ⭕️ -> 투표하지 ❌않은 멤버 로그인
         if (memberSubmissionOpt.isEmpty()) {
             localSubmission.setMember(
                     member,
-                    voteCookieManager.toPrincipalKey(member.getId(), null)
+                    voteCookieManager.toPrincipalKey(memberId, null)
             );
+            member.setGender(localSubmission.getGender());
+            member.setAgeGroup(localSubmission.getAgeGroup());
 
             isMigrated = true;
 
