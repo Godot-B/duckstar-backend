@@ -4,9 +4,7 @@ import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.EpisodeService.EpisodeQueryService;
 import com.duckstar.service.VoteService.VoteCommandService;
-import com.duckstar.service.VoteService.VoteCommandServiceImpl;
 import com.duckstar.service.VoteService.VoteQueryService;
-import com.duckstar.web.support.VoteCookieManager;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,9 +25,7 @@ import static com.duckstar.web.dto.VoteResponseDto.*;
 @RequiredArgsConstructor
 public class VoteController {
 
-    private final VoteCommandServiceImpl voteCommandServiceImpl;
     private final EpisodeQueryService episodeQueryService;
-    private final VoteCookieManager voteCookieManager;
     private final VoteQueryService voteQueryService;
     private final VoteCommandService voteCommandService;
 
@@ -60,7 +56,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdateStar(
+        return ApiResponse.onSuccess(voteCommandService.voteOrUpdateStar(
                 request,
                 memberId,
                 requestRaw,
@@ -117,7 +113,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
 
-        return ApiResponse.onSuccess(voteCommandServiceImpl.voteOrUpdateStarWithLoginAndComment(
+        return ApiResponse.onSuccess(voteCommandService.voteOrUpdateStarWithLoginAndComment(
                 request,
                 memberId,
                 requestRaw
@@ -140,7 +136,7 @@ public class VoteController {
 
         Long memberId = principal == null ? null : principal.getId();
 
-        voteCommandServiceImpl.withdrawStar(
+        voteCommandService.withdrawStar(
                 episodeId,
                 episodeStarId,
                 memberId,
@@ -196,6 +192,18 @@ public class VoteController {
         Long memberId = principal == null ? null : principal.getId();
         return ApiResponse.onSuccess(
                 voteQueryService.getAnimeVoteHistoryDto(surveyId, memberId, req));
+    }
+
+    @Operation(summary = "Survey 히스토리용 댓글 작성 API (로그인 ONLY)")
+    @PostMapping("/surveys/{surveyId}/me")
+    public ApiResponse<SurveyCommentDto> voteOrUpdateWithStarForm(
+            @Valid @RequestBody SurveyCommentRequestDto request,
+            @AuthenticationPrincipal MemberPrincipal principal
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+
+        return ApiResponse.onSuccess(
+                voteCommandService.postCommentBySurvey(request, memberId));
     }
 
     // 결과 차트 조회 API: GET /surveys/{surveyId}/result

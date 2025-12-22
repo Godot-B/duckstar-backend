@@ -2,15 +2,13 @@ package com.duckstar.service.VoteService;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.*;
-import com.duckstar.domain.Member;
-import com.duckstar.domain.Quarter;
-import com.duckstar.domain.Survey;
+import com.duckstar.domain.*;
 import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
 import com.duckstar.domain.mapping.surveyVote.SurveyVote;
 import com.duckstar.domain.mapping.surveyVote.SurveyVoteSubmission;
+import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.SurveyRepository;
-import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
@@ -66,6 +64,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
     private final SurveyVoteSubmissionRepository surveyVoteSubmissionRepository;
     private final SurveyCandidateRepository surveyCandidateRepository;
     private final SurveyVoteRepository surveyVoteRepository;
+    private final AnimeRepository animeRepository;
 
     @Override
     public void voteSurvey(
@@ -629,5 +628,45 @@ public class VoteCommandServiceImpl implements VoteCommandService {
                 episode.setStats(voterCount, scores);
             }
         }
+    }
+
+    @Override
+    public SurveyCommentDto postCommentBySurvey(SurveyCommentRequestDto request, Long memberId) {
+        Member author = memberRepository.findById(memberId).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        Long animeId = request.getAnimeId();
+        Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
+                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
+
+        int voteCount = episodeStarRepository
+                .countAllByEpisode_Anime_IdAndWeekVoteSubmission_Member_Id(
+                        animeId,
+                        memberId
+                );
+
+//        String imageUrl = null;
+//        MultipartFile image = request.getAttachedImage();
+//        if (image != null && !image.isEmpty()) {
+//            imageUrl = s3Uploader.uploadWithUUID(image, "comments");
+//        }
+
+        AnimeComment animeComment = AnimeComment.create(
+                anime,
+                null,
+                author,
+                false,
+                voteCount,
+                null,
+                request.getBody()
+        );
+
+        AnimeComment saved = animeCommentRepository.save(animeComment);
+
+        return SurveyCommentDto.builder()
+                .commentId(saved.getId())
+                .commentCreatedAt(saved.getCreatedAt())
+                .body(saved.getBody())
+                .build();
     }
 }

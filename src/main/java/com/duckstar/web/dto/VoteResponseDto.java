@@ -109,6 +109,17 @@ public class VoteResponseDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    public static class SurveyCommentDto {
+        LocalDateTime commentCreatedAt;
+
+        Long commentId;
+
+        String body;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
     public static class VoteResultDto {
         Integer voterCount;
 

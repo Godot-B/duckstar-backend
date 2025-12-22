@@ -3,6 +3,7 @@ package com.duckstar.domain.mapping.comment;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.CommentStatus;
+import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import jakarta.persistence.*;
@@ -23,6 +24,10 @@ public class AnimeComment extends Comment {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "episode_star_id")
     private EpisodeStar episodeStar;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "survey_candidate_id")
+    private SurveyCandidate surveyCandidate;
 
     protected AnimeComment(
             Anime anime,
@@ -68,6 +73,8 @@ public class AnimeComment extends Comment {
     public void setEpisodeStar(EpisodeStar episodeStar) {
         this.episodeStar = episodeStar;
     }
+
+    public void setSurveyCandidate(SurveyCandidate surveyCandidate) { this.surveyCandidate = surveyCandidate; }
 
     public void setStatus(CommentStatus status) {
         if (status == CommentStatus.DELETED

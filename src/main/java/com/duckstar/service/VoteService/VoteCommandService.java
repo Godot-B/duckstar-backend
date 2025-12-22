@@ -43,4 +43,6 @@ public interface VoteCommandService {
     );
 
     void refreshEpisodeStatsByWeekId(Long weekId);
+
+    SurveyCommentDto postCommentBySurvey(SurveyCommentRequestDto request, Long memberId);
 }

@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.duckstar.web.dto.VoteResponseDto.*;
+
 public class SurveyResponseDto {
 
     @Builder
@@ -63,6 +65,8 @@ public class SurveyResponseDto {
         Integer year;
         Integer quarter;
         Medium medium;
+
+        SurveyCommentDto surveyCommentDto;
     }
 
     @Builder
