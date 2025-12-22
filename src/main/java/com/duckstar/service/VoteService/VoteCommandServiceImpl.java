@@ -660,6 +660,9 @@ public class VoteCommandServiceImpl implements VoteCommandService {
                 null,
                 request.getBody()
         );
+        SurveyCandidate candidate = surveyCandidateRepository.findById(request.getCandidateId()).orElseThrow(() ->
+                new CommentHandler(ErrorStatus.ANIME_CANDIDATE_NOT_FOUND));
+        animeComment.setSurveyCandidate(candidate);
 
         AnimeComment saved = animeCommentRepository.save(animeComment);
 

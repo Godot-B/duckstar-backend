@@ -44,7 +44,7 @@ public class SurveyVoteRepositoryCustomImpl implements SurveyVoteRepositoryCusto
                 ).from(surveyVote)
                 .join(surveyVote.surveyCandidate, surveyCandidate)
                 .leftJoin(surveyCandidate.anime, anime)
-                .leftJoin(animeComment.surveyCandidate, surveyCandidate)
+                .leftJoin(animeComment).on(surveyCandidate.id.eq(animeComment.surveyCandidate.id))
                 .where(surveyVote.surveyVoteSubmission.id.eq(submissionId))
                 .orderBy(surveyVote.score.desc(), surveyCandidate.title.asc())
                 .fetch();
