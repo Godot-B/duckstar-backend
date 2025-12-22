@@ -278,21 +278,26 @@ public class CsvImportService {
                     medium = null;
                 }
 
+                Quarter quarter = quarterRepository
+                        .getReferenceById(Long.valueOf(record.get("quarterId")));
+
                 String mainImageUrl = record.get("mainImageUrl");
-
                 boolean isAlreadyUploaded = mainImageUrl.startsWith("https://" + bucket + "/");
-
                 if (isAlreadyUploaded) {
                     String[] parts = mainImageUrl.split("/");
                     Anime animeRef = animeRepository.getReferenceById(Long.valueOf(parts[4]));
-                    SurveyCandidate candidate = SurveyCandidate
-                            .createByAnime(survey, animeRef);
+                    SurveyCandidate candidate = SurveyCandidate.createByAnime(
+                            survey,
+                            quarter,
+                            animeRef
+                    );
 
                     surveyCandidateRepository.save(candidate);
                 } else {
                     // ⚠️ Survey 전용 candidate 이미지 업로드 (애니메이션과 관계 맺지 않은 경우)
                     SurveyCandidate candidate = SurveyCandidate.create(
                             survey,
+                            quarter,
                             record.get("title"),
                             null,
                             null,

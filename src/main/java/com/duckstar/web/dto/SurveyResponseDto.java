@@ -59,11 +59,18 @@ public class SurveyResponseDto {
 
         // 투표 결과 화면 - 에피소드 별 댓글 남기기 기능을 위해
         Integer totalEpisodes;
+
+        Integer year;
+        Integer quarter;
+        Medium medium;
     }
 
     @Builder
     @Getter
     public static class AnimeCandidateListDto {
+        Integer year;
+        SurveyType type;
+
         List<AnimeCandidateDto> animeCandidates;
         Integer candidatesCount;
 
@@ -78,6 +85,9 @@ public class SurveyResponseDto {
         Long animeCandidateId;
         String mainThumbnailUrl;
         String titleKor;
+
+        Integer year;
+        Integer quarter;
         Medium medium;
     }
 }

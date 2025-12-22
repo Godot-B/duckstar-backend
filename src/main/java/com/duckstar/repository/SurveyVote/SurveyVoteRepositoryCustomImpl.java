@@ -31,7 +31,8 @@ public class SurveyVoteRepositoryCustomImpl implements SurveyVoteRepositoryCusto
                                 anime.id,
                                 surveyCandidate.thumbnailUrl,
                                 surveyCandidate.title,
-                                anime.totalEpisodes
+                                anime.totalEpisodes,
+                                anime.medium
                         )
                 ).from(surveyVote)
                 .join(surveyVote.surveyCandidate, surveyCandidate)

@@ -39,7 +39,11 @@ public class VoteQueryService {
     public List<SurveyDto> getSurveyDtos(Long memberId, HttpServletRequest req) {
         List<Survey> surveys = surveyRepository.findAll();
         return surveys.stream()
-                .map(s -> getSurveyDto(memberId, req, s))
+                .map(s -> {
+                    String cookieId = voteCookieManager.readCookie(req, s.getSurveyType());
+                    String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+                    return getSurveyDto(principalKey, s);
+                })
                 .toList();
     }
 
@@ -51,19 +55,16 @@ public class VoteQueryService {
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
                 new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
 
-        return getSurveyDto(memberId, req, survey);
-    }
-
-    private SurveyDto getSurveyDto(
-            Long memberId,
-            HttpServletRequest req,
-            Survey survey
-    ) {
         String cookieId = voteCookieManager.readCookie(req, survey.getSurveyType());
         String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
 
-        boolean hasVoted = surveyVoteSubmissionRepository
-                .existsBySurveyAndPrincipalKey(survey, principalKey);
+        return getSurveyDto(principalKey, survey);
+    }
+
+    private SurveyDto getSurveyDto(String principalKey, Survey survey) {
+        boolean hasVoted = principalKey != null &&
+                surveyVoteSubmissionRepository
+                        .existsBySurveyAndPrincipalKey(survey, principalKey);
 
         return SurveyDto.builder()
                 .surveyId(survey.getId())
@@ -98,6 +99,8 @@ public class VoteQueryService {
         }
 
         return AnimeCandidateListDto.builder()
+                .year(survey.getYear())
+                .type(survey.getSurveyType())
                 .animeCandidates(animeCandidates)
                 .candidatesCount(animeCandidates.size())
                 .memberGender(member != null ? member.getGender() : Gender.UNKNOWN)

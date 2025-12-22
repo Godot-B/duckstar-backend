@@ -3,6 +3,7 @@ package com.duckstar.schedule;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.Anime;
+import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Survey;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.mapping.AnimeSeason;
@@ -14,6 +15,7 @@ import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
+import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.SurveyRepository;
 import com.duckstar.repository.Week.WeekRepository;
@@ -56,6 +58,8 @@ public class TempTest {
     private SurveyRepository surveyRepository;
     @Autowired
     private SurveyCandidateRepository surveyCandidateRepository;
+    @Autowired
+    private QuarterRepository quarterRepository;
 
     @Test
     @Transactional
@@ -277,13 +281,14 @@ public class TempTest {
     @Rollback(false)
     public void postSurveyFromSeasonAnimes() {
         Survey survey = surveyRepository.findById(1L).get();
+        Quarter quarter = quarterRepository.getReferenceById(2L);
 
         List<Anime> animes = animeSeasonRepository.findAllBySeason_Id(2L).stream()
                 .map(AnimeSeason::getAnime)
                 .toList();
 
         List<SurveyCandidate> candidates = animes.stream()
-                .map(anime -> SurveyCandidate.createByAnime(survey, anime))
+                .map(anime -> SurveyCandidate.createByAnime(survey, quarter, anime))
                 .toList();
 
         surveyCandidateRepository.saveAll(candidates);

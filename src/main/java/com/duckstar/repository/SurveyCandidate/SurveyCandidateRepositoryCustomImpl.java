@@ -24,6 +24,8 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                                 surveyCandidate.id,
                                 surveyCandidate.thumbnailUrl,
                                 surveyCandidate.title,
+                                surveyCandidate.quarter.yearValue,
+                                surveyCandidate.quarter.quarterValue,
                                 surveyCandidate.medium
                         )
                 ).from(surveyCandidate)

@@ -252,7 +252,7 @@ public class CommentService {
 
         //=== 만약 늦참에 의해 생성된 댓글이라면 별점도 회수 ===//
         EpisodeStar episodeStar = comment.getEpisodeStar();
-        if (episodeStar.isLateParticipating()) {
+        if (episodeStar != null && episodeStar.isLateParticipating()) {
             episodeStar.withdrawScore();
         }
 

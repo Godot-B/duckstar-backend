@@ -1,6 +1,7 @@
 package com.duckstar.domain.mapping.surveyVote;
 
 import com.duckstar.domain.Anime;
+import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Survey;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.MedalType;
@@ -22,6 +23,10 @@ public class SurveyCandidate extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quarter_id")
+    private Quarter quarter;
 
     @Column(nullable = false)
     private String title;
@@ -63,6 +68,7 @@ public class SurveyCandidate extends BaseEntity {
 
     protected SurveyCandidate(
             Survey survey,
+            Quarter quarter,
             String title,
             String imageUrl,
             String thumbnailUrl,
@@ -70,6 +76,7 @@ public class SurveyCandidate extends BaseEntity {
             Anime anime
     ) {
         this.survey = survey;
+        this.quarter = quarter;
         this.title = title;
         this.imageUrl = imageUrl;
         this.thumbnailUrl = thumbnailUrl;
@@ -79,6 +86,7 @@ public class SurveyCandidate extends BaseEntity {
 
     public static SurveyCandidate create(
             Survey survey,
+            Quarter quarter,
             String title,
             String imageUrl,
             String thumbnailUrl,
@@ -86,6 +94,7 @@ public class SurveyCandidate extends BaseEntity {
     ) {
         return new SurveyCandidate(
                 survey,
+                quarter,
                 title,
                 imageUrl,
                 thumbnailUrl,
@@ -94,9 +103,14 @@ public class SurveyCandidate extends BaseEntity {
         );
     }
 
-    public static SurveyCandidate createByAnime(Survey survey, Anime anime) {
+    public static SurveyCandidate createByAnime(
+            Survey survey,
+            Quarter quarter,
+            Anime anime
+    ) {
         return new SurveyCandidate(
                 survey,
+                quarter,
                 anime.getTitleKor(),
                 anime.getMainImageUrl(),
                 anime.getMainThumbnailUrl(),
