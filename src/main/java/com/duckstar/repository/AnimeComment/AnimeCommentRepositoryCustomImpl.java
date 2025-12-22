@@ -111,7 +111,9 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .where(
                         animeCondition,
                         episodeCondition,
-                        animeComment.status.eq(CommentStatus.NORMAL)
+                        animeComment.status.ne(CommentStatus.DELETED).and(
+                                        animeComment.status.ne(CommentStatus.ADMIN_DELETED)
+                                )
                                 .or(animeComment.replyCount.gt(0))
                 )
                 .orderBy(getOrder(sortBy))  // 정렬
@@ -194,7 +196,9 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .leftJoin(animeComment.episode, episode)
                 .where(
                         animeCondition,
-                        animeComment.status.eq(CommentStatus.NORMAL),
+                        animeComment.status.ne(CommentStatus.DELETED).and(
+                                animeComment.status.ne(CommentStatus.ADMIN_DELETED)
+                        ),
                         episodeCondition
                 )
                 .fetchOne();
@@ -205,7 +209,9 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .leftJoin(animeComment.episode, episode)
                 .where(
                         animeCondition,
-                        reply.status.eq(CommentStatus.NORMAL),
+                        reply.status.ne(CommentStatus.DELETED).and(
+                                reply.status.ne(CommentStatus.ADMIN_DELETED)
+                        ),
                         episodeCondition
                 )
                 .fetchOne();

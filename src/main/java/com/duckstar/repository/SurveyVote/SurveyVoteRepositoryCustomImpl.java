@@ -1,6 +1,7 @@
 package com.duckstar.repository.SurveyVote;
 
 import com.duckstar.domain.QAnime;
+import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
 import com.duckstar.domain.mapping.surveyVote.QSurveyCandidate;
 import com.duckstar.domain.mapping.surveyVote.QSurveyVote;
@@ -44,7 +45,12 @@ public class SurveyVoteRepositoryCustomImpl implements SurveyVoteRepositoryCusto
                 ).from(surveyVote)
                 .join(surveyVote.surveyCandidate, surveyCandidate)
                 .leftJoin(surveyCandidate.anime, anime)
-                .leftJoin(animeComment).on(surveyCandidate.id.eq(animeComment.surveyCandidate.id))
+                .leftJoin(animeComment)
+                .on(
+                        surveyCandidate.id.eq(animeComment.surveyCandidate.id),
+                        animeComment.status.ne(CommentStatus.DELETED),
+                        animeComment.status.ne(CommentStatus.ADMIN_DELETED)
+                )
                 .where(surveyVote.surveyVoteSubmission.id.eq(submissionId))
                 .orderBy(surveyVote.score.desc(), surveyCandidate.title.asc())
                 .fetch();

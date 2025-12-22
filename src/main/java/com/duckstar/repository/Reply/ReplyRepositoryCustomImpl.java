@@ -87,7 +87,9 @@ public class ReplyRepositoryCustomImpl implements ReplyRepositoryCustom {
                 .leftJoin(reply.listener) // 명시적으로 leftJoin
                 .where(
                         reply.parent.id.eq(commentId),
-                        reply.status.eq(CommentStatus.NORMAL)
+                        reply.status.ne(CommentStatus.DELETED).and(
+                                reply.status.ne(CommentStatus.ADMIN_DELETED)
+                        )
                 )
                 .orderBy(reply.createdAt.asc())
                 .offset((long) pageable.getPageNumber() * (pageSize - 1))
