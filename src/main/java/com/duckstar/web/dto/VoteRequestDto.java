@@ -42,11 +42,6 @@ public class VoteRequestDto {
         @NotNull
         Long animeId;
 
-        @NotNull
-        @Min(1)
-        @Max(10)
-        Integer starScore;
-
         @NotBlank
         @Size(min = 5, max = 1000)
         String body;
