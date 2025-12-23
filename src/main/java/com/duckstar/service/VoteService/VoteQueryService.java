@@ -72,8 +72,8 @@ public class VoteQueryService {
                 .status(survey.getStatus())
                 .year(survey.getYear())
                 .type(survey.getSurveyType())
-                .startDate(survey.getStartDateTime().toLocalDate())
-                .endDate(survey.getEndDateTime().toLocalDate())
+                .startDateTime(survey.getStartDateTime())
+                .endDateTime(survey.getEndDateTime())
                 .build();
     }
 

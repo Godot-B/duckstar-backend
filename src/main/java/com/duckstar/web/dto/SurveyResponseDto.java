@@ -23,8 +23,8 @@ public class SurveyResponseDto {
 
         Integer year;
         SurveyType type;
-        LocalDate startDate;
-        LocalDate endDate;
+        LocalDateTime startDateTime;
+        LocalDateTime endDateTime;
     }
 
     @Builder

@@ -37,7 +37,7 @@ public class SurveyVoteRepositoryCustomImpl implements SurveyVoteRepositoryCusto
                         surveyCandidate.quarter.quarterValue,
                         anime.id,
                         anime.totalEpisodes,
-                        anime.medium,
+                        surveyCandidate.medium,
                         surveyVote.ballotType,
                         animeComment.createdAt,
                         animeComment.id,
@@ -76,7 +76,7 @@ public class SurveyVoteRepositoryCustomImpl implements SurveyVoteRepositoryCusto
                             .totalEpisodes(t.get(anime.totalEpisodes))
                             .year(t.get(surveyCandidate.quarter.yearValue))
                             .quarter(t.get(surveyCandidate.quarter.quarterValue))
-                            .medium(t.get(anime.medium))
+                            .medium(t.get(surveyCandidate.medium))
                             .surveyCommentDto(surveyCommentDto)
                             .build();
                 })
