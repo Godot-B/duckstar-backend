@@ -106,8 +106,8 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                         episodeStar.isLateParticipating
                 )
                 .from(animeComment)
-                .leftJoin(animeComment.episode, episode)
-                .leftJoin(animeComment.episodeStar, episodeStar)
+                .leftJoin(episode).on(episode.id.eq(animeComment.episode.id))
+                .leftJoin(episodeStar).on(episodeStar.id.eq(animeComment.episodeStar.id))
                 .where(
                         animeCondition,
                         episodeCondition,
@@ -137,7 +137,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
 
                     Boolean isUserTaggedEp = t.get(animeComment.isUserTaggedEp);
                     Integer episodeNumber = Boolean.TRUE.equals(isUserTaggedEp) ?
-                            t.get(animeComment.episode.episodeNumber) :
+                            t.get(episode.episodeNumber) :
                             null;
 
                     Integer replyCount = t.get(animeComment.replyCount);

@@ -261,6 +261,12 @@ public class CsvImportService {
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
                 new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
 
+        Map<String, Long> animeMap = animeRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        Anime::getTitleKor,
+                        Anime::getId
+                ));
+
         Reader reader = new InputStreamReader(csv.getInputStream(), StandardCharsets.UTF_8);
         CSVFormat format = CSVFormat.Builder
                 .create()
@@ -293,16 +299,23 @@ public class CsvImportService {
                     );
 
                     surveyCandidateRepository.save(candidate);
-                } else {
-                    // ⚠️ Survey 전용 candidate 이미지 업로드 (애니메이션과 관계 맺지 않은 경우)
+
+                } else { // ⚠️ Survey 전용 candidate 이미지 업로드 (애니메이션과 관계 맺지 않은 경우)
+                    String title = record.get("titleKor");
                     SurveyCandidate candidate = SurveyCandidate.create(
                             survey,
                             quarter,
-                            record.get("title"),
+                            title,
                             null,
                             null,
                             medium
                     );
+
+                    Long animeId = animeMap.get(title);
+                    if (animeId != null) {
+                        Anime anime = animeRepository.getReferenceById(animeId);
+                        candidate.setAnime(anime);
+                    }
                     SurveyCandidate saved = surveyCandidateRepository.save(candidate);
 
                     try {
@@ -500,26 +513,29 @@ public class CsvImportService {
             String imageUrl, File tempDir, String name
     ) throws IOException, KeyStoreException, CertificateException,
             NoSuchAlgorithmException, KeyManagementException {
-        // 1. Truststore 로딩
-        char[] password = "secret".toCharArray();
-        KeyStore trustStore = KeyStore.getInstance("PKCS12");
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("truststore.p12")) {
-            if (is == null) {
-                throw new IllegalStateException("truststore.p12 not found in resources");
-            }
-            trustStore.load(is, password);
-        }
-
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(trustStore);
-
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
-
-        // 2. HTTPS 연결 (온나다 다운로드에만 적용)
+        
         URL url = new URL(imageUrl);
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-        conn.setSSLSocketFactory(sslContext.getSocketFactory());
+
+        // 1. HTTPS 연결 설정 (온나다 다운로드에만 커스텀 Truststore 적용)
+        if (url.getHost().contains("onnada.com")) {
+            char[] password = "secret".toCharArray();
+            KeyStore trustStore = KeyStore.getInstance("PKCS12");
+            try (InputStream is = getClass().getClassLoader().getResourceAsStream("truststore.p12")) {
+                if (is == null) {
+                    throw new IllegalStateException("truststore.p12 not found in resources");
+                }
+                trustStore.load(is, password);
+            }
+
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+
+            conn.setSSLSocketFactory(sslContext.getSocketFactory());
+        }
 
         // 3. 원본 파일 저장
         String extension = "jpg";

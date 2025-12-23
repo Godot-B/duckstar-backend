@@ -52,7 +52,11 @@ public class SurveyVoteRepositoryCustomImpl implements SurveyVoteRepositoryCusto
                         animeComment.status.ne(CommentStatus.ADMIN_DELETED)
                 )
                 .where(surveyVote.surveyVoteSubmission.id.eq(submissionId))
-                .orderBy(surveyVote.score.desc(), surveyCandidate.title.asc())
+                .orderBy(
+                        surveyVote.score.desc(),
+                        surveyCandidate.quarter.quarterValue.asc(),
+                        surveyCandidate.title.asc()
+                )
                 .fetch();
 
         return tuples.stream()

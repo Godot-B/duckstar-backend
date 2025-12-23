@@ -17,7 +17,7 @@ public class CsvController {
 
     private final CsvImportService csvImportService;
 
-    @Operation(summary = "연말 어워드 후보 csv를 서버에 변환 및 업로드")
+    @Operation(summary = "어워드 후보 csv를 서버에 변환 및 업로드")
     @PostMapping(value = "/import/surveys/{surveyId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importYearCandidates(
             @PathVariable Long surveyId,

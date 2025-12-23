@@ -35,7 +35,7 @@ public class Anime extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)
-    private Medium medium;  // TVA, MOVIE
+    private Medium medium;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20)")

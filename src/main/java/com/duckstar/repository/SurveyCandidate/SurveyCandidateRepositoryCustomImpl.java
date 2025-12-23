@@ -30,7 +30,10 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                         )
                 ).from(surveyCandidate)
                 .where(surveyCandidate.survey.id.eq(surveyId))
-                .orderBy(surveyCandidate.title.asc())
+                .orderBy(
+                        surveyCandidate.quarter.quarterValue.asc(),
+                        surveyCandidate.title.asc()
+                )
                 .fetch();
     }
 

@@ -239,7 +239,6 @@ public class VoteController {
 
         voteCommandService.revoteSurvey(submissionId, request, memberId);
 
-        return ApiResponse.onSuccess(null)
-                ;
+        return ApiResponse.onSuccess(null);
     }
 }

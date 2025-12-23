@@ -24,7 +24,7 @@ public class AnimeRequestDto {
         String titleEng;
 
         @NotNull
-        Medium medium;  // TVA, MOVIE
+        Medium medium;
 
         String airTime;     // 입력 시 프론트에서 아래 방영일에 우선 채워줌
         LocalDateTime premiereDateTime;  // 입력 시 프론트에서 아래 요일에 우선 채워줌

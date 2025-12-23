@@ -28,6 +28,11 @@ public class SurveyCandidate extends BaseEntity {
     @JoinColumn(name = "quarter_id")
     private Quarter quarter;
 
+    // anime 관계 필수 아님
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anime_id")
+    private Anime anime;
+
     @Column(nullable = false)
     private String title;
 
@@ -39,12 +44,7 @@ public class SurveyCandidate extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)
-    private Medium medium;  // TVA, MOVIE
-
-    // anime 관계 필수 아님
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "anime_id")
-    private Anime anime;
+    private Medium medium;
 
     private Integer maleCount = 0;
 
@@ -122,5 +122,9 @@ public class SurveyCandidate extends BaseEntity {
     public void updateImage(String imageUrl, String thumbnailUrl) {
         this.imageUrl = imageUrl;
         this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public void setAnime(Anime anime) {
+        this.anime = anime;
     }
 }

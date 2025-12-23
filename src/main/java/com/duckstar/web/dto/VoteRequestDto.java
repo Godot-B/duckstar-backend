@@ -43,7 +43,7 @@ public class VoteRequestDto {
         Long animeId;
 
         @NotBlank
-        @Size(min = 5, max = 1000)
+        @Size(max = 1000)
         String body;
 
         Long candidateId;  // 추가
