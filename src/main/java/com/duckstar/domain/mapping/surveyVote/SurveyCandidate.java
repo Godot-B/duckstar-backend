@@ -69,24 +69,25 @@ public class SurveyCandidate extends BaseEntity {
     protected SurveyCandidate(
             Survey survey,
             Quarter quarter,
+            Anime anime,
             String title,
             String imageUrl,
             String thumbnailUrl,
-            Medium medium,
-            Anime anime
+            Medium medium
     ) {
         this.survey = survey;
         this.quarter = quarter;
+        this.anime = anime;
         this.title = title;
         this.imageUrl = imageUrl;
         this.thumbnailUrl = thumbnailUrl;
         this.medium = medium;
-        this.anime = anime;
     }
 
     public static SurveyCandidate create(
             Survey survey,
             Quarter quarter,
+            Anime anime,
             String title,
             String imageUrl,
             String thumbnailUrl,
@@ -95,11 +96,11 @@ public class SurveyCandidate extends BaseEntity {
         return new SurveyCandidate(
                 survey,
                 quarter,
+                anime,
                 title,
                 imageUrl,
                 thumbnailUrl,
-                medium,
-                null
+                medium
         );
     }
 
@@ -111,11 +112,11 @@ public class SurveyCandidate extends BaseEntity {
         return new SurveyCandidate(
                 survey,
                 quarter,
+                anime,
                 anime.getTitleKor(),
                 anime.getMainImageUrl(),
                 anime.getMainThumbnailUrl(),
-                anime.getMedium(),
-                anime
+                anime.getMedium()
         );
     }
 

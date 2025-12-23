@@ -176,7 +176,7 @@ public class Episode extends BaseEntity {
     }
 
     public double getUiStarAverage() {
-        return Math.round(getStarAverage() * 10.0) / 10.0; // 10점 만점, 소수 첫째자리 반올림
+        return Math.floor(getStarAverage() * 10.0) / 10.0; // 10점 만점, 소수 둘째자리 버림
     }
 
     public void setStats(Integer voterCount, int[] scores) {

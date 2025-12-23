@@ -101,6 +101,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                         animeComment.attachedImageUrl,
                         animeComment.body,
                         animeComment.replyCount,
+                        animeComment.surveyCandidate.id,
                         episode.episodeNumber,
                         episodeStar.starScore,
                         episodeStar.isLateParticipating
@@ -179,6 +180,8 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                             .replyCount(replyCount)
                             .starScore(t.get(episodeStar.starScore))
                             .isLateParticipating(t.get(episodeStar.isLateParticipating))
+
+                            .surveyCandidateId(t.get(animeComment.surveyCandidate.id))
                             .build();
                 })
                 .toList();

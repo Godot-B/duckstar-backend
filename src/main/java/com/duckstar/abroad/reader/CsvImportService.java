@@ -305,6 +305,7 @@ public class CsvImportService {
                     SurveyCandidate candidate = SurveyCandidate.create(
                             survey,
                             quarter,
+                            null,
                             title,
                             null,
                             null,

@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-@Disabled("로컬 개발용 테스트")
+//@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("local-db")
 public class TempTest {
 
@@ -293,4 +293,28 @@ public class TempTest {
 
         surveyCandidateRepository.saveAll(candidates);
     }
+
+//    @Test
+//    @Transactional
+//    @Rollback(false)
+//    public void asdf() {
+//        List<SurveyCandidate> quarterCandidates = surveyCandidateRepository
+//                .findAllBySurvey_IdAndQuarter_Id(2L, 2L);
+//
+//        Survey survey = surveyRepository.getReferenceById(1L);
+//        Quarter quarter = quarterRepository.getReferenceById(2L);
+//
+//        List<SurveyCandidate> newCandidates = quarterCandidates.stream()
+//                .map(c -> SurveyCandidate.create(
+//                        survey,
+//                        quarter,
+//                        c.getAnime(),
+//                        c.getTitle(),
+//                        c.getImageUrl(),
+//                        c.getThumbnailUrl(),
+//                        c.getMedium()
+//                )).toList();
+//
+//        surveyCandidateRepository.saveAll(newCandidates);
+//    }
 }

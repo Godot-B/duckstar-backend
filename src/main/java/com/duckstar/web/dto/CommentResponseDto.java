@@ -68,6 +68,9 @@ public class CommentResponseDto {
         Integer starScore;
         Boolean isLateParticipating;
 
+        // 추가 (2025년 12월 24일)
+        Long surveyCandidateId;
+
         public static CommentDto ofCreated(
                 AnimeComment comment,
                 Member author,
