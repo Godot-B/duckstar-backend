@@ -38,4 +38,16 @@ public class Survey extends BaseEntity {
     private Integer voterCount = 0;
 
     private Boolean announcePrepared = false;
+
+    public void updateStatus(LocalDateTime now) {
+        if (status == SurveyStatus.NOT_YET) {
+            if (startDateTime != null && !now.isBefore(startDateTime)) {
+                status = SurveyStatus.OPEN;
+            }
+        } else if (status == SurveyStatus.OPEN) {
+            if (endDateTime != null && !now.isBefore(endDateTime)) {
+                status = SurveyStatus.CLOSED;
+            }
+        }
+    }
 }

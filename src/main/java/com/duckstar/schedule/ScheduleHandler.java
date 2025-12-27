@@ -1,7 +1,7 @@
 package com.duckstar.schedule;
 
 import com.duckstar.service.AnimeService.AnimeCommandService;
-import com.duckstar.service.ChartService;
+import com.duckstar.service.SurveyService;
 import com.duckstar.service.WeekService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 
 import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
@@ -21,11 +20,9 @@ import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
 @RequiredArgsConstructor
 public class ScheduleHandler {
     private final WeekService weekService;
-    private final ChartService chartService;
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final ScheduleState scheduleState;
     private final AnimeCommandService animeCommandService;
+    private final SurveyService surveyService;
 
     // 매 분마다 시작 or 종영 체크
     @Scheduled(cron = "0 * * * * *")
@@ -35,6 +32,12 @@ public class ScheduleHandler {
         }
 
         animeCommandService.updateStatesByWindows();
+    }
+
+    // ⚠️확장할 때 주의 : 매 자정에만 서베이 상태 체크
+    @Scheduled(cron = "0 0 0 * * *")
+    public void checkSurveyStatus() {
+        surveyService.updateStatus();
     }
 
     // 매주 월요일 18시

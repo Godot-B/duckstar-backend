@@ -86,7 +86,7 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                     LocalDateTime time = t.get(anime.premiereDateTime);
                     String formatted = null;
                     if (time != null) {
-                        formatted = time.toString();
+                        formatted = String.valueOf(time);
                     }
 
                     AnimeStatus status = t.get(anime.status);

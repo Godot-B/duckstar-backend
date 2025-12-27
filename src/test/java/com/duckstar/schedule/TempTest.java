@@ -252,7 +252,7 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void delayEpisode() {
-        Episode targetEp = episodeRepository.findById(2152L).get();
+        Episode targetEp = episodeRepository.findById(21L).get();
 
         LocalDateTime scheduledAt = targetEp.getScheduledAt();
         Anime anime = targetEp.getAnime();

@@ -36,47 +36,6 @@ public class VoteQueryService {
     private final VoteCookieManager voteCookieManager;
     private final SurveyVoteRepository surveyVoteRepository;
 
-    public List<SurveyDto> getSurveyDtos(Long memberId, HttpServletRequest req) {
-        List<Survey> surveys = surveyRepository.findAll();
-        return surveys.stream()
-                .map(s -> {
-                    String cookieId = voteCookieManager.readCookie(req, s.getSurveyType());
-                    String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-                    return getSurveyDto(principalKey, s);
-                })
-                .toList();
-    }
-
-    public SurveyDto getSurveyDto(
-            Long surveyId,
-            Long memberId,
-            HttpServletRequest req
-    ) {
-        Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
-                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
-
-        String cookieId = voteCookieManager.readCookie(req, survey.getSurveyType());
-        String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-
-        return getSurveyDto(principalKey, survey);
-    }
-
-    private SurveyDto getSurveyDto(String principalKey, Survey survey) {
-        boolean hasVoted = principalKey != null &&
-                surveyVoteSubmissionRepository
-                        .existsBySurveyAndPrincipalKey(survey, principalKey);
-
-        return SurveyDto.builder()
-                .surveyId(survey.getId())
-                .hasVoted(hasVoted)
-                .status(survey.getStatus())
-                .year(survey.getYear())
-                .type(survey.getSurveyType())
-                .startDateTime(survey.getStartDateTime())
-                .endDateTime(survey.getEndDateTime())
-                .build();
-    }
-
     public AnimeCandidateListDto getAnimeCandidateListDto(Long surveyId, Long memberId) {
         // 서베이 존재, 투표 가능 검사
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->

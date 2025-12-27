@@ -126,15 +126,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
 
                     Medium medium = t.get(anime.medium);
                     LocalDateTime time = t.get(anime.premiereDateTime);
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
-                    String formatted = null;
-                    if (time != null) {
-                        formatted = time.format(formatter);
-                    }
                     AnimeStatus status = t.get(anime.status);
 
                     String airTime = (medium == Medium.MOVIE || status == AnimeStatus.UPCOMING) ?
-                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
+                            String.valueOf(time) :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
                             t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
 
                     //=== 에피소드가 속한 주 계산 ===//
@@ -270,7 +265,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                     LocalDateTime time = t.get(anime.premiereDateTime);
                     String formatted = null;
                     if (time != null) {
-                        formatted = time.toString();
+                        formatted = String.valueOf(time);
                     }
                     AnimeStatus status = t.get(anime.status);
 

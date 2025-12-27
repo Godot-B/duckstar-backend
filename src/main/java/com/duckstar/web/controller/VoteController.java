@@ -3,6 +3,7 @@ package com.duckstar.web.controller;
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.service.EpisodeService.EpisodeQueryService;
+import com.duckstar.service.SurveyService;
 import com.duckstar.service.VoteService.VoteCommandService;
 import com.duckstar.service.VoteService.VoteQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +29,7 @@ public class VoteController {
     private final EpisodeQueryService episodeQueryService;
     private final VoteQueryService voteQueryService;
     private final VoteCommandService voteCommandService;
+    private final SurveyService surveyService;
 
     /**
      * 주간 투표 - 별점 투표 방식
@@ -157,7 +159,7 @@ public class VoteController {
             HttpServletRequest req
     ) {
         Long memberId = principal == null ? null : principal.getId();
-        return ApiResponse.onSuccess(voteQueryService.getSurveyDtos(memberId, req));
+        return ApiResponse.onSuccess(surveyService.getSurveyDtos(memberId, req));
     }
 
     @Operation(summary = "Survey 정보 단건 조회 API")
@@ -169,7 +171,7 @@ public class VoteController {
     ) {
         Long memberId = principal == null ? null : principal.getId();
         return ApiResponse.onSuccess(
-                voteQueryService.getSurveyDto(surveyId, memberId, req));
+                surveyService.getSurveyDto(surveyId, memberId, req));
     }
 
     @Operation(summary = "Survey 후보자 리스트 조회 API")
