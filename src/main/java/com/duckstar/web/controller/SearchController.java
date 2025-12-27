@@ -1,7 +1,6 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
-import com.duckstar.domain.enums.SeasonType;
 import com.duckstar.service.SearchService;
 import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.SearchResponseDto;
@@ -12,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
+
+import static com.duckstar.web.dto.SearchResponseDto.*;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -23,9 +23,8 @@ public class SearchController {
     private final SearchService searchService;
 
     @GetMapping("/seasons")
-    public ApiResponse<Map<Integer, List<SeasonType>>> getSeasons() {
-        return ApiResponse.onSuccess(
-                weekService.getSeasons());
+    public ApiResponse<List<SeasonResponseDto>> getSeasons() {
+        return ApiResponse.onSuccess(weekService.getSeasons());
     }
 
     @Operation(summary = "금주의 분류된 편성표 조회 API", description =

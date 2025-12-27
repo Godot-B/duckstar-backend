@@ -9,7 +9,6 @@ import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
-import com.duckstar.domain.enums.SeasonType;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
@@ -69,16 +68,25 @@ public class WeekService {
                 .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
     }
 
-    public Map<Integer, List<SeasonType>> getSeasons() {
+    public List<SeasonResponseDto> getSeasons() {
         return seasonRepository.findAll().stream()
                 .filter(Season::getIsPrepared)
-                .sorted(Comparator.comparing(Season::getYearValue).reversed()
-                        .thenComparing(Season::getTypeOrder).reversed())
+                .sorted(
+                        Comparator.comparing(Season::getYearValue).reversed()
+                                .thenComparing(Season::getTypeOrder, Comparator.reverseOrder())
+                )
                 .collect(Collectors.groupingBy(
                         Season::getYearValue,
-                        LinkedHashMap::new, // 순서 보장
+                        LinkedHashMap::new,
                         Collectors.mapping(Season::getType, Collectors.toList())
-                ));
+                ))
+                .entrySet().stream()
+                .map(e -> SeasonResponseDto.builder()
+                        .year(e.getKey())
+                        .types(e.getValue())
+                        .build()
+                )
+                .toList();
     }
 
     public AnimePreviewListDto getWeeklyScheduleFromOffset(LocalTime offset) {

@@ -3,7 +3,7 @@ package com.duckstar.web.dto;
 import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
-import com.duckstar.web.dto.WeekResponseDto.WeekDto;
+import com.duckstar.domain.enums.SeasonType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,14 +12,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static com.duckstar.web.dto.AnimeResponseDto.*;
-
 @Builder
 @Getter
 public class SearchResponseDto {
 
     Integer size;
     List<AnimePreviewDto> animePreviews;
+
+    @Builder
+    @Getter
+    public static class SeasonResponseDto {
+        Integer year;
+        List<SeasonType> types;
+    }
 
     @Builder
     @Getter
@@ -59,17 +64,17 @@ public class SearchResponseDto {
         List<OttDto> ottDtos;
     }
 
-    @Builder
-    @Getter
-    public static class CharacterPreviewDto {
-        Long characterId;
-
-        String mainThumbnailUrl;
-
-        String nameKor;
-
-        String cv;
-
-        String animeTitle;
-    }
+//    @Builder
+//    @Getter
+//    public static class CharacterPreviewDto {
+//        Long characterId;
+//
+//        String mainThumbnailUrl;
+//
+//        String nameKor;
+//
+//        String cv;
+//
+//        String animeTitle;
+//    }
 }

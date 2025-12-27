@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -85,16 +84,15 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
 
                     Medium medium = t.get(anime.medium);
                     LocalDateTime time = t.get(anime.premiereDateTime);
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
                     String formatted = null;
                     if (time != null) {
-                        formatted = time.format(formatter);
+                        formatted = time.toString();
                     }
 
                     AnimeStatus status = t.get(anime.status);
 
                     String airTime = medium == Medium.MOVIE || status == AnimeStatus.UPCOMING ?
-                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
+                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영 dateTime
                             t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
 
                     return AnimePreviewDto.builder()

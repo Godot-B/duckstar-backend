@@ -14,7 +14,6 @@ import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.duckstar.domain.mapping.weeklyVote.QEpisode;
 import com.duckstar.domain.mapping.weeklyVote.QEpisodeStar;
 import com.duckstar.domain.vo.RankInfo;
-import com.duckstar.service.AnimeService.AnimeCommandServiceImpl;
 import com.duckstar.util.QuarterUtil;
 import com.duckstar.web.dto.OttDto;
 import com.querydsl.core.Tuple;
@@ -32,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.duckstar.service.AnimeService.AnimeCommandServiceImpl.*;
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.MedalDto.*;
@@ -207,21 +207,6 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .fetch();
     }
 
-
-    @Override
-    public Boolean isHybridTime(Week currentWeek, LocalDateTime now) {
-        LocalDateTime lastWeekEndTime = currentWeek.getStartDateTime();
-        LocalDateTime lastWeekStartTime = lastWeekEndTime.minusWeeks(1);
-
-        LocalDateTime lastWeekMaxScheduledAt =
-                queryFactory.select(episode.scheduledAt.max())
-                .from(episode)
-                .where(episode.scheduledAt.between(lastWeekStartTime, lastWeekEndTime))
-                .fetchOne();
-
-        return now.isBefore(lastWeekMaxScheduledAt.plusHours(36));
-    }
-
     @Override
     public List<AnimePreviewDto> getAnimePreviewsByDuration(LocalDateTime weekStart, LocalDateTime weekEnd) {
         List<Tuple> tuples = queryFactory.select(
@@ -283,15 +268,14 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
 
                     Medium medium = t.get(anime.medium);
                     LocalDateTime time = t.get(anime.premiereDateTime);
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d");
                     String formatted = null;
                     if (time != null) {
-                        formatted = time.format(formatter);
+                        formatted = time.toString();
                     }
                     AnimeStatus status = t.get(anime.status);
 
                     String airTime = medium == Medium.MOVIE || status == AnimeStatus.UPCOMING ?
-                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
+                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영 dateTime
                             t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
 
                     return AnimePreviewDto.builder()
@@ -406,7 +390,8 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     }
 
     @Override
-    public List<AnimeCommandServiceImpl.PremieredEpRecord> findPremieredEpRecordsInWindow(LocalDateTime windowStart, LocalDateTime windowEnd) {
+    public List<PremieredEpRecord> findPremieredEpRecordsInWindow(
+            LocalDateTime windowStart, LocalDateTime windowEnd) {
         // 방영 종료 체크: scheduledAt + 24분이 윈도우 안에 있는 경우
         // 즉, scheduledAt이 (windowStart - 24분) ~ (windowEnd - 24분) 범위에 있어야 함
         LocalDateTime finishedEpWindowStart = windowStart.minusMinutes(24);
@@ -418,12 +403,14 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
 
         return queryFactory.select(
                         Projections.constructor(
-                                AnimeCommandServiceImpl.PremieredEpRecord.class,
+                                PremieredEpRecord.class,
                                 episode,
                                 episode.scheduledAt.eq(anime.premiereDateTime),  // 첫 번째 에피소드인지
                                 episode.isLastEpisode,  // 마지막 에피소드인지
-                                episode.scheduledAt.between(finishedEpWindowStart, finishedEpWindowEnd),
-                                episode.scheduledAt.between(liveVoteFinishedEpWindowStart, liveVoteFinishedEpWindowEnd),
+                                episode.scheduledAt.between(
+                                        finishedEpWindowStart, finishedEpWindowEnd),
+                                episode.scheduledAt.between(
+                                        liveVoteFinishedEpWindowStart, liveVoteFinishedEpWindowEnd),
                                 anime
                         )
                 )
@@ -434,9 +421,11 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         // 방영 시작 체크: scheduledAt이 윈도우 안에 있음
                         episode.scheduledAt.between(windowStart, windowEnd)
                                 // 방영 종료 체크: scheduledAt + 24분이 윈도우 안에 있음
-                                .or(episode.scheduledAt.between(finishedEpWindowStart, finishedEpWindowEnd))
+                                .or(episode.scheduledAt.between(
+                                        finishedEpWindowStart, finishedEpWindowEnd))
                                 // 실시간 투표 종료 체크: scheduledAt + 36시간이 윈도우 안에 있음
-                                .or(episode.scheduledAt.between(liveVoteFinishedEpWindowStart, liveVoteFinishedEpWindowEnd))
+                                .or(episode.scheduledAt.between(
+                                        liveVoteFinishedEpWindowStart, liveVoteFinishedEpWindowEnd))
                 )
                 .fetch();
     }
