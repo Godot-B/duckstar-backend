@@ -169,13 +169,7 @@ public class ChartService {
 //    }
 
     @Transactional
-    public void calculateRankByYQW(
-            Integer year,
-            Integer quarter,
-            Integer week
-    ) {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
-
+    public void calculateRankByYQW(Long weekId) {
         // 차트 계산, 발표 준비 완료
         buildDuckstars(weekId, false);
 

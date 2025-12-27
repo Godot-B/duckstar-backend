@@ -41,6 +41,8 @@ import java.time.MonthDay;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -138,7 +140,7 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
     }
 
     @Transactional
-    public Long addAnime(AnimeRequestDto.PostRequestDto request) throws IOException {
+    public Long addAnime(PostRequestDto request) throws IOException {
         LocalDateTime premiereDateTime = request.getPremiereDateTime();
 
         Integer totalEpisodes = request.getTotalEpisodes();
@@ -264,7 +266,7 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
     }
 
     @Transactional
-    public Long updateAnimeImage(Long animeId, AnimeRequestDto.ImageRequestDto request) throws IOException {
+    public Long updateAnimeImage(Long animeId, ImageRequestDto request) throws IOException {
         Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 

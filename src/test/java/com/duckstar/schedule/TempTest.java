@@ -21,6 +21,7 @@ import com.duckstar.repository.SurveyRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.VoteService.VoteCommandServiceImpl;
+import com.duckstar.service.WeekService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,8 @@ public class TempTest {
     private SurveyCandidateRepository surveyCandidateRepository;
     @Autowired
     private QuarterRepository quarterRepository;
+    @Autowired
+    private WeekService weekService;
 
     @Test
     @Transactional
@@ -140,7 +143,9 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void calculateRankManual() {
-        chartService.calculateRankByYQW(2025, 4, 8);
+        Long weekId = weekService.getWeekIdByYQW(2025, 4, 8);
+
+        chartService.calculateRankByYQW(weekId);
     }
 
     @Test
@@ -294,16 +299,21 @@ public class TempTest {
         surveyCandidateRepository.saveAll(candidates);
     }
 
-//    @Test
-//    @Transactional
-//    @Rollback(false)
-//    public void asdf() {
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void 자체_애니메이션을_후보로_만들기() {
+        Long[] ids = { 55L, 132L, 148L };
+        List<Long> idList = Arrays.asList(ids);
+
+        List<Anime> animes = animeRepository.findAllByIdIn(idList);
+
 //        List<SurveyCandidate> quarterCandidates = surveyCandidateRepository
 //                .findAllBySurvey_IdAndQuarter_Id(2L, 2L);
-//
-//        Survey survey = surveyRepository.getReferenceById(1L);
-//        Quarter quarter = quarterRepository.getReferenceById(2L);
-//
+
+        Survey survey = surveyRepository.getReferenceById(1L);
+        Quarter quarter = quarterRepository.getReferenceById(2L);
+
 //        List<SurveyCandidate> newCandidates = quarterCandidates.stream()
 //                .map(c -> SurveyCandidate.create(
 //                        survey,
@@ -314,7 +324,11 @@ public class TempTest {
 //                        c.getThumbnailUrl(),
 //                        c.getMedium()
 //                )).toList();
-//
-//        surveyCandidateRepository.saveAll(newCandidates);
-//    }
+
+        List<SurveyCandidate> newCandidates = animes.stream()
+                .map(a -> SurveyCandidate.createByAnime(survey, quarter, a))
+                .toList();
+
+        surveyCandidateRepository.saveAll(newCandidates);
+    }
 }

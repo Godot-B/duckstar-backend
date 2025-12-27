@@ -1,5 +1,11 @@
 package com.duckstar.abroad.reader;
 
+import com.duckstar.domain.Anime;
+import com.duckstar.domain.Quarter;
+import com.duckstar.domain.Season;
+import com.duckstar.repository.QuarterRepository;
+import com.duckstar.repository.SeasonRepository;
+import com.duckstar.service.WeekService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -7,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static com.duckstar.web.dto.admin.CsvRequestDto.*;
 
@@ -16,6 +23,9 @@ import static com.duckstar.web.dto.admin.CsvRequestDto.*;
 public class CsvController {
 
     private final CsvImportService csvImportService;
+    private final QuarterRepository quarterRepository;
+    private final SeasonRepository seasonRepository;
+    private final WeekService weekService;
 
     @Operation(summary = "어워드 후보 csv를 서버에 변환 및 업로드")
     @PostMapping(value = "/import/surveys/{surveyId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -34,7 +44,16 @@ public class CsvController {
             @PathVariable Integer quarter,
             @ModelAttribute NewSeasonRequestDto request
     ) throws IOException {
-        csvImportService.importNewSeason(year, quarter, request);
+        Quarter savedQuarter = quarterRepository.findByYearValueAndQuarterValue(year, quarter)
+                .orElseGet(() -> quarterRepository.save(Quarter.create(year, quarter)));
+        Season savedSeason = seasonRepository.findById(savedQuarter.getId())
+                .orElseGet(() -> seasonRepository.save(Season.create(year, savedQuarter)));
+
+        Map<Integer, Long> animeIdMap = csvImportService.importAnimes(savedSeason, request.getAnimeCsv());
+        Map<Integer, Long> characterIdMap = csvImportService.importCharacters(request.getCharactersCsv());
+
+        Map<Long, Anime> animeMap = csvImportService.importAnimeCharacters(request.getAnimeCharactersCsv(), animeIdMap, characterIdMap);
+        csvImportService.importEpisodes(request.getEpisodesCsv(), animeMap, animeIdMap);
         return ResponseEntity.ok("✅ 데이터 import 성공");
     }
 
@@ -45,7 +64,10 @@ public class CsvController {
             @PathVariable Integer week,
             @ModelAttribute AbroadRequestDto request
     ) throws IOException {
-        csvImportService.importAbroad(year, quarter, week, request);
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
+
+        csvImportService.importAnimeCorner(weekId, request.getAnimeCornerCsv());
+        csvImportService.importAnilab(weekId, request.getAnilabCsv());
         return ResponseEntity.ok("✅ 데이터 import 성공");
     }
 }

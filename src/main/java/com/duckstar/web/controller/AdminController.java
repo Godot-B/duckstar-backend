@@ -11,6 +11,7 @@ import com.duckstar.service.AdminActionLogService;
 import com.duckstar.service.AnimeService.AnimeCommandService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.SubmissionService;
+import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.admin.AdminLogDto.IpManagementLogSliceDto;
 import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,6 +47,7 @@ public class AdminController {
     private final CsvImportService csvImportService;
     private final ChartService chartService;
     private final AnimeCommandService animeCommandService;
+    private final WeekService weekService;
 
     @Operation(summary = "애니메이션 총 화수 수정 API")
     @PostMapping("/{animeId}/total-episodes")
@@ -182,11 +184,13 @@ public class AdminController {
             @PathVariable Integer week,
             @ModelAttribute AbroadRequestDto request
     ) throws IOException {
+        Long weekId = weekService.getWeekIdByYQW(year, quarter, week);
 
         // 바로 발표 준비 완료됨 주의
-        chartService.calculateRankByYQW(year, quarter, week);
+        chartService.calculateRankByYQW(weekId);
 
-        csvImportService.importAbroad(year, quarter, week, request);
+        csvImportService.importAnimeCorner(weekId, request.getAnimeCornerCsv());
+        csvImportService.importAnilab(weekId, request.getAnilabCsv());
 
         return ApiResponse.onSuccess(null);
     }

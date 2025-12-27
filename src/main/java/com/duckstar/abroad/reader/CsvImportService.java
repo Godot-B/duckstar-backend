@@ -21,7 +21,6 @@ import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.s3.S3Uploader;
-import com.duckstar.service.WeekService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sksamuel.scrimage.ImmutableImage;
@@ -50,7 +49,6 @@ import java.nio.file.StandardCopyOption;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,19 +65,15 @@ public class CsvImportService {
     private final S3Uploader s3Uploader;
     private final EpisodeRepository episodeRepository;
     private final QuarterRepository quarterRepository;
-    private final SeasonRepository seasonRepository;
     private final AnimeSeasonRepository animeSeasonRepository;
     private final WeekRepository weekRepository;
     private final AnimeCornerRepository animeCornerRepository;
     private final AnilabRepository anilabRepository;
-    private final WeekService weekService;
     private final SurveyRepository surveyRepository;
     private final SurveyCandidateRepository surveyCandidateRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     static {
         ImageIO.scanForPlugins();
@@ -87,19 +81,7 @@ public class CsvImportService {
         System.out.println("지원하는 포맷: " + Arrays.toString(formats));
     }
 
-    public void importAbroad(
-            Integer year,
-            Integer quarter,
-            Integer weekValue,
-            AbroadRequestDto request
-    ) throws IOException {
-        Long weekId = weekService.getWeekIdByYQW(year, quarter, weekValue);
-
-        importAnimeCorner(weekId, request.getAnimeCornerCsv());
-        importAnilab(weekId, request.getAnilabCsv());
-    }
-
-    private void importAnimeCorner(Long weekId, MultipartFile animeCornerCsv) throws IOException {
+    public void importAnimeCorner(Long weekId, MultipartFile animeCornerCsv) throws IOException {
         if (animeCornerCsv == null || animeCornerCsv.isEmpty()) {
             return;
         }
@@ -170,7 +152,7 @@ public class CsvImportService {
         }
     }
 
-    private void importAnilab(Long weekId, MultipartFile anilabCsv) throws IOException {
+    public void importAnilab(Long weekId, MultipartFile anilabCsv) throws IOException {
         if (anilabCsv == null || anilabCsv.isEmpty()) {
             return;
         }
@@ -334,17 +316,10 @@ public class CsvImportService {
     }
 
     public void importNewSeason(Integer year, Integer quarter, NewSeasonRequestDto request) throws IOException {
-        Quarter savedQuarter = quarterRepository.save(Quarter.create(year, quarter));
-        Season savedSeason = seasonRepository.save(Season.create(year, savedQuarter));
 
-        Map<Integer, Long> animeIdMap = importAnimes(savedSeason, request.getAnimeCsv());
-        Map<Integer, Long> characterIdMap = importCharacters(request.getCharactersCsv());
-
-        Map<Long, Anime> animeMap = importAnimeCharacters(request.getAnimeCharactersCsv(), animeIdMap, characterIdMap);
-        importEpisodes(request.getEpisodesCsv(), animeMap, animeIdMap);
     }
 
-    private void importEpisodes(
+    void importEpisodes(
             MultipartFile episodesCsv,
             Map<Long, Anime> animeMap,
             Map<Integer, Long> animeIdMap
@@ -357,6 +332,8 @@ public class CsvImportService {
                 .build();
 
         CSVParser parser = new CSVParser(reader, format);
+
+        List<Episode> rows = new ArrayList<>();
         for (CSVRecord record : parser) {
             Integer episodeNumber;
             try {
@@ -388,11 +365,12 @@ public class CsvImportService {
                     nextEpScheduledAt,
                     isLastEpisode
             );
-            episodeRepository.save(episode);
+            rows.add(episode);
         }
+        episodeRepository.saveAll(rows);
     }
 
-    private Map<Long, Anime> importAnimeCharacters(
+    Map<Long, Anime> importAnimeCharacters(
             MultipartFile animeCharactersCsv,
             Map<Integer, Long> animeIdMap,
             Map<Integer, Long> characterIdMap
@@ -412,6 +390,7 @@ public class CsvImportService {
 
         CSVParser parser = new CSVParser(reader, format);
 
+        List<AnimeCharacter> rows = new ArrayList<>();
         for (CSVRecord record : parser) {
             Integer animeOldId = Integer.valueOf(record.get("anime_id"));
             Integer characterOldId = Integer.valueOf(record.get("character_id"));
@@ -419,8 +398,11 @@ public class CsvImportService {
                     .anime(animeMap.get(animeIdMap.get(animeOldId)))
                     .character(characterMap.get(characterIdMap.get(characterOldId)))
                     .build();
-            animeCharacterRepository.save(animeCharacter);
+
+            rows.add(animeCharacter);
         }
+        animeCharacterRepository.saveAll(rows);
+
         return animeMap;
     }
 
@@ -463,7 +445,7 @@ public class CsvImportService {
                 String thumbUrl = record.get("mainThumbnailUrl");
                 thumbUrl = normalizeUrl(thumbUrl);
 
-                Long newId = null;
+                Long newId = saved.getId();
                 try {
                     newId = uploadAndUpdateCharacter(mainUrl, thumbUrl, saved);
                 } catch (Exception e) {
@@ -514,7 +496,7 @@ public class CsvImportService {
             String imageUrl, File tempDir, String name
     ) throws IOException, KeyStoreException, CertificateException,
             NoSuchAlgorithmException, KeyManagementException {
-        
+
         URL url = new URL(imageUrl);
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
 
@@ -562,7 +544,7 @@ public class CsvImportService {
     private static File convertToWebpAndGet(File tempDir, String name, File original) throws IOException {
         try {
             ImmutableImage image = ImmutableImage.loader().fromFile(original);
-            
+
             // 이미지가 너무 크면 리사이즈 (최대 2048x2048)
             int maxDimension = 2048;
             if (image.width > maxDimension || image.height > maxDimension) {
@@ -571,7 +553,7 @@ public class CsvImportService {
                 int newHeight = (int) (image.height * scale);
                 image = image.scaleTo(newWidth, newHeight);
             }
-            
+
             File webpFile = new File(tempDir, name + ".webp");
             WebpWriter writer = WebpWriter.DEFAULT.withQ(80);  // 품질 80%
             image.output(writer, webpFile);
@@ -627,7 +609,7 @@ public class CsvImportService {
                 try {
                     String dateStr = record.get("premiereDateTime");
                     if (dateStr != null && !dateStr.isBlank()) {
-                        premiereDateTime = LocalDateTime.parse(dateStr, formatter);
+                        premiereDateTime = LocalDateTime.parse(dateStr);
                     }
                 } catch (Exception ignored) {
                 }
@@ -678,15 +660,16 @@ public class CsvImportService {
 
                 String imageUrl = record.get("mainImageUrl");
 
+                Long newId = saved.getId();
+
                 try {
                     // S3 업로드 & image 필드 업데이트
-                    Long newId = uploadAnimeMain(imageUrl, saved);
-                    idMap.put(oldId, newId);
-
+                    newId = uploadAnimeMain(imageUrl, saved);
                 } catch (Exception e) {
                     log.warn("⚠️ 이미지 처리 실패 - id: {}, url: {}", oldId, imageUrl, e);
+                } finally {
+                    idMap.put(oldId, newId);
                 }
-
             } catch (Exception e) {
                 log.error("❌ CSV 레코드 처리 실패: {}", record, e);
             }
