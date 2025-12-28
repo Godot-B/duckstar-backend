@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-//@Disabled("로컬 개발용 테스트")
+@Disabled("로컬 개발용 테스트")
 @ActiveProfiles("local-db")
 public class TempTest {
 
