@@ -4,10 +4,14 @@ import com.duckstar.abroad.aniLab.Anilab;
 import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.enums.ContentType;
+import com.duckstar.domain.enums.SurveyType;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.vo.RankInfo;
+import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import lombok.Builder;
 import lombok.Getter;
+
+import static com.duckstar.web.dto.SurveyResponseDto.*;
 
 public class RankInfoDto {
 
@@ -146,14 +150,36 @@ public class RankInfoDto {
 //                    .build();
 //        }
     }
+    @Builder
+    @Getter
+    public static class SurveyRankDto {
+        Integer rank;
+
+        AnimeCandidateDto animeCandidateDto;
+
+        VoteRatioDto voteRatioDto;
+
+        Integer totalCount;
+
+        CommentDto commentDto;
+    }
 
     @Builder
     @Getter
     public static class VoteRatioDto {
         Double votePercent;
 
-        Double malePercent;
+        Double normalPercent;
+        Double bonusPercent;
 
+        Double malePercent;
         Double femalePercent;
+
+        Double under14Percent;
+        Double to19Percent;
+        Double to24Percent;
+        Double to29Percent;
+        Double to34Percent;
+        Double over35Percent;
     }
 }

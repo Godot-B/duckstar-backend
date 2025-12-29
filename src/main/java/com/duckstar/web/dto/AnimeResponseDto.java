@@ -5,7 +5,6 @@ import com.duckstar.validation.annotation.MedalTypeSubset;
 import com.duckstar.web.dto.MedalDto.MedalPreviewDto;
 import com.duckstar.web.dto.MedalDto.RackUnitDto;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
-import com.duckstar.web.dto.RankInfoDto.VoteRatioDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,22 +51,22 @@ public class AnimeResponseDto {
         VoteResultDto voteResultDto;
     }
 
-    @Builder
-    @Getter
-    public static class AnimeRank_legacyDto {
-        RankPreviewDto rankPreviewDto;
-
-        @MedalTypeSubset(anyOf = {
-                MedalType.GOLD,
-                MedalType.SILVER,
-                MedalType.BRONZE
-        })
-        List<MedalPreviewDto> medalPreviews;
-
-        AnimeStatDto animeStatDto;
-
-        VoteRatioDto voteRatioDto;
-    }
+//    @Builder
+//    @Getter
+//    public static class AnimeRank_legacyDto {
+//        RankPreviewDto rankPreviewDto;
+//
+//        @MedalTypeSubset(anyOf = {
+//                MedalType.GOLD,
+//                MedalType.SILVER,
+//                MedalType.BRONZE
+//        })
+//        List<MedalPreviewDto> medalPreviews;
+//
+//        AnimeStatDto animeStatDto;
+//
+//        VoteRatioDto voteRatioDto;
+//    }
 
     @Builder
     @Getter

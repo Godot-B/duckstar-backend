@@ -1,6 +1,5 @@
 package com.duckstar.service.AnimeService;
 
-
 import com.duckstar.abroad.aniLab.Anilab;
 import com.duckstar.abroad.aniLab.AnilabRepository;
 import com.duckstar.abroad.animeCorner.AnimeCorner;
@@ -134,7 +133,8 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
                         episodeRepository.getEpisodeDtosByAnimeId(animeId)
                 )
                 .rackUnitDtos(
-                        animeCandidateRepository.getRackUnitDtosByAnimeId(animeId)
+                        null
+                        /*animeCandidateRepository.getRackUnitDtosByAnimeId(animeId)*/
                 )
                 .castPreviews(
                         animeCharacterRepository.getAllCharacterHomePreviewsByAnimeId(animeId)

@@ -45,26 +45,37 @@ public class SurveyCandidate extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)
     private Medium medium;
-
-    private Integer maleCount = 0;
-
-    private Integer femaleCount = 0;
+//
+//    private Integer maleCount = 0;
+//
+//    private Integer femaleCount = 0;
 
     private Integer votes = 0;  // bonus 점수는 소수점 탈락
 
     private Integer voterCount = 0;
 
     //=== 순위 정보 ===//
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(10)")
-    private MedalType type;
+//    @Enumerated(EnumType.STRING)
+//    @Column(columnDefinition = "varchar(10)")
+//    private MedalType type;
 
     @Column(name = "`rank`")
     private Integer rank;
 
     private Double votePercent;
 
+    private Double normalPercent;
+    private Double bonusPercent;
+
     private Double malePercent;
+    private Double femalePercent;
+
+    private Double under14Percent;
+    private Double to19Percent;
+    private Double to24Percent;
+    private Double to29Percent;
+    private Double to34Percent;
+    private Double over35Percent;
 
     protected SurveyCandidate(
             Survey survey,
