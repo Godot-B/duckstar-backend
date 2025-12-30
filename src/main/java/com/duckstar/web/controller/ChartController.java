@@ -1,12 +1,15 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
+import com.duckstar.security.MemberPrincipal;
+import com.duckstar.service.SurveyService;
 import com.duckstar.service.WeekService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +25,7 @@ import static com.duckstar.web.dto.WeekResponseDto.*;
 public class ChartController {
 
     private final WeekService weekService;
+    private final SurveyService surveyService;
 
     @Operation(summary = "모든 주차 조회 API")
     @GetMapping("/weeks")
@@ -45,12 +49,15 @@ public class ChartController {
     }
 
     @Operation(summary = "서베이 차트 슬라이스 조회 API",
-            description = "surveyDto는 첫 슬라이스에서만 보내준다.")
+            description = "(25/12/30 결정) 이미지 다운로드를 목적으로 페이지 당 10개씩")
     @GetMapping("/surveys/{surveyId}")
-    public ApiResponse<SurveyRankSliceDto> getSurveyChart(
+    public ApiResponse<SurveyRankPage> getSurveyChart(
             @PathVariable Long surveyId,
-            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
-        return ApiResponse.onSuccess(null);
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @ParameterObject @PageableDefault Pageable pageable) {
+
+        return ApiResponse.onSuccess(
+                surveyService.getSurveyRankPage(surveyId, principal, pageable));
     }
 
 //    @Operation(summary = "주차별 남캐 차트 슬라이스 조회 API (with Anime Trend)",

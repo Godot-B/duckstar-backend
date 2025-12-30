@@ -2,6 +2,7 @@ package com.duckstar.service.VoteService;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
+import com.duckstar.apiPayload.exception.handler.SurveyHandler;
 import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Survey;
@@ -39,7 +40,7 @@ public class VoteQueryService {
     public AnimeCandidateListDto getAnimeCandidateListDto(Long surveyId, Long memberId) {
         // 서베이 존재, 투표 가능 검사
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
-                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
+                new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
 
         SurveyStatus status = survey.getStatus();
         if (status != SurveyStatus.OPEN) {
@@ -74,7 +75,7 @@ public class VoteQueryService {
     ) {
         // 서베이 존재, 투표 가능 검사
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
-                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
+                new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
         if (survey.getStatus() != SurveyStatus.OPEN) {
             throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
         }

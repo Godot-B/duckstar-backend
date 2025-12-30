@@ -6,6 +6,7 @@ import com.duckstar.domain.mapping.*;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -41,6 +42,7 @@ public class CommentResponseDto {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class CommentDto {
         CommentStatus status;
         Long commentId;

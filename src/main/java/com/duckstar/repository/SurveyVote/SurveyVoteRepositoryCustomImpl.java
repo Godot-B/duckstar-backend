@@ -48,8 +48,7 @@ public class SurveyVoteRepositoryCustomImpl implements SurveyVoteRepositoryCusto
                 .leftJoin(animeComment)
                 .on(
                         surveyCandidate.id.eq(animeComment.surveyCandidate.id),
-                        animeComment.status.ne(CommentStatus.DELETED),
-                        animeComment.status.ne(CommentStatus.ADMIN_DELETED)
+                        animeComment.status.notIn(CommentStatus.DELETED, CommentStatus.ADMIN_DELETED)
                 )
                 .where(surveyVote.surveyVoteSubmission.id.eq(submissionId))
                 .orderBy(

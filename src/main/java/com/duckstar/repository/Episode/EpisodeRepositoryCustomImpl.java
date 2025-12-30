@@ -5,6 +5,7 @@ import com.duckstar.domain.QOtt;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.AnimeStatus;
+import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.*;
@@ -443,7 +444,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         episodeStar.weekVoteSubmission.principalKey.in(principalKeys),
                         episodeStar.starScore.isNotNull()
                 )
-                .leftJoin(animeComment).on(animeComment.episodeStar.id.eq(episodeStar.id))
+                .leftJoin(animeComment).on(
+                        animeComment.episodeStar.id.eq(episodeStar.id),
+                        animeComment.status.notIn(CommentStatus.DELETED, CommentStatus.ADMIN_DELETED)
+                )
                 .where(episode.id.eq(episodeId))
                 .fetchOne();
 

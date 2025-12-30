@@ -76,7 +76,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
         //=== 서베이 존재, 투표 가능 검사 ===//
         Long surveyId = request.getSurveyId();
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
-                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
+                new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
         if (survey.getStatus() != SurveyStatus.OPEN) {
             throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
         }
@@ -187,7 +187,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
         //=== 서베이 존재, 투표 가능 검사 ===//
         Long surveyId = request.getSurveyId();
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
-                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
+                new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
         if (survey.getStatus() != SurveyStatus.OPEN) {
             throw new VoteHandler(ErrorStatus.VOTE_CLOSED);
         }

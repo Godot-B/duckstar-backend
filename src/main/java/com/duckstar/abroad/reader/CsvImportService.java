@@ -1,6 +1,7 @@
 package com.duckstar.abroad.reader;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.SurveyHandler;
 import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.abroad.aniLab.Anilab;
@@ -241,7 +242,7 @@ public class CsvImportService {
 
     public void importCandidates(Long surveyId, MultipartFile csv) throws IOException {
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
-                new VoteHandler(ErrorStatus.SURVEY_NOT_FOUND));
+                new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
 
         Map<String, Long> animeMap = animeRepository.findAll().stream()
                 .collect(Collectors.toMap(

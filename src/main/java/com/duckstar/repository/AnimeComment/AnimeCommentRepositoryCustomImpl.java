@@ -47,7 +47,6 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
     ) {
         Long principalId;
         boolean isAdmin;
-
         Expression<Long> likeIdSubquery;
         Expression<Boolean> isLikedExpression;
 
@@ -122,69 +121,86 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .limit(pageSize)
                 .fetch();
 
+        //=== 이 부분 왜 있지? ===//
         List<Long> commentIds = tuples.stream()
                 .map(t -> t.get(animeComment.id))
                 .toList();
         if (commentIds.isEmpty()) {
             return List.of();
         }
+        //=== 주석 처리하고 테스트 ===//
 
         return tuples.stream()
-                .map(t -> {
-                    Long commentId = t.get(animeComment.id);
-
-                    CommentStatus status = t.get(animeComment.status);
-                    LocalDateTime createdAt = t.get(animeComment.createdAt);
-
-                    Boolean isUserTaggedEp = t.get(animeComment.isUserTaggedEp);
-                    Integer episodeNumber = Boolean.TRUE.equals(isUserTaggedEp) ?
-                            t.get(episode.episodeNumber) :
-                            null;
-
-                    Integer replyCount = t.get(animeComment.replyCount);
-
-                    if (status != CommentStatus.NORMAL) {
-                        return CommentDto.ofDeleted(
-                                status,
-                                commentId,
-                                createdAt,
-                                episodeNumber,
-                                replyCount
-                        );
-                    }
-
-                    Long authorId = t.get(animeComment.author.id);
-                    boolean canDelete = Objects.equals(authorId, principalId) || isAdmin;
-
-                    return CommentDto.builder()
-                            .status(status)
-                            .commentId(commentId)
-
-                            .canDeleteThis(canDelete)
-
-                            .isLiked(t.get(isLikedExpression))
-                            .commentLikeId(t.get(likeIdSubquery))
-                            .likeCount(t.get(animeComment.likeCount))
-
-                            .authorId(authorId)
-                            .nickname(t.get(animeComment.author.nickname))
-                            .profileImageUrl(t.get(animeComment.author.profileImageUrl))
-                            .voteCount(t.get(animeComment.voteCount))
-                            .episodeNumber(
-                                    episodeNumber
-                            )
-                            .createdAt(createdAt)
-                            .attachedImageUrl(t.get(animeComment.attachedImageUrl))
-                            .body(t.get(animeComment. body))
-
-                            .replyCount(replyCount)
-                            .starScore(t.get(episodeStar.starScore))
-                            .isLateParticipating(t.get(episodeStar.isLateParticipating))
-
-                            .surveyCandidateId(t.get(animeComment.surveyCandidate.id))
-                            .build();
-                })
+                .map(t ->
+                        toCommentDto(
+                                t,
+                                principalId,
+                                isAdmin,
+                                isLikedExpression,
+                                likeIdSubquery
+                        ))
                 .toList();
+    }
+
+    public CommentDto toCommentDto(
+            Tuple t,
+            Long principalId,
+            boolean isAdmin,
+            Expression<Boolean> isLikedExpression,
+            Expression<Long> likeIdSubquery
+    ) {
+        Long commentId = t.get(animeComment.id);
+
+        CommentStatus status = t.get(animeComment.status);
+        LocalDateTime createdAt = t.get(animeComment.createdAt);
+
+        Boolean isUserTaggedEp = t.get(animeComment.isUserTaggedEp);
+        Integer episodeNumber = Boolean.TRUE.equals(isUserTaggedEp) ?
+                t.get(episode.episodeNumber) :
+                null;
+
+        Integer replyCount = t.get(animeComment.replyCount);
+
+        if (status != CommentStatus.NORMAL) {
+            return CommentDto.ofDeleted(
+                    status,
+                    commentId,
+                    createdAt,
+                    episodeNumber,
+                    replyCount
+            );
+        }
+
+        Long authorId = t.get(animeComment.author.id);
+        boolean canDelete = Objects.equals(authorId, principalId) || isAdmin;
+
+        return CommentDto.builder()
+                .status(status)
+                .commentId(commentId)
+
+                .canDeleteThis(canDelete)
+
+                .isLiked(t.get(isLikedExpression))
+                .commentLikeId(t.get(likeIdSubquery))
+                .likeCount(t.get(animeComment.likeCount))
+
+                .authorId(authorId)
+                .nickname(t.get(animeComment.author.nickname))
+                .profileImageUrl(t.get(animeComment.author.profileImageUrl))
+                .voteCount(t.get(animeComment.voteCount))
+                .episodeNumber(
+                        episodeNumber
+                )
+                .createdAt(createdAt)
+                .attachedImageUrl(t.get(animeComment.attachedImageUrl))
+                .body(t.get(animeComment.body))
+
+                .replyCount(replyCount)
+                .starScore(t.get(episodeStar.starScore))
+                .isLateParticipating(t.get(episodeStar.isLateParticipating))
+
+                .surveyCandidateId(t.get(animeComment.surveyCandidate.id))
+                .build();
     }
 
     @Override
@@ -199,9 +215,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .leftJoin(animeComment.episode, episode)
                 .where(
                         animeCondition,
-                        animeComment.status.ne(CommentStatus.DELETED).and(
-                                animeComment.status.ne(CommentStatus.ADMIN_DELETED)
-                        ),
+                        animeComment.status.notIn(CommentStatus.DELETED, CommentStatus.ADMIN_DELETED),
                         episodeCondition
                 )
                 .fetchOne();
