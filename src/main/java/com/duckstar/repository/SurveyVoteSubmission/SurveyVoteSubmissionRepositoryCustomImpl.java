@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -24,5 +25,24 @@ public class SurveyVoteSubmissionRepositoryCustomImpl implements SurveyVoteSubmi
                                         .and(surveyVoteSubmission.member.isNull())
                         )
                         .fetchOne());
+    }
+
+    @Override
+    public Long getEligibleCountBySurveyId(Long surveyId, List<String> outlaws) {
+        if (outlaws == null || outlaws.isEmpty()) {
+            return queryFactory
+                    .select(surveyVoteSubmission.count())
+                    .from(surveyVoteSubmission)
+                    .where(surveyVoteSubmission.survey.id.eq(surveyId))
+                    .fetchOne();
+        }
+
+        return queryFactory.select(surveyVoteSubmission.count())
+                .from(surveyVoteSubmission)
+                .where(
+                        surveyVoteSubmission.survey.id.eq(surveyId),
+                        surveyVoteSubmission.ipHash.notIn(outlaws)
+                )
+                .fetchOne();
     }
 }

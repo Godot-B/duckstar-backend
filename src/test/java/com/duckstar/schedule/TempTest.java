@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 @SpringBootTest
 @Disabled("로컬 개발용 테스트")
-@ActiveProfiles("prod-db")
+@ActiveProfiles("local-db")
 public class TempTest {
 
     @Autowired
@@ -343,5 +343,20 @@ public class TempTest {
                 .toList();
 
         surveyCandidateRepository.saveAll(newCandidates);
+    }
+
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void 서베이_순위_수동_계산() {
+        chartService.buildSurveyAwards(1L, true);
+    }
+
+    @Test
+    @Transactional(readOnly = true)
+    public void 연말결산_중복_후보_찾기() {
+        List<SurveyCandidate> candidates = surveyCandidateRepository.findAllBySurvey_Id(2L);
+
+        //TODO
     }
 }

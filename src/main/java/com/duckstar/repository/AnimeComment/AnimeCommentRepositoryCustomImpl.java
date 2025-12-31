@@ -111,9 +111,7 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                 .where(
                         animeCondition,
                         episodeCondition,
-                        animeComment.status.ne(CommentStatus.DELETED).and(
-                                        animeComment.status.ne(CommentStatus.ADMIN_DELETED)
-                                )
+                        animeComment.status.notIn(CommentStatus.DELETED, CommentStatus.ADMIN_DELETED)
                                 .or(animeComment.replyCount.gt(0))
                 )
                 .orderBy(getOrder(sortBy))  // 정렬

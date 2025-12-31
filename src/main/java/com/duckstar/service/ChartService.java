@@ -1,17 +1,26 @@
 package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.SurveyHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.HomeBanner;
+import com.duckstar.domain.Survey;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.BannerType;
 import com.duckstar.domain.enums.EpEvaluateState;
+import com.duckstar.domain.enums.SurveyStatus;
+import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
+import com.duckstar.domain.mapping.surveyVote.SurveyVote;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.HomeBannerRepository;
+import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
+import com.duckstar.repository.SurveyRepository;
+import com.duckstar.repository.SurveyVote.SurveyVoteRepository;
+import com.duckstar.repository.SurveyVoteSubmission.SurveyVoteSubmissionRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +43,10 @@ public class ChartService {
     // 0.5(중간 수준) -> 0.1 작아질 수록 평점 가중치 우선됨
     // 0.5 또는 0.3
     private static final double BASE_WEIGHT = 0.2;
+    private final SurveyRepository surveyRepository;
+    private final SurveyCandidateRepository surveyCandidateRepository;
+    private final SurveyVoteRepository surveyVoteRepository;
+    private final SurveyVoteSubmissionRepository surveyVoteSubmissionRepository;
 
 //    @Transactional
 //    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
@@ -534,115 +547,107 @@ public class ChartService {
         }
     }
 
-//    @Transactional
-//    public void buildDuckstars_legacy(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
-//        Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
-//                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
-//
-//        //=== 투표 집계, 금주의 덕스타 결정 ===//
-//        List<AnimeCandidate> candidates = animeCandidateRepository.findAllByWeek_Id(lastWeekId);
-//
-//        List<AnimeVote> allAnimeVotes = animeVoteRepository.findAllByWeekId(lastWeekId);
-//
-//        Map<Long, List<AnimeVote>> animeVoteMap = allAnimeVotes.stream()
-//                .collect(Collectors.groupingBy(v -> v.getAnimeCandidate().getId()));
-//
-//        int totalVotes = 0;
-//        for (AnimeCandidate candidate : candidates) {
-//            List<AnimeVote> animeVotes = animeVoteMap.get(candidate.getId());
-//            if (animeVotes == null || animeVotes.isEmpty()) {
-//                continue;
-//            }
-//
-//            int score = 0;
-//            int femaleCount = 0;
-//            for (AnimeVote animeVote : animeVotes) {
-//                if (animeVote.getWeekVoteSubmission().getGender() == Gender.FEMALE) femaleCount += 1;
-//                score += animeVote.getScore();
-//            }
-//            int votes = score / 100;
-//            candidate.updateInfo(votes, animeVotes.size(), femaleCount);
-//
-//            totalVotes += votes;
-//        }
-//
-//        int voterCount = (int) allAnimeVotes.stream()
-//                .map(av -> av.getWeekVoteSubmission().getId())
-//                .distinct()
-//                .count();
-//        lastWeek.updateAnimeVotes(totalVotes, voterCount);
-//
-//        //=== 정렬 및 차트 만들기 ===//
-//        Map<Integer, List<AnimeCandidate>> chart = buildChart_legacy(candidates);
-//
-//        //=== 지난 순위와 결합, RankInfo 셋팅 ===//
-//        Week secondLastWeek = weekRepository.findWeekById(secondLastWeekId).orElse(null);
-//
-//        Map<Long, com.duckstar.domain.mapping.legacy_vote.RankInfo> lastRankInfoMap = Map.of();
-//        if (secondLastWeek != null) {
-//            List<AnimeCandidate> lastCandidates = animeCandidateRepository.findAllByWeek_Id(secondLastWeek.getId());
-//
-//            if (lastCandidates != null && !lastCandidates.isEmpty()) {
-//                lastRankInfoMap = lastCandidates.stream()
-//                        .collect(Collectors.toMap(
-//                                ac -> ac.getAnime().getId(),
-//                                AnimeCandidate::getRankInfo
-//                        ));
-//            }
-//        }
-//
-//        for (Map.Entry<Integer, List<AnimeCandidate>> entry : chart.entrySet()) {
-//            int rank = entry.getKey();
-//            for (AnimeCandidate candidate : entry.getValue()) {  // 동점자 각각 처리
-//                double votePercent = totalVotes != 0 ?
-//                        ((double) candidate.getVotes() / totalVotes) * 100 :
-//                        0;
-//
-//                int votes = candidate.getVotes();
-//                Double malePercent = votes != 0 ?  // 보너스 투표 하나만 있는 경우, 성비 제공 X
-//                        ((double) candidate.getMaleCount() / candidate.getVoterCount()) * 100 :
-//                        null;
-//
-//                Long animeId = candidate.getAnime().getId();
-//                com.duckstar.domain.mapping.legacy_vote.RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
-//
-//                com.duckstar.domain.mapping.legacy_vote.RankInfo rankInfo = com.duckstar.domain.mapping.legacy_vote.RankInfo.create(
-//                        lastRankInfo,
-//                        lastWeekEndAt.toLocalDate(),
-//                        rank,
-//                        votePercent,
-//                        malePercent
-//                );
-//
-//                candidate.setRankInfo(lastRankInfo, rankInfo);
-//            }
-//        }
-//    }
-//
-//    private Map<Integer, List<AnimeCandidate>> buildChart_legacy(List<AnimeCandidate> candidates) {
-//        candidates.sort(Comparator.comparing(AnimeCandidate::getVotes).reversed()  // 투표 수 정렬
-//                .thenComparing(AnimeCandidate::getVoterCount, Comparator.reverseOrder())  // 투표자 수 정렬
-//                .thenComparing(ac -> ac.getAnime().getTitleKor()));  // 가나다 순
-//
-//        Map<Integer, List<AnimeCandidate>> chart = new LinkedHashMap<>();
-//        int rank = 1;
-//        int prevVotes = -1;
-//        for (int i = 0; i < candidates.size(); i++) {
-//            AnimeCandidate candidate = candidates.get(i);
-//            int votes = candidate.getVotes();
-//
-//            if (prevVotes != votes) {
-//                List<AnimeCandidate> animeCandidates = new ArrayList<>();
-//                animeCandidates.add(candidate);
-//                rank = i + 1;
-//                chart.put(rank, animeCandidates);
-//            } else {
-//                chart.get(rank).add(candidate);  // 동일 순위 처리
-//            }
-//
-//            prevVotes = votes;
-//        }
-//
-//        return chart;
-//    }
+    public record SurveyStatRecord(
+            Integer score,  // 도장 점수 합
+            Long voterCount,  // 투표자 수
+            Integer normalCount,  // 1. 표 종류 카운트
+            Integer bonusCount,
+            Integer maleCount,  // 2. 성별 카운트
+            Integer femaleCount,
+            Integer under14,  // 3. 연령대별 카운트
+            Integer age1519,
+            Integer age2024,
+            Integer age2529,
+            Integer age3034,
+            Integer over35
+    ) {}
+
+    @Transactional
+    public void buildSurveyAwards(Long surveyId, boolean forMidTermTest) {
+        // 서베이 존재, 상태 점검
+        Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
+                new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
+        if (!forMidTermTest && survey.getStatus() != SurveyStatus.CLOSED) {
+            throw new SurveyHandler(ErrorStatus.SURVEY_NOT_CLOSED);
+        }
+
+        // 제외할 IP들
+        String[] outlawStrings = {"01fca71789934899520ec2424e670e4ca2558fe8cbc35e8cfb35f472b27e7aa6",
+                "ffdb08139e54e6cea7f7f88b59ca680ef369b1dad848a214b92b422734c98c54",
+                "d0a4a91c903d6ba64c67a0a7aaf2c7242359ae57b651ad7de76b28bbb42deab6",
+                "2208af4b7a1e66d7ae959b7d1a3766c1da2cd3ecf51b381c20fce178541674f4",
+                "26de304d6fdb492845f863822354ddccccee3fd62a00cad400864383b44dafac",
+                "91abc9d217c6c93ccf6d8a6386cb8a8d04ecf89dfa139bf7a69fa74af237da4b"};
+        List<String> outlaws = Arrays.asList(outlawStrings);
+
+        // 전체 표에서 제외, 통계 맵 구성
+        Map<Long, SurveyStatRecord> statMap = surveyVoteRepository
+                .getEligibleStatMapBySurveyId(surveyId, outlaws);
+
+        //=== 통계 셋팅 ===//
+        int totalVotes = 0;
+        List<SurveyCandidate> candidates = surveyCandidateRepository.findAllBySurvey_Id(surveyId);
+        for (SurveyCandidate candidate : candidates) {
+            SurveyStatRecord record = statMap.get(candidate.getId());
+            if (record == null) {
+                continue;
+            }
+
+            candidate.updateStatistics(record);
+            totalVotes = totalVotes + candidate.getVotes();
+        }
+
+        //=== 순위 결정 ===//
+
+        // 1. 정렬: 표 수 -> 일반 표 퍼센트 순
+        candidates.sort((a, b) -> {
+            // 득표 수
+            int aVotes = a.getVotes() == null ? 0 : a.getVotes();
+            int bVotes = b.getVotes() == null ? 0 : b.getVotes();
+            int byVotes = Integer.compare(bVotes, aVotes);
+            if (byVotes != 0) return byVotes;
+
+            // 일반 표 퍼센트
+            double aPercent = a.getNormalPercent() == null ? 0.0 : a.getNormalPercent();
+            double bPercent = b.getNormalPercent() == null ? 0.0 : b.getNormalPercent();
+
+            return Double.compare(bPercent, aPercent);
+        });
+
+        // 2. Competition Ranking 부여
+        int currentRank = 1;
+        for (int i = 0; i < candidates.size(); i++) {
+            SurveyCandidate current = candidates.get(i);
+
+            if (i > 0) {
+                SurveyCandidate previous = candidates.get(i - 1);
+
+                double cPercent = current.getNormalPercent() == null ? 0.0 : current.getNormalPercent();
+                double pPercent = previous.getNormalPercent() == null ? 0.0 : previous.getNormalPercent();
+                boolean isTie = current.getVotes().equals(previous.getVotes()) &&
+                        Double.compare(cPercent, pPercent) == 0;
+
+                if (!isTie) {
+                    currentRank = i + 1;
+                }
+            }
+
+            double votePercent = totalVotes != 0 ?
+                    (current.getVotes() / (double) totalVotes) * 100 :
+                    0.0;
+
+            current.setRankAndVotePercent(currentRank, votePercent);
+        }
+
+        // 전체 투표자 수
+        Long totalVoterCount = surveyVoteSubmissionRepository
+                .getEligibleCountBySurveyId(surveyId, outlaws);
+
+        survey.setVotesAndVoterCount(
+                totalVotes,
+                totalVoterCount == null ? 0 : totalVoterCount.intValue()
+        );
+
+        survey.setPrepared(true);
+    }
 }

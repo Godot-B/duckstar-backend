@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface SurveyCandidateRepository extends JpaRepository<SurveyCandidate, Long>, SurveyCandidateRepositoryCustom {
     List<SurveyCandidate> findAllBySurvey_Id(Long surveyId);
-
     List<SurveyCandidate> findAllBySurvey_IdAndQuarter_Id(Long surveyId, Long quarterId);
 }

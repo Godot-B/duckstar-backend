@@ -50,4 +50,13 @@ public class Survey extends BaseEntity {
             }
         }
     }
+
+    public void setVotesAndVoterCount(int votes, int voterCount) {
+        this.votes = votes;
+        this.voterCount = voterCount;
+    }
+
+    public void setPrepared(boolean prepared) {
+        this.announcePrepared = prepared;
+    }
 }

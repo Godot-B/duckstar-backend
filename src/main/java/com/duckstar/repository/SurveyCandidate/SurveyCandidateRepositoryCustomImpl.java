@@ -4,10 +4,12 @@ import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QQuarter;
 import com.duckstar.domain.enums.CommentStatus;
 import com.duckstar.domain.mapping.QCommentLike;
+import com.duckstar.domain.mapping.QReply;
 import com.duckstar.domain.mapping.comment.AnimeComment;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
 import com.duckstar.domain.mapping.surveyVote.QSurveyCandidate;
 import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
+import com.duckstar.domain.mapping.surveyVote.SurveyVote;
 import com.duckstar.domain.mapping.weeklyVote.QEpisode;
 import com.duckstar.domain.mapping.weeklyVote.QEpisodeStar;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
@@ -47,6 +49,7 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
     private final QEpisode episode = QEpisode.episode;
     private final QEpisodeStar episodeStar = QEpisodeStar.episodeStar;
     private final AnimeCommentRepositoryCustomImpl animeCommentRepositoryCustomImpl;
+    private final QReply reply = QReply.reply;
 
     @Override
     public List<AnimeCandidateDto> getCandidateDtosBySurveyId(Long surveyId) {
@@ -86,7 +89,7 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
             MemberPrincipal principal,
             Pageable pageable
     ) {
-        List<SurveyRankDto> items = queryFactory.select(
+        List<SurveyRankDto> content = queryFactory.select(
                         Projections.constructor(
                                 SurveyRankDto.class,
                                 surveyCandidate.rank,
@@ -113,13 +116,7 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                                         surveyCandidate.to29Percent,
                                         surveyCandidate.to34Percent,
                                         surveyCandidate.over35Percent
-                                ),
-                                // ★ 서브쿼리: Anime가 있을 때만 count, 없으면 0
-                                ExpressionUtils.as(
-                                        JPAExpressions.select(animeComment.count())
-                                                .from(animeComment)
-                                                .where(animeComment.anime.id.eq(anime.id)),
-                                        "commentTotalCount")
+                                )
                         )
                 )
                 .from(surveyCandidate)
@@ -131,7 +128,7 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                 .fetch();
 
         // animeId들 추출
-        List<Long> animeIds = items.stream()
+        List<Long> animeIds = content.stream()
                 .map(SurveyRankDto::getAnimeId)
                 .filter(Objects::nonNull)
                 .toList();
@@ -171,7 +168,7 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                 isLikedExpression = Expressions.constant(false);
             }
 
-            // 댓글 맵 구성
+            // 1. 댓글 맵 구성
             Map<Long, List<Tuple>> tupleMap = queryFactory.from(animeComment)
                     .leftJoin(episode).on(episode.id.eq(animeComment.episode.id))
                     .leftJoin(episodeStar).on(episodeStar.id.eq(animeComment.episodeStar.id))
@@ -206,8 +203,26 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                             )
                     ));
 
-            // CommentDtos 셋팅
-            items.forEach(dto -> {
+            // 2. 댓글 수 집계
+            Map<Long, Long> commentCounts = queryFactory
+                    .from(animeComment)
+                    .where(animeComment.anime.id.in(animeIds),
+                            animeComment.status.notIn(CommentStatus.DELETED, CommentStatus.ADMIN_DELETED))
+                    .groupBy(animeComment.anime.id)
+                    .transform(GroupBy.groupBy(animeComment.anime.id).as(animeComment.count()));
+
+            // 3. 답글 수 집계
+            Map<Long, Long> replyCounts = queryFactory
+                    .from(reply)
+                    .join(animeComment).on(animeComment.id.eq(reply.parent.id))
+                    .where(animeComment.anime.id.in(animeIds),
+                            reply.status.notIn(CommentStatus.DELETED, CommentStatus.ADMIN_DELETED))
+                    .groupBy(animeComment.anime.id)
+                    .transform(GroupBy.groupBy(animeComment.anime.id).as(reply.count()));
+
+            // 각 DTO 최종 셋팅
+            content.forEach(dto -> {
+                // 1. List<CommentDto> 셋팅
                 Long animeId = dto.getAnimeId();
                 List<Tuple> tuples = tupleMap.getOrDefault(animeId, List.of());
                 List<CommentDto> commentDtos = tuples.stream()
@@ -222,6 +237,11 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                         .toList();
 
                 dto.setCommentDtos(commentDtos);
+
+                // 2. 댓글 수 셋팅
+                Long cCount = commentCounts.getOrDefault(dto.getAnimeId(), 0L);
+                Long rCount = replyCounts.getOrDefault(dto.getAnimeId(), 0L);
+                dto.setCommentTotalCount(cCount + rCount);
             });
         }
 
@@ -233,6 +253,6 @@ public class SurveyCandidateRepositoryCustomImpl implements SurveyCandidateRepos
                 .fetchOne();
 
         // 페이지 결과
-        return new PageImpl<>(items, pageable, totalCount != null ? totalCount : 0L);
+        return new PageImpl<>(content, pageable, totalCount != null ? totalCount : 0L);
     }
 }

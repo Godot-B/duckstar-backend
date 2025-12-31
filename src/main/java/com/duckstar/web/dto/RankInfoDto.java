@@ -166,12 +166,25 @@ public class RankInfoDto {
 
         VoteRatioDto voteRatioDto;
 
-        Integer commentTotalCount;
+        Long commentTotalCount;
 
         List<CommentDto> commentDtos;
 
+        public SurveyRankDto(Integer rank, Long animeId,
+                             AnimeCandidateDto animeCandidateDto,
+                             VoteRatioDto voteRatioDto) {
+            this.rank = rank;
+            this.animeId = animeId;
+            this.animeCandidateDto = animeCandidateDto;
+            this.voteRatioDto = voteRatioDto;
+        }
+
         public void setCommentDtos(List<CommentDto> commentDtos) {
             this.commentDtos = commentDtos;
+        }
+
+        public void setCommentTotalCount(Long commentTotalCount) {
+            this.commentTotalCount = commentTotalCount;
         }
     }
 
