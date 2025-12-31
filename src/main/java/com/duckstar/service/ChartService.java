@@ -647,7 +647,5 @@ public class ChartService {
                 totalVotes,
                 totalVoterCount == null ? 0 : totalVoterCount.intValue()
         );
-
-        survey.setPrepared(true);
     }
 }

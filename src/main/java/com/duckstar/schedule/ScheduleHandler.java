@@ -34,8 +34,8 @@ public class ScheduleHandler {
         animeCommandService.updateStatesByWindows();
     }
 
-    // ⚠️확장할 때 주의 : 매 자정에만 서베이 상태 체크
-    @Scheduled(cron = "0 0 0 * * *")
+    // ⚠️확장할 때 주의 : 매 1시간마다 서베이 상태 체크
+    @Scheduled(cron = "0 0 * * * *")
     public void checkSurveyStatus() {
         surveyService.updateStatus();
     }

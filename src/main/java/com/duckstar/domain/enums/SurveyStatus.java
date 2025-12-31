@@ -7,5 +7,7 @@ public enum SurveyStatus {
 
     PAUSED,
 
-    CLOSED
+    CLOSED,
+
+    RESULT_OPEN
 }

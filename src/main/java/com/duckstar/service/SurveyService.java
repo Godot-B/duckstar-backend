@@ -41,7 +41,7 @@ public class SurveyService {
         LocalDateTime now = LocalDateTime.now();
 
         List<Survey> surveys = surveyRepository.findAllByStatusIn(
-                List.of(SurveyStatus.NOT_YET,SurveyStatus.OPEN));
+                List.of(SurveyStatus.NOT_YET, SurveyStatus.OPEN, SurveyStatus.CLOSED));
 
         surveys.forEach(survey -> survey.updateStatus(now));
     }
@@ -49,6 +49,10 @@ public class SurveyService {
     public SurveyRankPage getSurveyRankPage(Long surveyId, MemberPrincipal principal, Pageable pageable) {
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
                 new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
+
+        if (survey.getStatus() != SurveyStatus.RESULT_OPEN) {
+            throw new SurveyHandler(ErrorStatus.SURVEY_RESULT_NOT_OPEN);
+        }
 
         Page<SurveyRankDto> items = surveyCandidateRepository
                 .getSurveyRankDtosBySurveyId(surveyId, principal, pageable);

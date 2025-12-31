@@ -170,9 +170,12 @@ public class RankInfoDto {
 
         List<CommentDto> commentDtos;
 
-        public SurveyRankDto(Integer rank, Long animeId,
-                             AnimeCandidateDto animeCandidateDto,
-                             VoteRatioDto voteRatioDto) {
+        public SurveyRankDto(
+                Integer rank,
+                Long animeId,
+                AnimeCandidateDto animeCandidateDto,
+                VoteRatioDto voteRatioDto
+        ) {
             this.rank = rank;
             this.animeId = animeId;
             this.animeCandidateDto = animeCandidateDto;

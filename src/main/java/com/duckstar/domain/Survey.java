@@ -37,7 +37,7 @@ public class Survey extends BaseEntity {
 
     private Integer voterCount = 0;
 
-    private Boolean announcePrepared = false;
+//    private Boolean announcePrepared = false;
 
     public void updateStatus(LocalDateTime now) {
         if (status == SurveyStatus.NOT_YET) {
@@ -48,15 +48,15 @@ public class Survey extends BaseEntity {
             if (endDateTime != null && !now.isBefore(endDateTime)) {
                 status = SurveyStatus.CLOSED;
             }
+        } else if (status == SurveyStatus.CLOSED) {
+            if (endDateTime != null && !now.isBefore(endDateTime.plusHours(18))) {
+                status = SurveyStatus.RESULT_OPEN;
+            }
         }
     }
 
     public void setVotesAndVoterCount(int votes, int voterCount) {
         this.votes = votes;
         this.voterCount = voterCount;
-    }
-
-    public void setPrepared(boolean prepared) {
-        this.announcePrepared = prepared;
     }
 }
