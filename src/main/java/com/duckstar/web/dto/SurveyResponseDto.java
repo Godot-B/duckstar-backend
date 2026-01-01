@@ -1,12 +1,10 @@
 package com.duckstar.web.dto;
 
-import com.duckstar.domain.Survey;
 import com.duckstar.domain.enums.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,7 +15,7 @@ public class SurveyResponseDto {
     @Builder
     @Getter
     public static class SurveyDto {
-        String ogUrl;
+        String thumbnailUrl;
 
         Long surveyId;
         Boolean hasVoted;

@@ -37,7 +37,8 @@ public class Survey extends BaseEntity {
 
     private Integer voterCount = 0;
 
-    private String ogUrl;
+    @Column(length = 1024)
+    private String thumbnailUrl;
 
 //    private Boolean announcePrepared = false;
 

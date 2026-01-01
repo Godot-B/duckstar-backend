@@ -2,19 +2,16 @@ package com.duckstar.service;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.SurveyHandler;
-import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.domain.Survey;
 import com.duckstar.domain.enums.SurveyStatus;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.SurveyRepository;
 import com.duckstar.repository.SurveyVoteSubmission.SurveyVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
-import com.duckstar.web.dto.RankInfoDto;
 import com.duckstar.web.support.VoteCookieManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,7 +97,7 @@ public class SurveyService {
                         .existsBySurveyAndPrincipalKey(survey, principalKey);
 
         return SurveyDto.builder()
-                .ogUrl(survey.getOgUrl())
+                .thumbnailUrl(survey.getThumbnailUrl())
                 .surveyId(survey.getId())
                 .hasVoted(hasVoted)
                 .status(survey.getStatus())
