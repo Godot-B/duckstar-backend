@@ -17,6 +17,8 @@ public class SurveyResponseDto {
     @Builder
     @Getter
     public static class SurveyDto {
+        String ogUrl;
+
         Long surveyId;
         Boolean hasVoted;
         SurveyStatus status;

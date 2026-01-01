@@ -27,8 +27,6 @@ public class ChartDto {
     @Builder
     @Getter
     public static class SurveyRankPage {
-        String ogUrl;
-
         Integer voteTotalCount;
 
         List<SurveyRankDto> surveyRankDtos;

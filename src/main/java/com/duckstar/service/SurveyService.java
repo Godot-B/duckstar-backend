@@ -100,6 +100,7 @@ public class SurveyService {
                         .existsBySurveyAndPrincipalKey(survey, principalKey);
 
         return SurveyDto.builder()
+                .ogUrl(survey.getOgUrl())
                 .surveyId(survey.getId())
                 .hasVoted(hasVoted)
                 .status(survey.getStatus())
