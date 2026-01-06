@@ -204,29 +204,16 @@ public class WeekService {
                 .build();
     }
 
-    @Transactional
-    public void setupWeeklyVote(
-            LocalDateTime lastWeekStartedAt,
-            LocalDateTime now,
-            YQWRecord record
-    ) {
+    public void setupWeeklyVote(LocalDateTime lastWeekStartedAt, LocalDateTime now) {
         Week lastWeek = getWeekByTime(lastWeekStartedAt);
         int lastWeekQuarterValue = lastWeek.getQuarter().getQuarterValue();
 
+        YQWRecord record = getThisWeekRecord(now);
         int thisQuarterValue = record.quarterValue();
 
         //=== 분기, 시즌 찾기(or 생성) & 주 생성 ===//
-        boolean isQuarterChanged = lastWeekQuarterValue != thisQuarterValue;
-
-        Quarter quarter = seasonService.getOrCreateQuarter(isQuarterChanged, record.yearValue(), thisQuarterValue);
-        Season season = seasonService.getOrCreateSeason(isQuarterChanged, quarter);
-
-        Week newWeek = Week.create(
-                quarter,
-                record.weekValue(),
-                now
-        );
-        Week savedWeek = weekRepository.save(newWeek);
+        boolean quarterCreateEnabled = lastWeekQuarterValue != thisQuarterValue;
+        getOrCreateQuarterAndWeek(quarterCreateEnabled, record, getThisWeekStartedAt(now));
 
         //=== 애니 후보군 생성 ===//
 //        List<Anime> nowShowingAnimes = animeService.getAnimesForCandidate(season, now);
@@ -238,6 +225,31 @@ public class WeekService {
 
         // TODO 캐릭터 후보군 생성
 
+    }
+
+    @Transactional
+    public void getOrCreateQuarterAndWeek(
+            boolean createEnabled,
+            YQWRecord record,
+            LocalDateTime weekStartedAt
+    ) {
+        int yearValue = record.yearValue();
+
+        Quarter quarter = seasonService
+                .getOrCreateQuarter(createEnabled, yearValue, record.quarterValue());
+        seasonService.getOrCreateSeason(createEnabled, quarter);
+
+        // getOrCreateWeek
+        int weekValue = record.weekValue();
+        Optional<Week> weekOpt = weekRepository
+                .findByQuarter_IdAndWeekValue(quarter.getId(), weekValue);
+        if (weekOpt.isEmpty()) {
+            weekRepository.save(Week.create(
+                    quarter,
+                    weekValue,
+                    weekStartedAt
+            ));
+        }
     }
 
     public List<WeekDto> getAllWeeks() {

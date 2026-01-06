@@ -15,7 +15,5 @@ public interface WeekRepository extends JpaRepository<Week, Long>, WeekRepositor
 
     Optional<Week> findWeekById(Long id);
 
-    Week findFirstByOrderByStartDateTimeDesc();
-
-    Week findThirdByOrderByStartDateTimeDesc();
+    Optional<Week> findByQuarter_IdAndWeekValue(Long quarterId, Integer weekValue);
 }

@@ -12,13 +12,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import static com.duckstar.util.QuarterUtil.*;
-import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ScheduleHandler {
+    private static final int ANCHOR_HOUR = 18;
+
     private final WeekService weekService;
     private final ScheduleState scheduleState;
     private final AnimeCommandService animeCommandService;
@@ -46,21 +45,15 @@ public class ScheduleHandler {
 
         // ** 어드민 모드와의 상태 충돌 해소 플래그 없음 주의
 
-        LocalDateTime newWeekStartAt = LocalDateTime.of(
+        LocalDateTime nowWithAnchorHour = LocalDateTime.of(
                 LocalDate.now(),
-                LocalTime.of(18, 0)
+                LocalTime.of(ANCHOR_HOUR, 0)
         );
 
-        LocalDateTime lastWeekStartedAt = newWeekStartAt.minusWeeks(1);
-
-        YQWRecord newWeekRecord = getThisWeekRecord(newWeekStartAt);
+        LocalDateTime lastWeekStartedAt = nowWithAnchorHour.minusWeeks(1);
 
         // 새로운 주 생성
-        weekService.setupWeeklyVote(
-                lastWeekStartedAt,
-                newWeekStartAt,
-                newWeekRecord
-        );
+        weekService.setupWeeklyVote(lastWeekStartedAt, nowWithAnchorHour);
     }
 
     /**

@@ -26,13 +26,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.duckstar.service.AnimeService.AnimeCommandServiceImpl.*;
+import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.web.dto.AnimeResponseDto.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.MedalDto.*;
@@ -135,8 +135,8 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
 
                     //=== 에피소드가 속한 주 계산 ===//
                     LocalDateTime scheduledAt = episode.getScheduledAt();
-                    QuarterUtil.YQWRecord record = scheduledAt != null ?
-                            QuarterUtil.getThisWeekRecord(scheduledAt) :
+                    YQWRecord record = scheduledAt != null ?
+                            getThisWeekRecord(scheduledAt) :
                             null;
 
                     // EpisodeStar 존재 시 별점 통계 셋팅
