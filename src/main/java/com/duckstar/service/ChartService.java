@@ -40,9 +40,9 @@ public class ChartService {
     private final HomeBannerRepository homeBannerRepository;
     private final WeekService weekService;
 
-    // 0.5(중간 수준) -> 0.1 작아질 수록 평점 가중치 우선됨
-    // 0.5 또는 0.3
-    private static final double BASE_WEIGHT = 0.2;
+    // 0.5(중간 수준) -> 0.3 으로 작아질 수록 평점 가중치 우선됨
+    // ⚠️ 권장: 0.5 또는 0.3
+    private static final double BASE_WEIGHT = 0.5;
     private final SurveyRepository surveyRepository;
     private final SurveyCandidateRepository surveyCandidateRepository;
     private final SurveyVoteRepository surveyVoteRepository;
@@ -525,7 +525,8 @@ public class ChartService {
 
             // 2. rankDiff >= 5
             List<Episode> hotEpisodes = subList.stream()
-                    .filter(e -> e.getRankInfo().getRankDiff() >= 5)
+                    .filter(e -> e.getRankInfo().getRankDiff() != null &&
+                            e.getRankInfo().getRankDiff() >= 5)
                     .sorted(Comparator.comparing(e -> e.getRankInfo().getRankDiff(), Comparator.reverseOrder()))
                     .limit(remainSize)
                     .toList();

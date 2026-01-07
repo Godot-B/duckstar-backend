@@ -15,6 +15,10 @@ public class ChartDto {
     @Builder
     @Getter
     public static class AnimeRankSliceDto {
+        Integer voterCount;
+
+        Integer voteTotalCount;
+
         List<AnimeRankDto> animeRankDtos;
 
         List<RankPreviewDto> animeTrendRankPreviews;

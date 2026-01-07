@@ -144,9 +144,8 @@ public class SurveyCandidate extends BaseEntity {
         this.voterCount = (int) nvl(record.voterCount());
 
         // 1. 표 종류 퍼센트
-        int stampCount = nvl(record.normalCount()) + nvl(record.bonusCount());
-        this.normalPercent = calculatePercentage(record.normalCount(), stampCount);
-        this.bonusPercent = (stampCount > 0) ? 100.0 - this.normalPercent : 0.0;
+        this.normalPercent = calculatePercentage(record.normalCount(), this.votes);
+        this.bonusPercent = (this.votes > 0) ? 100.0 - this.normalPercent : 0.0;
 
         // 2. 성별 퍼센트
         int genderCount = nvl(record.maleCount()) + nvl(record.femaleCount());

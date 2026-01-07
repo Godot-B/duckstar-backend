@@ -197,6 +197,8 @@ public class WeekService {
                 .build();
 
         return AnimeRankSliceDto.builder()
+                .voterCount(week.getAnimeVoterCount())
+                .voteTotalCount(week.getAnimeVotes())
                 .animeRankDtos(rows)
                 .animeTrendRankPreviews(animeCornerRankDtos)
                 .aniLabRankPreviews(aniLabRankDtos)
