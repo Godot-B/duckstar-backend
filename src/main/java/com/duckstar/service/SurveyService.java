@@ -55,7 +55,7 @@ public class SurveyService {
                 .getSurveyRankDtosBySurveyId(surveyId, principal, pageable);
 
         return SurveyRankPage.builder()
-                .voteTotalCount(survey.getVoterCount())
+                .voteTotalCount(survey.getVotes())
                 .surveyRankDtos(items.getContent())
                 .page(items.getNumber())
                 .size(items.getSize())
