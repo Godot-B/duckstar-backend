@@ -40,7 +40,7 @@ public class SearchController {
                     -클라이언트 역할
                     1. 그룹별 탭 전환
                     2. 기본 AnimeStatus 표시
-                    3. 오늘과 같은 요일이고 && NOW_SHOWING && 아직 방영안한 애니들만: 방영까지 남은 시간 표시""")
+                    3. 첫 방영 애니들만: 방영까지 남은 시간 표시""")
     @GetMapping
     public ApiResponse<AnimePreviewListDto> getWeeklySchedule(
             @RequestParam Integer hour, @RequestParam Integer minute) {

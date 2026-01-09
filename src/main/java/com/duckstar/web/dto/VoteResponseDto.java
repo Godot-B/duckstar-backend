@@ -7,6 +7,7 @@ import com.duckstar.web.dto.WeekResponseDto.WeekDto;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class VoteResponseDto {
@@ -76,8 +77,6 @@ public class VoteResponseDto {
         DayOfWeekShort dayOfWeek;
 
         LocalDateTime scheduledAt;
-
-        String airTime;     // 방영시간 (HH:mm 형식)
 
         String genre;
 

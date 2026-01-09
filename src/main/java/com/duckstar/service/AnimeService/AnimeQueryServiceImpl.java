@@ -7,6 +7,7 @@ import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.domain.Anime;
+import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,6 +94,7 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
 
         LocalDateTime premiereDateTime = anime.getPremiereDateTime();
 
+        LocalTime airTime = anime.getAirTime();
         AnimeResponseDto.AnimeInfoDto animeInfoDto = AnimeResponseDto.AnimeInfoDto.builder()
                 .medium(anime.getMedium())
                 .status(anime.getStatus())
@@ -99,8 +102,10 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
                 .premiereDateTime(premiereDateTime)
                 .titleKor(anime.getTitleKor())
                 .titleOrigin(anime.getTitleOrigin())
-                .dayOfWeek(anime.getDayOfWeek())
-                .airTime(anime.getAirTime())
+                .dayOfWeek(
+                        DayOfWeekShort.getLogicalDay(airTime ,anime.getDayOfWeek())
+                )
+                .airTime(airTime)
                 .synopsis(anime.getSynopsis())
                 .corp(anime.getCorp())
                 .director(anime.getDirector())

@@ -564,22 +564,17 @@ public class ChartService {
     ) {}
 
     @Transactional
-    public void buildSurveyAwards(Long surveyId, boolean forMidTermTest) {
+    public void buildSurveyAwards(
+            Long surveyId,
+            List<String> outlaws,
+            boolean forMidTermTest
+    ) {
         // 서베이 존재, 상태 점검
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
                 new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
         if (!forMidTermTest && survey.getStatus() != SurveyStatus.CLOSED) {
             throw new SurveyHandler(ErrorStatus.SURVEY_NOT_CLOSED);
         }
-
-        // 제외할 IP들
-        String[] outlawStrings = {"01fca71789934899520ec2424e670e4ca2558fe8cbc35e8cfb35f472b27e7aa6",
-                "ffdb08139e54e6cea7f7f88b59ca680ef369b1dad848a214b92b422734c98c54",
-                "d0a4a91c903d6ba64c67a0a7aaf2c7242359ae57b651ad7de76b28bbb42deab6",
-                "2208af4b7a1e66d7ae959b7d1a3766c1da2cd3ecf51b381c20fce178541674f4",
-                "26de304d6fdb492845f863822354ddccccee3fd62a00cad400864383b44dafac",
-                "91abc9d217c6c93ccf6d8a6386cb8a8d04ecf89dfa139bf7a69fa74af237da4b"};
-        List<String> outlaws = Arrays.asList(outlawStrings);
 
         // 전체 표에서 제외, 통계 맵 구성
         Map<Long, SurveyStatRecord> statMap = surveyVoteRepository

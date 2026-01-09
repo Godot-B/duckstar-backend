@@ -1,9 +1,47 @@
 package com.duckstar.domain.enums;
 
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 public enum DayOfWeekShort {
-    MON, TUE, WED, THU, FRI, SAT, SUN,
+    MON,
+    TUE,
+    WED,
+    THU,
+    FRI,
+    SAT,
+    SUN,
 
-    SPECIAL,
+    SPECIAL;
 
-    NONE,
+    private static final DayOfWeekShort[] ENUMS = DayOfWeekShort.values();
+    private static final int NIGHT_OFFSET = 5;
+
+    public static DayOfWeekShort of(int dayOfWeek) {
+        if (dayOfWeek < 1 || dayOfWeek > 7) {
+            throw new DateTimeException("Invalid value for DayOfWeek: " + dayOfWeek);
+        }
+        return ENUMS[dayOfWeek - 1];
+    }
+
+    public static DayOfWeekShort getLogicalDay(LocalDateTime actualTime) {
+        if (actualTime == null) return DayOfWeekShort.SPECIAL;
+        LocalDateTime logicalTime = actualTime.minusHours(NIGHT_OFFSET);
+        return DayOfWeekShort.of(logicalTime.getDayOfWeek().getValue());
+    }
+    
+    public static DayOfWeekShort getLogicalDay(LocalTime actualTime, DayOfWeekShort actualDayOfWeek) {
+        if (actualTime == null) return actualDayOfWeek;
+        boolean isMidNight = actualTime.getHour() < 5;
+        int ordinal = actualDayOfWeek.ordinal();
+        return isMidNight ? ENUMS[ordinal == 0 ? ENUMS.length - 2 : ordinal - 1] : actualDayOfWeek;
+    }
+    
+    public static int getLogicalHour(LocalTime dateTime) {
+        if (dateTime == null) return 99; // 시간 정보 없으면 맨 뒤로
+        int hour = dateTime.getHour();
+        // 00:00 ~ 04:59 면 24를 더해 24:00 ~ 28:59로 취급
+        return (hour < NIGHT_OFFSET) ? hour + 24 : hour;
+    }
 }

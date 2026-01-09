@@ -13,6 +13,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,10 +42,6 @@ public class Anime extends BaseEntity {
     @Column(columnDefinition = "varchar(20)")
     private AnimeStatus status;     // 방영(상영) 상태
 
-    private Integer totalEpisodes;
-
-    private LocalDateTime premiereDateTime;
-
     @Column(nullable = false)
     private String titleKor;
 
@@ -56,8 +53,12 @@ public class Anime extends BaseEntity {
     @Column(columnDefinition = "varchar(10)")
     private DayOfWeekShort dayOfWeek;
 
-    @Column(length = 5)
-    private String airTime;
+    //=== MIGRATION to TIME ===//
+    private LocalTime airTime;  // 정규 방송 시간
+
+    private Integer totalEpisodes;  // TVA 경우 기본 12개
+
+    private LocalDateTime premiereDateTime;  // 첫 방영 시간
 
     @Column(length = 100)
     private String corp;

@@ -37,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.MonthDay;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -176,6 +177,12 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
         }
 
         //=== 애니메이션 저장 ===//
+        String airTimeString = request.getAirTime();
+        LocalTime airTime = LocalTime.of(
+                Integer.parseInt(airTimeString.split(":")[0]),
+                Integer.parseInt(airTimeString.split(":")[1])
+        );
+
         Anime anime = Anime.builder()
                 .titleKor(request.getTitleKor())
                 .titleOrigin(request.getTitleOrigin())
@@ -184,7 +191,7 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
                 .medium(request.getMedium())
 
                 .status(status)
-                .airTime(request.getAirTime())
+                .airTime(airTime)
                 .premiereDateTime(premiereDateTime)
                 .dayOfWeek(request.getDayOfWeek())
                 .totalEpisodes(totalEpisodes)
@@ -259,8 +266,6 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
                             )
                     ));
         }
-
-
 
         return saved.getId();
     }

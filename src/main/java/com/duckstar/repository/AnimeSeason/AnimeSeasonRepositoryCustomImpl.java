@@ -2,6 +2,7 @@ package com.duckstar.repository.AnimeSeason;
 
 import com.duckstar.domain.*;
 import com.duckstar.domain.enums.AnimeStatus;
+import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.QAnimeOtt;
 import com.duckstar.domain.mapping.QAnimeSeason;
@@ -13,7 +14,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,13 +36,15 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
     public List<AnimePreviewDto> getAnimePreviewsByQuarter(Long quarterId) {
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
-                        anime.status,
-                        anime.mainThumbnailUrl,
                         anime.titleKor,
-                        anime.dayOfWeek,
+                        anime.mainThumbnailUrl,
+                        anime.status,
                         anime.genre,
                         anime.medium,
+                        anime.dayOfWeek,
                         anime.airTime,
+
+                        // 방영 전 애니 디데이 계산과 영화(개봉일 날짜)를 위해 필요
                         anime.premiereDateTime
                 )
                 .from(animeSeason)
@@ -72,7 +75,10 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                 .collect(Collectors.groupingBy(
                         t -> t.get(animeOtt.anime.id),
                         Collectors.mapping(
-                                t -> new OttDto(t.get(ott.type), t.get(animeOtt.watchUrl)),
+                                t -> new OttDto(
+                                        t.get(ott.type),
+                                        t.get(animeOtt.watchUrl)
+                                ),
                                 Collectors.toList()
                         )
                 ));
@@ -82,29 +88,24 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                     Long animeId = t.get(anime.id);
                     List<OttDto> ottDtos = ottDtosMap.getOrDefault(animeId, List.of());
 
-                    Medium medium = t.get(anime.medium);
-                    LocalDateTime time = t.get(anime.premiereDateTime);
-                    String formatted = null;
-                    if (time != null) {
-                        formatted = String.valueOf(time);
-                    }
-
                     AnimeStatus status = t.get(anime.status);
+                    Medium medium = t.get(anime.medium);
 
-                    String airTime = medium == Medium.MOVIE || status == AnimeStatus.UPCOMING ?
-                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영 dateTime
-                            t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
+                    boolean dateNeeded = medium == Medium.MOVIE || status == AnimeStatus.UPCOMING;
+
+                    LocalTime airTime = t.get(anime.airTime);
 
                     return AnimePreviewDto.builder()
                             .animeId(animeId)
+                            .titleKor(t.get(anime.titleKor))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
                             .status(status)
-                            .titleKor(t.get(anime.titleKor))
-                            .dayOfWeek(t.get(anime.dayOfWeek))
-                            .airTime(airTime)
                             .genre(t.get(anime.genre))
                             .medium(medium)
                             .ottDtos(ottDtos)
+                            .dayOfWeek(DayOfWeekShort.getLogicalDay(airTime, t.get(anime.dayOfWeek)))
+                            .scheduledAt(dateNeeded ? t.get(anime.premiereDateTime) : null)
+                            .airTime(airTime)
                             .build();
                 })
                 .toList();

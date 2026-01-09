@@ -50,6 +50,7 @@ import java.nio.file.StandardCopyOption;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -622,6 +623,12 @@ public class CsvImportService {
                     dayOfWeek = null;
                 }
 
+                String airTimeString = record.get("airTime");
+                LocalTime airTime = LocalTime.of(
+                        Integer.parseInt(airTimeString.split(":")[0]),
+                        Integer.parseInt(airTimeString.split(":")[1])
+                );
+
                 int minAge;
                 try {
                     minAge = Integer.parseInt(record.get("minAge"));
@@ -645,7 +652,7 @@ public class CsvImportService {
                         .titleOrigin(record.get("titleOrigin"))
                         .titleEng(record.get("titleEng"))
                         .dayOfWeek(dayOfWeek)
-                        .airTime(record.get("airTime"))
+                        .airTime(airTime)
                         .corp(record.get("corp"))
                         .director(record.get("director"))
                         .genre(record.get("genre"))

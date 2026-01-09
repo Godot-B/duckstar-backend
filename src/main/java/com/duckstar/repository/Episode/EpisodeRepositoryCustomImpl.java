@@ -4,10 +4,7 @@ import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QOtt;
 import com.duckstar.domain.QWeek;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.enums.AnimeStatus;
-import com.duckstar.domain.enums.CommentStatus;
-import com.duckstar.domain.enums.EpEvaluateState;
-import com.duckstar.domain.enums.Medium;
+import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.*;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
@@ -20,12 +17,16 @@ import com.duckstar.web.dto.OttDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.TimePath;
+import com.querydsl.core.types.dsl.TimeTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -88,13 +89,11 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     public List<LiveCandidateDto> getLiveCandidateDtos(List<String> principalKeys) {
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
-                        anime.status,
-                        anime.mainThumbnailUrl,
                         anime.titleKor,
-                        anime.dayOfWeek,
+                        anime.mainThumbnailUrl,
                         anime.genre,
                         anime.medium,
-                        anime.premiereDateTime,
+                        anime.premiereDateTime,  // 일단 투표에서 영화 제외
                         anime.airTime,
                         episode,
                         episodeStar,
@@ -125,14 +124,6 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         return null;
                     }
 
-                    Medium medium = t.get(anime.medium);
-                    LocalDateTime time = t.get(anime.premiereDateTime);
-                    AnimeStatus status = t.get(anime.status);
-
-                    String airTime = (medium == Medium.MOVIE || status == AnimeStatus.UPCOMING) ?
-                            String.valueOf(time) :  // 영화일 때와 방영 전 TVA: 첫 방영(개봉) 날짜, 예: "8/22"
-                            t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
-
                     //=== 에피소드가 속한 주 계산 ===//
                     LocalDateTime scheduledAt = episode.getScheduledAt();
                     YQWRecord record = scheduledAt != null ?
@@ -162,11 +153,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                             .animeId(t.get(anime.id))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
                             .titleKor(t.get(anime.titleKor))
-                            .dayOfWeek(t.get(anime.dayOfWeek))
+                            .dayOfWeek(DayOfWeekShort.getLogicalDay(scheduledAt))
                             .scheduledAt(scheduledAt)
-                            .airTime(airTime)
                             .genre(t.get(anime.genre))
-                            .medium(medium)
+                            .medium(t.get(anime.medium))
                             .result(result)
                             .build();
                 })
@@ -204,20 +194,19 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     }
 
     @Override
-    public List<AnimePreviewDto> getAnimePreviewsByDuration(LocalDateTime weekStart, LocalDateTime weekEnd) {
+    public List<AnimePreviewDto> getAnimePreviewsByDuration(
+            LocalDateTime weekStart, LocalDateTime weekEnd) {
         List<Tuple> tuples = queryFactory.select(
                         anime.id,
-                        anime.status,
-                        anime.mainThumbnailUrl,
                         anime.titleKor,
-                        anime.dayOfWeek,
+                        anime.mainThumbnailUrl,
+                        anime.status,
                         anime.genre,
                         anime.medium,
-                        anime.premiereDateTime,
-                        episode.id,
+                        anime.premiereDateTime,  // 에피소드가 없는 영화에게 필요함
+                        episode.scheduledAt,
                         episode.isBreak,
-                        episode.isRescheduled,
-                        episode.scheduledAt
+                        episode.isRescheduled
                 )
                 .from(anime)
                 .leftJoin(episode).on(episode.anime.id.eq(anime.id))
@@ -225,8 +214,8 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                         .or(
                                 anime.status.eq(AnimeStatus.NOW_SHOWING)
                                         .and(anime.medium.eq(Medium.MOVIE))
-                        ))
-                .orderBy(episode.scheduledAt.asc().nullsLast())
+                        )
+                )
                 .fetch();
 
         List<Long> animeIds = tuples.stream()
@@ -252,7 +241,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .collect(Collectors.groupingBy(
                         t -> t.get(animeOtt.anime.id),
                         Collectors.mapping(
-                                t -> new OttDto(t.get(ott.type), t.get(animeOtt.watchUrl)),
+                                t -> new OttDto(
+                                        t.get(ott.type),
+                                        t.get(animeOtt.watchUrl)
+                                ),
                                 Collectors.toList()
                         )
                 ));
@@ -262,31 +254,28 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                     Long animeId = t.get(anime.id);
                     List<OttDto> ottDtos = ottDtosMap.getOrDefault(animeId, List.of());
 
-                    Medium medium = t.get(anime.medium);
-                    LocalDateTime time = t.get(anime.premiereDateTime);
-                    String formatted = null;
-                    if (time != null) {
-                        formatted = String.valueOf(time);
-                    }
-                    AnimeStatus status = t.get(anime.status);
+                    LocalDateTime scheduledAt = t.get(episode.scheduledAt);
 
-                    String airTime = medium == Medium.MOVIE || status == AnimeStatus.UPCOMING ?
-                            formatted :  // 영화일 때와 방영 전 TVA: 첫 방영 dateTime
-                            t.get(anime.airTime);  // TVA 일 때는 방영 시간, 예: "00:00"
+                    AnimeStatus status = t.get(anime.status);
+                    Medium medium = t.get(anime.medium);
 
                     return AnimePreviewDto.builder()
                             .animeId(animeId)
+                            .titleKor(t.get(anime.titleKor))
                             .mainThumbnailUrl(t.get(anime.mainThumbnailUrl))
                             .status(status)
                             .isBreak(t.get(episode.isBreak))
-                            .titleKor(t.get(anime.titleKor))
-                            .dayOfWeek(t.get(anime.dayOfWeek))
-                            .scheduledAt(t.get(episode.scheduledAt))
                             .isRescheduled(t.get(episode.isRescheduled))
-                            .airTime(airTime)
                             .genre(t.get(anime.genre))
                             .medium(medium)
                             .ottDtos(ottDtos)
+                            .dayOfWeek(DayOfWeekShort.getLogicalDay(scheduledAt))
+                            .scheduledAt(  // 에피소드가 없는 영화는 개봉일 0시 0분
+                                    scheduledAt == null ?
+                                            t.get(anime.premiereDateTime) :
+                                            scheduledAt
+                            )
+//                            .airTime()  // 주차 시간표에선 필요 X
                             .build();
                 })
                 .toList();

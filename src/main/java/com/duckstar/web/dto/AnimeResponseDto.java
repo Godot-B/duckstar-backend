@@ -11,6 +11,7 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -99,7 +100,7 @@ public class AnimeResponseDto {
 
         DayOfWeekShort dayOfWeek;
 
-        String airTime;
+        LocalTime airTime;
 
         String synopsis;
 

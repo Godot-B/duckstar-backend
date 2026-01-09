@@ -9,6 +9,7 @@ import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
+import com.duckstar.domain.enums.Medium;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
@@ -91,35 +92,48 @@ public class WeekService {
 
     public AnimePreviewListDto getWeeklyScheduleFromOffset(LocalTime offset) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastMonday = now
-                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                .withHour(offset.getHour()).withMinute(offset.getMinute())
-                .withSecond(0).withNano(0);
-        LocalDateTime endMonday = lastMonday.plusDays(7);
+        LocalDateTime thisMonday = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .with(offset);
+        LocalDateTime endMonday = thisMonday.plusDays(7);
 
         List<AnimePreviewDto> animePreviews =
-                episodeRepository.getAnimePreviewsByDuration(
-                        lastMonday,
-                        endMonday
-                );
+                episodeRepository.getAnimePreviewsByDuration(thisMonday, endMonday);
 
-        Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
-                .collect(
-                        Collectors.groupingBy(dto -> {
-                            DayOfWeekShort dayOfWeek = dto.getDayOfWeek();
-                            return (dto.getDayOfWeek() != null) ?
-                                    dayOfWeek :
-                                    DayOfWeekShort.NONE;
-                        })
-                );
+        // 임시 그룹핑
+        Map<DayOfWeekShort, List<AnimePreviewDto>> groupedMap = animePreviews.stream()
+                .collect(Collectors.groupingBy(
+                        dto -> dto.getDayOfWeek() == null ?
+                                DayOfWeekShort.SPECIAL :
+                                dto.getDayOfWeek()
+                ));
 
-        DayOfWeekShort[] keys = DayOfWeekShort.values();
-        for (DayOfWeekShort key : keys) {
-            schedule.putIfAbsent(key, List.of());
-        }
+        Comparator<AnimePreviewDto> scheduleComparator = (a, b) -> {
+            int hourA = DayOfWeekShort.getLogicalHour(a.getScheduledAt().toLocalTime());
+            int hourB = DayOfWeekShort.getLogicalHour(b.getScheduledAt().toLocalTime());
+
+            if (hourA != hourB) return Integer.compare(hourA, hourB);
+
+            // 시간이 같으면 분 단위 비교
+            return a.getScheduledAt().getMinute() - b.getScheduledAt().getMinute();
+        };
+
+        // 모든 요일(MON~SPECIAL)을 순회하며 DTO 구성 및 내부 정렬
+        List<ScheduleDto> scheduleDtos = Arrays.stream(DayOfWeekShort.values())
+                .map(day -> {
+                    List<AnimePreviewDto> list = new ArrayList<>(groupedMap.getOrDefault(day, List.of()));
+
+                    // 서비스 단의 비즈니스 규칙(24시 정책)으로 정렬 수행
+                    list.sort(scheduleComparator);
+
+                    return ScheduleDto.builder()
+                            .dayOfWeekShort(day)
+                            .animePreviews(list)
+                            .build();
+                })
+                .toList();
 
         return AnimePreviewListDto.builder()
-                .schedule(schedule)
+                .scheduleDtos(scheduleDtos)
                 .build();
     }
 
@@ -128,25 +142,48 @@ public class WeekService {
         List<AnimePreviewDto> animePreviews =
                 animeSeasonRepository.getAnimePreviewsByQuarter(quarterId);
 
-        Map<DayOfWeekShort, List<AnimePreviewDto>> schedule = animePreviews.stream()
-                .collect(
-                        Collectors.groupingBy(dto -> {
-                            DayOfWeekShort dayOfWeek = dto.getDayOfWeek();
-                            return (dto.getDayOfWeek() != null) ?
-                                    dayOfWeek :
-                                    DayOfWeekShort.NONE;
-                        })
-                );
+        // 임시 그룹핑
+        Map<DayOfWeekShort, List<AnimePreviewDto>> groupedMap = animePreviews.stream()
+                .collect(Collectors.groupingBy(
+                        dto -> dto.getDayOfWeek() == null ?
+                                DayOfWeekShort.SPECIAL :
+                                dto.getDayOfWeek()
+                ));
 
-        DayOfWeekShort[] keys = DayOfWeekShort.values();
-        for (DayOfWeekShort key : keys) {
-            schedule.putIfAbsent(key, List.of());
-        }
+        Comparator<AnimePreviewDto> scheduleComparator = (a, b) -> {
+            LocalDateTime aScheduledAt = a.getScheduledAt();
+            LocalTime aLocalTime = aScheduledAt == null ? a.getAirTime() : aScheduledAt.toLocalTime();
+            LocalDateTime bScheduledAt = b.getScheduledAt();
+            LocalTime bLocalTime = bScheduledAt == null ? b.getAirTime() : bScheduledAt.toLocalTime();
+
+            int hourA = DayOfWeekShort.getLogicalHour(aLocalTime);
+            int hourB = DayOfWeekShort.getLogicalHour(bLocalTime);
+
+            if (hourA != hourB) return Integer.compare(hourA, hourB);
+
+            // 시간이 같으면 분 단위 비교
+            return aLocalTime.getMinute() - bLocalTime.getMinute();
+        };
+
+        // 모든 요일(MON~SPECIAL)을 순회하며 DTO 구성 및 내부 정렬
+        List<ScheduleDto> scheduleDtos = Arrays.stream(DayOfWeekShort.values())
+                .map(day -> {
+                    List<AnimePreviewDto> list = new ArrayList<>(groupedMap.getOrDefault(day, List.of()));
+
+                    // 서비스 단의 비즈니스 규칙(24시 정책)으로 정렬 수행
+                    list.sort(scheduleComparator);
+
+                    return ScheduleDto.builder()
+                            .dayOfWeekShort(day)
+                            .animePreviews(list)
+                            .build();
+                })
+                .toList();
 
         return AnimePreviewListDto.builder()
                 .year(year)
                 .quarter(quarter)
-                .schedule(schedule)
+                .scheduleDtos(scheduleDtos)
                 .build();
     }
 

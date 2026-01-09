@@ -6,7 +6,6 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Survey;
 import com.duckstar.domain.Week;
-import com.duckstar.domain.mapping.AnimeSeason;
 import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
@@ -18,6 +17,7 @@ import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.SurveyRepository;
+import com.duckstar.repository.SurveyVote.SurveyVoteRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.VoteService.VoteCommandServiceImpl;
@@ -64,6 +64,8 @@ public class TempTest {
     private QuarterRepository quarterRepository;
     @Autowired
     private WeekService weekService;
+    @Autowired
+    private SurveyVoteRepository surveyVoteRepository;
 
     @Test
     @Transactional
@@ -144,7 +146,7 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void calculateRankManual() {
-        Long weekId = weekService.getWeekIdByYQW(2025, 4, 8);
+        Long weekId = weekService.getWeekIdByYQW(2026, 1, 1);
 
         chartService.calculateRankByYQW(weekId);
     }
@@ -349,14 +351,25 @@ public class TempTest {
     @Transactional
     @Rollback(false)
     public void 서베이_순위_수동_계산() {
-        chartService.buildSurveyAwards(1L, true);
-    }
+        // 제외할 IP들
+        // 25년 4분기 결산
+//        String[] outlawStrings = {"01fca71789934899520ec2424e670e4ca2558fe8cbc35e8cfb35f472b27e7aa6",
+//                "ffdb08139e54e6cea7f7f88b59ca680ef369b1dad848a214b92b422734c98c54",
+//                "d0a4a91c903d6ba64c67a0a7aaf2c7242359ae57b651ad7de76b28bbb42deab6",
+//                "2208af4b7a1e66d7ae959b7d1a3766c1da2cd3ecf51b381c20fce178541674f4",
+//                "26de304d6fdb492845f863822354ddccccee3fd62a00cad400864383b44dafac",
+//                "91abc9d217c6c93ccf6d8a6386cb8a8d04ecf89dfa139bf7a69fa74af237da4b"};
+        // 25년 연말 결산
+        String[] outlawStrings = {"01fca71789934899520ec2424e670e4ca2558fe8cbc35e8cfb35f472b27e7aa6",
+                "ffdb08139e54e6cea7f7f88b59ca680ef369b1dad848a214b92b422734c98c54",
+                "c7fee37b082cbcd382d9dd59285ab68303d4c64c7bee5492b5d1bffe044d6973"};
+        // 26년 1분기 기대작 투표
+//        String[] outlawStrings = {"71c35dc8a24d615d53bfb259e843693cbdee9ac70e6737e71a17dd7a9debd3f5"};
 
-    @Test
-    @Transactional(readOnly = true)
-    public void 연말결산_중복_후보_찾기() {
-        List<SurveyCandidate> candidates = surveyCandidateRepository.findAllBySurvey_Id(2L);
-
-        //TODO
+        chartService.buildSurveyAwards(
+                2L,
+                Arrays.asList(outlawStrings),
+                true
+        );
     }
 }
