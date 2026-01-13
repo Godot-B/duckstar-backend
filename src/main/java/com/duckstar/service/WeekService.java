@@ -9,7 +9,6 @@ import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
-import com.duckstar.domain.enums.Medium;
 import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SeasonRepository;
@@ -45,7 +44,6 @@ public class WeekService {
     private final SeasonRepository seasonRepository;
     private final EpisodeRepository episodeRepository;
 
-    private final SeasonService seasonService;
     private final AnilabRepository anilabRepository;
     private final AnimeCornerRepository animeCornerRepository;
 
@@ -243,42 +241,8 @@ public class WeekService {
                 .build();
     }
 
-    public void setupWeeklyVote(LocalDateTime lastWeekStartedAt, LocalDateTime now) {
-        Week lastWeek = getWeekByTime(lastWeekStartedAt);
-        int lastWeekQuarterValue = lastWeek.getQuarter().getQuarterValue();
-
-        YQWRecord record = getThisWeekRecord(now);
-        int thisQuarterValue = record.quarterValue();
-
-        //=== 분기, 시즌 찾기(or 생성) & 주 생성 ===//
-        boolean quarterCreateEnabled = lastWeekQuarterValue != thisQuarterValue;
-        getOrCreateQuarterAndWeek(quarterCreateEnabled, record, getThisWeekStartedAt(now));
-
-        //=== 애니 후보군 생성 ===//
-//        List<Anime> nowShowingAnimes = animeService.getAnimesForCandidate(season, now);
-//
-//        List<AnimeCandidate> animeCandidates = nowShowingAnimes.stream()
-//                .map(anime -> AnimeCandidate.create(savedWeek, anime))
-//                .toList();
-//        animeCandidateRepository.saveAll(animeCandidates);
-
-        // TODO 캐릭터 후보군 생성
-
-    }
-
     @Transactional
-    public void getOrCreateQuarterAndWeek(
-            boolean createEnabled,
-            YQWRecord record,
-            LocalDateTime weekStartedAt
-    ) {
-        int yearValue = record.yearValue();
-
-        Quarter quarter = seasonService
-                .getOrCreateQuarter(createEnabled, yearValue, record.quarterValue());
-        seasonService.getOrCreateSeason(createEnabled, quarter);
-
-        // getOrCreateWeek
+    public void getOrCreateWeek(YQWRecord record, LocalDateTime weekStartedAt, Quarter quarter) {
         int weekValue = record.weekValue();
         Optional<Week> weekOpt = weekRepository
                 .findByQuarter_IdAndWeekValue(quarter.getId(), weekValue);

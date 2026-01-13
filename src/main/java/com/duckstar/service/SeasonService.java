@@ -6,14 +6,11 @@ import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Season;
 import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SeasonRepository;
-import com.duckstar.util.QuarterUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-
-import static com.duckstar.util.QuarterUtil.*;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +21,7 @@ public class SeasonService {
 
     // CSV 리더 설계 이후 다시 돌아와 아래 로직들 검증
 
+    @Transactional
     public Quarter getOrCreateQuarter(
             boolean createEnabled,
             int thisYearValue,
@@ -46,6 +44,7 @@ public class SeasonService {
         return quarter;
     }
 
+    @Transactional
     public Season getOrCreateSeason(boolean createEnabled, Quarter quarter) {
         int thisYearValue = quarter.getYearValue();
         int thisQuarterValue = quarter.getQuarterValue();
