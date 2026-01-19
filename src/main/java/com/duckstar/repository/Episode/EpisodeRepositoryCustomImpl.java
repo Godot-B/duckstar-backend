@@ -3,7 +3,6 @@ package com.duckstar.repository.Episode;
 import com.duckstar.domain.QAnime;
 import com.duckstar.domain.QOtt;
 import com.duckstar.domain.QWeek;
-import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.*;
 import com.duckstar.domain.mapping.comment.QAnimeComment;
@@ -12,21 +11,17 @@ import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.duckstar.domain.mapping.weeklyVote.QEpisode;
 import com.duckstar.domain.mapping.weeklyVote.QEpisodeStar;
 import com.duckstar.domain.vo.RankInfo;
-import com.duckstar.util.QuarterUtil;
 import com.duckstar.web.dto.OttDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.TimePath;
-import com.querydsl.core.types.dsl.TimeTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +35,9 @@ import static com.duckstar.web.dto.MedalDto.*;
 import static com.duckstar.web.dto.RankInfoDto.*;
 import static com.duckstar.web.dto.SearchResponseDto.*;
 import static com.duckstar.web.dto.VoteResponseDto.*;
+import static com.duckstar.web.dto.WeekResponseDto.*;
+import static com.duckstar.web.dto.admin.AdminLogDto.*;
+import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -53,36 +51,37 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     private final QWeek week = QWeek.week;
     private final QEpisodeStar episodeStar = QEpisodeStar.episodeStar;
     private final QAnimeComment animeComment = QAnimeComment.animeComment;
+    private final QAdminActionLog adminActionLog = QAdminActionLog.adminActionLog;
 
     @Override
     public List<EpisodeDto> getEpisodeDtosByAnimeId(Long animeId) {
-
-        // 분기, 주차 util 계산으로 복잡도 낮추기 가능
-
-        List<Tuple> tuples = queryFactory.select(
-                        episode.id,
-                        episode.episodeNumber,
-                        episode.isBreak,
-                        episode.scheduledAt,
-                        episode.isRescheduled,
-                        episode.nextEpScheduledAt
+        List<EpisodeDto> dtos = queryFactory.select(
+                        Projections.constructor(
+                                EpisodeDto.class,
+                                Expressions.as(
+                                        // 우선 null 주입
+                                        Expressions.nullExpression(WeekDto.class),
+                                        "weekDto"
+                                ),
+                                episode.id,
+                                episode.episodeNumber,
+                                episode.isBreak,
+                                episode.isRescheduled,
+                                episode.scheduledAt,
+                                episode.nextEpScheduledAt
+                        )
                 )
                 .from(episode)
                 .where(episode.anime.id.eq(animeId))
-                .orderBy(episode.scheduledAt.asc())
+                .orderBy(
+                        episode.scheduledAt.asc(),
+                        episode.isBreak.desc().nullsLast()
+                )
                 .fetch();
 
-        return tuples.stream().map(t ->
-                        EpisodeDto.builder()
-                                .episodeId(t.get(episode.id))
-                                .episodeNumber(t.get(episode.episodeNumber))
-                                .isBreak(t.get(episode.isBreak))
-                                .scheduledAt(t.get(episode.scheduledAt))
-                                .isRescheduled(t.get(episode.isRescheduled))
-                                .nextEpScheduledAt(t.get(episode.nextEpScheduledAt))
-                                .build()
-                )
-                .toList();
+        // 이후 세팅
+        dtos.forEach(dto -> dto.setWeekDto(dto.getScheduledAt()));
+        return dtos;
     }
 
     @Override
@@ -179,8 +178,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 )
                 .from(episode)
                 .join(episode.anime, anime)
-                .join(week)
-                    .on(week.id.eq(weekId))
+                .join(week).on(week.id.eq(weekId))
                 .leftJoin(episodeStar)
                     .on(
                             episodeStar.episode.id.eq(episode.id),
@@ -489,5 +487,110 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .result(result)
                 .build()
         );
+    }
+
+    @Override
+    public List<EpisodeInfoDto> getEpisodeInfoDtosByAnimeId(Long animeId) {
+        List<EpisodeInfoDto> dtos = queryFactory.select(
+                        Projections.constructor(
+                                EpisodeInfoDto.class,
+                                Projections.constructor(
+                                        EpisodeDto.class,
+                                        Expressions.as(
+                                                // 우선 null 주입
+                                                Expressions.nullExpression(WeekDto.class),
+                                                "weekDto"
+                                        ),
+                                        episode.id,
+                                        episode.episodeNumber,
+                                        episode.isBreak,
+                                        episode.isRescheduled,
+                                        episode.scheduledAt,
+                                        episode.nextEpScheduledAt
+                                ),
+                                Projections.constructor(
+                                        ManagerProfileDto.class,
+                                        adminActionLog.member.id,
+                                        adminActionLog.member.profileImageUrl,
+                                        adminActionLog.member.nickname,
+                                        adminActionLog.adminTaskType,
+                                        adminActionLog.createdAt
+                                )
+                        ))
+                .from(episode)
+                .leftJoin(adminActionLog).on(adminActionLog.episode.id.eq(episode.id))
+                .where(episode.anime.id.eq(animeId))
+                .orderBy(
+                        episode.scheduledAt.asc(),
+                        episode.id.asc()
+                )
+                .fetch();
+
+        // 이후 세팅
+        dtos.forEach(dto ->
+                dto.getEpisodeDto().setWeekDto(dto.getEpisodeDto().getScheduledAt())
+        );
+        return dtos;
+    }
+
+    @Override
+    public List<ScheduleInfoDto> getScheduleInfoDtosByWeekId(Long weekId) {
+        List<ScheduleInfoDto> dtos = queryFactory.select(
+                        Projections.constructor(
+                                ScheduleInfoDto.class,
+                                anime.titleKor,
+                                anime.mainThumbnailUrl,
+                                Projections.constructor(
+                                        EpisodeDto.class,
+                                        Expressions.as(
+                                                // 우선 null 주입
+                                                Expressions.nullExpression(WeekDto.class),
+                                                "weekDto"
+                                        ),
+                                        episode.id,
+                                        episode.episodeNumber,
+                                        episode.isBreak,
+                                        episode.isRescheduled,
+                                        episode.scheduledAt,
+                                        episode.nextEpScheduledAt
+                                ),
+                                Projections.constructor(
+                                        ManagerProfileDto.class,
+                                        adminActionLog.member.id,
+                                        adminActionLog.member.profileImageUrl,
+                                        adminActionLog.member.nickname,
+                                        adminActionLog.adminTaskType,
+                                        adminActionLog.createdAt
+                                )
+                        ))
+                .from(episode)
+                .join(episode.anime, anime)
+                .leftJoin(adminActionLog).on(adminActionLog.episode.id.eq(episode.id))
+                .join(week).on(week.id.eq(weekId))
+                .where(
+                        episode.scheduledAt.between(week.startDateTime, week.endDateTime)
+                )
+                .orderBy(
+                        episode.scheduledAt.asc(),
+                        episode.isBreak.desc().nullsLast()
+                )
+                .fetch();
+
+        // 이후 세팅
+        dtos.forEach(dto ->
+                dto.getEpisodeDto().setWeekDto(dto.getEpisodeDto().getScheduledAt())
+        );
+        return dtos;
+    }
+
+    @Override
+    public List<Episode> findEpisodesByReleaseOrder(Long animeId) {
+        return queryFactory.selectFrom(episode)
+                .where(episode.anime.id.eq(animeId))
+                .orderBy(
+                        episode.scheduledAt.asc(),
+                        episode.isBreak.desc().nullsLast()
+                )
+                .fetch();
     }
 }

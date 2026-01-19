@@ -1,5 +1,10 @@
 package com.duckstar.service;
 
+import com.duckstar.domain.Anime;
+import com.duckstar.domain.Member;
+import com.duckstar.domain.enums.AdminTaskType;
+import com.duckstar.domain.mapping.AdminActionLog;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AdminActionLog.AdminActionLogRepository;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +50,27 @@ public class AdminActionLogService {
                 .ipManagementLogDtos(rows)
                 .pageInfo(pageInfo)
                 .build();
+    }
+
+    @Transactional
+    public AdminActionLog saveAdminActionLog(Member member, Anime anime, AdminTaskType type) {
+        return adminActionLogRepository.save(
+                AdminActionLog.builder()
+                        .member(member)
+                        .anime(anime)
+                        .adminTaskType(type)
+                        .build()
+        );
+    }
+
+    @Transactional
+    public AdminActionLog saveAdminActionLog(Member member, Episode episode, AdminTaskType type) {
+        return adminActionLogRepository.save(
+                AdminActionLog.builder()
+                        .member(member)
+                        .episode(episode)
+                        .adminTaskType(type)
+                        .build()
+        );
     }
 }

@@ -13,7 +13,6 @@ import java.util.Optional;
 
 public interface EpisodeRepository extends JpaRepository<Episode, Long>, EpisodeRepositoryCustom {
     Optional<Episode> findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(Anime anime, LocalDateTime time1, LocalDateTime time2);
-    Optional<Episode> findTopByAnimeOrderByEpisodeNumberDesc(Anime anime);
 
     List<Episode> findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(LocalDateTime scheduledAtIsGreaterThan, LocalDateTime scheduledAtIsLessThan);
 
@@ -32,6 +31,4 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
             @Param("weekId") Long weekId,
             Pageable pageable
     );
-
-    List<Episode> findAllByAnime_IdOrderByScheduledAtAsc(Long animeId);
 }

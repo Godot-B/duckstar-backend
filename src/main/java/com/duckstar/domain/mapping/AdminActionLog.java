@@ -1,9 +1,11 @@
 package com.duckstar.domain.mapping;
 
+import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.AdminTaskType;
+import com.duckstar.domain.mapping.weeklyVote.Episode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +27,14 @@ public class AdminActionLog extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "week_id")
     private Week week;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anime_id")
+    private Anime anime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "episode_id")
+    private Episode episode;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(15)")

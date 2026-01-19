@@ -126,7 +126,7 @@ public class Anime extends BaseEntity {
         this.mainThumbnailUrl = mainThumbnailUrl;
     }
 
-    public void updateTotalEpisodes(Integer totalEpisodes) {
+    public void setTotalEpisodes(Integer totalEpisodes) {
         this.totalEpisodes = totalEpisodes;
     }
 }

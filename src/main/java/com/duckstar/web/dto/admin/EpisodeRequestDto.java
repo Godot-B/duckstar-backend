@@ -3,13 +3,40 @@ package com.duckstar.web.dto.admin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
 
-@Getter
+import java.time.LocalDateTime;
+
 public class EpisodeRequestDto {
 
-    @NotNull
-    @Min(1)
-    @Max(100)
-    Integer totalEpisodes;
+    @Builder
+    @Getter
+    public static class TotalEpisodesRequestDto {
+        @NotNull
+        @Min(1)
+        @Max(100)
+        Integer totalEpisodes;
+    }
+
+    @Builder
+    @Getter
+    public static class ModifyRequestDto {
+        Integer episodeNumber;
+
+        LocalDateTime rescheduledAt;
+    }
+
+    @Builder
+    @Getter
+    public static class CreateRequestDto {
+        @NotNull
+        Integer episodeNumber;
+
+        @NotNull
+        LocalDateTime scheduledAt;
+
+        @NotNull
+        Boolean isBreak;
+    }
 }

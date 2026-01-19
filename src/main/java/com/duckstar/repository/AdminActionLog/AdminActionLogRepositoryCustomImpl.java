@@ -29,18 +29,21 @@ public class AdminActionLogRepositoryCustomImpl implements AdminActionLogReposit
                         Projections.constructor(
                                 IpManagementLogDto.class,
                                 adminActionLog.id,
-                                adminActionLog.member.id,
-                                adminActionLog.member.profileImageUrl,
-                                adminActionLog.member.nickname,
                                 week.id,
                                 quarter.yearValue,
                                 quarter.quarterValue,
                                 week.weekValue,
                                 adminActionLog.targetIpHash,
-                                adminActionLog.adminTaskType,
                                 adminActionLog.reason,
                                 adminActionLog.isUndoable,
-                                adminActionLog.createdAt
+                                Projections.constructor(
+                                        ManagerProfileDto.class,
+                                        adminActionLog.member.id,
+                                        adminActionLog.member.profileImageUrl,
+                                        adminActionLog.member.nickname,
+                                        adminActionLog.adminTaskType,
+                                        adminActionLog.createdAt
+                                )
                         )
                 ).from(adminActionLog)
                 .leftJoin(adminActionLog.week, week)
