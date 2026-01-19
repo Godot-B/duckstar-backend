@@ -1,9 +1,8 @@
 package com.duckstar.schedule;
 
 import com.duckstar.domain.Quarter;
-import com.duckstar.domain.Week;
 import com.duckstar.service.AnimeService.AnimeCommandService;
-import com.duckstar.service.SeasonService;
+import com.duckstar.service.QuarterService;
 import com.duckstar.service.SurveyService;
 import com.duckstar.service.WeekService;
 import lombok.RequiredArgsConstructor;
@@ -26,18 +25,13 @@ public class ScheduleHandler {
     private static final int ANCHOR_HOUR = 18;
 
     private final WeekService weekService;
-    private final ScheduleState scheduleState;
     private final AnimeCommandService animeCommandService;
     private final SurveyService surveyService;
-    private final SeasonService seasonService;
+    private final QuarterService quarterService;
 
     // 매 분마다 시작 or 종영 체크
     @Scheduled(cron = "0 * * * * *")
     public void checkAnimeStatus() {
-        if (scheduleState.isAdminMode()) {
-            return;
-        }
-
         animeCommandService.updateStatesByWindows();
     }
 
@@ -58,49 +52,18 @@ public class ScheduleHandler {
                 LocalTime.of(ANCHOR_HOUR, 0)
         );
 
-        LocalDateTime lastWeekStartedAt = nowWithAnchorHour.minusWeeks(1);
-
         // 새로운 주 생성
-        setupWeeklyVote(lastWeekStartedAt, nowWithAnchorHour);
+        YQWRecord record = getThisWeekRecord(nowWithAnchorHour);
+        getOrCreateQuarterAndWeek(record, getThisWeekStartedAt(nowWithAnchorHour));
     }
 
     // 파사드
-    private void setupWeeklyVote(LocalDateTime lastWeekStartedAt, LocalDateTime now) {
-        Week lastWeek = weekService.getWeekByTime(lastWeekStartedAt);
-        int lastWeekQuarterValue = lastWeek.getQuarter().getQuarterValue();
-
-        YQWRecord record = getThisWeekRecord(now);
-        int thisQuarterValue = record.quarterValue();
-
-        //=== 분기, 시즌 찾기(or 생성) & 주 생성 ===//
-        boolean quarterCreateEnabled = lastWeekQuarterValue != thisQuarterValue;
-
-        getOrCreateQuarterAndWeek(quarterCreateEnabled, record, getThisWeekStartedAt(now));
-
-        //=== 애니 후보군 생성 ===//
-//        List<Anime> nowShowingAnimes = animeService.getAnimesForCandidate(season, now);
-//
-//        List<AnimeCandidate> animeCandidates = nowShowingAnimes.stream()
-//                .map(anime -> AnimeCandidate.create(savedWeek, anime))
-//                .toList();
-//        animeCandidateRepository.saveAll(animeCandidates);
-
-        // TODO 캐릭터 후보군 생성
-    }
-
-    // 파사드
-    public void getOrCreateQuarterAndWeek(
-            boolean createEnabled,
-            YQWRecord record,
-            LocalDateTime weekStartedAt
-    ) {
+    public void getOrCreateQuarterAndWeek(YQWRecord record, LocalDateTime weekStartedAt) {
         int yearValue = record.yearValue();
 
-        Quarter quarter = seasonService.getOrCreateQuarter(createEnabled, yearValue, record.quarterValue());
+        Quarter quarter = quarterService.getOrCreateQuarter(yearValue, record.quarterValue());
 
-        seasonService.getOrCreateSeason(createEnabled, quarter);
-
-        weekService.getOrCreateWeek(record, weekStartedAt, quarter);
+        weekService.getOrCreateWeek(record, weekStartedAt,quarter);
     }
 
     /**

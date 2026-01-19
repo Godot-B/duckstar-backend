@@ -1,6 +1,6 @@
 package com.duckstar.schedule;
 
-import com.duckstar.service.EpisodeService.EpisodeCommandServiceImpl;
+import com.duckstar.service.EpisodeService.EpisodeCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
@@ -18,7 +18,7 @@ import static com.duckstar.util.QuarterUtil.getThisWeekStartedAt;
 @Profile("!test")
 public class EpisodeStartupInitializer {
 
-    private final EpisodeCommandServiceImpl episodeCommandService;
+    private final EpisodeCommandService episodeCommandService;
     private final ScheduleHandler scheduleHandler;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -29,18 +29,12 @@ public class EpisodeStartupInitializer {
         LocalDateTime now = LocalDateTime.now();
         YQWRecord thisWeekRecord = getThisWeekRecord(now);
         scheduleHandler.getOrCreateQuarterAndWeek(
-                true,
-                thisWeekRecord,
-                getThisWeekStartedAt(now)
-        );
+                thisWeekRecord, getThisWeekStartedAt(now));
 
         // 지난 주 Week 없다면 생성
         LocalDateTime nowMinusWeek = LocalDateTime.now().minusWeeks(1);
         YQWRecord lastWeekRecord = getThisWeekRecord(nowMinusWeek);
         scheduleHandler.getOrCreateQuarterAndWeek(
-                true,
-                lastWeekRecord,
-                getThisWeekStartedAt(nowMinusWeek)
-        );
+                lastWeekRecord, getThisWeekStartedAt(nowMinusWeek));
     }
 }

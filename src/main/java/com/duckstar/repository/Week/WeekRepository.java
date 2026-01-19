@@ -1,5 +1,6 @@
 package com.duckstar.repository.Week;
 
+import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Week;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,5 +16,5 @@ public interface WeekRepository extends JpaRepository<Week, Long>, WeekRepositor
 
     Optional<Week> findWeekById(Long id);
 
-    Optional<Week> findByQuarter_IdAndWeekValue(Long quarterId, Integer weekValue);
+    Optional<Week> findByQuarterAndWeekValue(Quarter quarter, Integer weekValue);
 }

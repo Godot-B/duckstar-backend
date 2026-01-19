@@ -10,11 +10,33 @@ import java.time.temporal.TemporalAdjusters;
 public class QuarterUtil {
     private static final int ANCHOR_HOUR = 18;
 
-    public record YQWRecord(int yearValue, int quarterValue, int weekValue) {}
+    public record YQWRecord(
+            int yearValue,
+            int quarterValue,
+            Integer weekValue
+    ) {
+        public YQWRecord getNextQuarterRecord() {
+            boolean isLastQuarter = quarterValue == 4;
+
+            return isLastQuarter ?
+                    new YQWRecord(yearValue + 1, 1, null) :
+                    new YQWRecord(yearValue, quarterValue + 1, null);
+        }
+
+        public YQWRecord getPreviousQuarterRecord() {
+            boolean isFirstQuarter = quarterValue == 1;
+
+            return isFirstQuarter ?
+                    new YQWRecord(yearValue - 1, 4, null) :
+                    new YQWRecord(yearValue, quarterValue - 1, null);
+        }
+    }
+
     public record AnchorInfo(int year, int quarter, LocalDateTime anchorStart) {}
 
     // 헬퍼 메서드
     private static int calendarQuarter(int month) { return ((month - 1) / 3) + 1; }
+
     private static LocalDate firstDayOfQuarter(int year, int quarter) {
         int month = (quarter - 1) * 3 + 1; // 1,4,7,10
         return LocalDate.of(year, month, 1);

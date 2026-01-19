@@ -1,13 +1,13 @@
-package com.duckstar.repository.AnimeSeason;
+package com.duckstar.repository.AnimeQuarter;
 
 import com.duckstar.domain.*;
 import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
 import com.duckstar.domain.mapping.QAnimeOtt;
-import com.duckstar.domain.mapping.QAnimeSeason;
+import com.duckstar.domain.mapping.QAnimeQuarter;
 import com.duckstar.web.dto.OttDto;
-import com.duckstar.web.dto.AnimeResponseDto.SeasonDto;
+import com.duckstar.web.dto.AnimeResponseDto.QuarterDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,12 +23,12 @@ import static com.duckstar.web.dto.SearchResponseDto.*;
 
 @Repository
 @RequiredArgsConstructor
-public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCustom {
+public class AnimeQuarterRepositoryCustomImpl implements AnimeQuarterRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-    private final QAnimeSeason animeSeason = QAnimeSeason.animeSeason;
-    private final QSeason season = QSeason.season;
+    private final QQuarter quarter = QQuarter.quarter;
     private final QAnime anime = QAnime.anime;
+    private final QAnimeQuarter animeQuarter = QAnimeQuarter.animeQuarter;
     private final QOtt ott = QOtt.ott;
     private final QAnimeOtt animeOtt = QAnimeOtt.animeOtt;
 
@@ -47,9 +47,9 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
                         // 방영 전 애니 디데이 계산과 영화(개봉일 날짜)를 위해 필요
                         anime.premiereDateTime
                 )
-                .from(animeSeason)
-                .join(animeSeason.anime, anime)
-                .where(animeSeason.season.quarter.id.eq(quarterId))
+                .from(animeQuarter)
+                .join(animeQuarter.anime, anime)
+                .where(animeQuarter.quarter.id.eq(quarterId))
                 .fetch();
 
         List<Long> animeIds = tuples.stream()
@@ -112,18 +112,18 @@ public class AnimeSeasonRepositoryCustomImpl implements AnimeSeasonRepositoryCus
     }
 
     @Override
-    public List<SeasonDto> getSeasonDtosByAnimeId(Long animeId) {
+    public List<QuarterDto> getQuarterDtosByAnimeId(Long animeId) {
         return queryFactory.select(
                         Projections.constructor(
-                                SeasonDto.class,
-                                season.yearValue,
-                                season.type
+                                QuarterDto.class,
+                                quarter.yearValue,
+                                quarter.quarterValue
                         )
                 )
-                .from(animeSeason)
-                .join(animeSeason.season, season)
-                .where(animeSeason.anime.id.eq(animeId))
-                .orderBy(season.yearValue.asc(), season.typeOrder.asc())
+                .from(animeQuarter)
+                .join(animeQuarter.quarter, quarter)
+                .where(animeQuarter.anime.id.eq(animeId))
+                .orderBy(quarter.yearValue.asc(), quarter.quarterValue.asc())
                 .fetch();
     }
 }

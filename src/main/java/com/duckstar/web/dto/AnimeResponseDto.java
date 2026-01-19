@@ -114,13 +114,13 @@ public class AnimeResponseDto {
 
         Integer minAge;
 
-        Map<SiteType, String> officalSite;
+        Map<SiteType, String> officialSite;
 
         String mainImageUrl;
 
         String mainThumbnailUrl;
 
-        List<SeasonDto> seasonDtos;
+        List<QuarterDto> quarterDtos;
 
         List<OttDto> ottDtos;
     }
@@ -128,9 +128,9 @@ public class AnimeResponseDto {
     @Builder
     @Getter
     @AllArgsConstructor
-    public static class SeasonDto {
+    public static class QuarterDto {
         Integer year;
-        SeasonType seasonType;
+        Integer quarter;
     }
 
     @Builder

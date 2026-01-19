@@ -32,6 +32,8 @@ public class Quarter extends BaseEntity {
     @Column(nullable = false)
     private Integer quarterValue;
 
+    private Boolean isPrepared = false;
+
     protected Quarter(Integer yearValue, Integer quarterValue) {
         this.yearValue = yearValue;
         this.quarterValue = quarterValue;

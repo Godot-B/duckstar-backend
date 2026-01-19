@@ -2,7 +2,6 @@ package com.duckstar.abroad.reader;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.SurveyHandler;
-import com.duckstar.apiPayload.exception.handler.VoteHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.abroad.aniLab.Anilab;
 import com.duckstar.abroad.aniLab.AnilabRepository;
@@ -12,12 +11,12 @@ import com.duckstar.domain.*;
 import com.duckstar.domain.Character;
 import com.duckstar.domain.enums.*;
 import com.duckstar.domain.mapping.AnimeCharacter;
-import com.duckstar.domain.mapping.AnimeSeason;
+import com.duckstar.domain.mapping.AnimeQuarter;
 import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.*;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
-import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
+import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.Week.WeekRepository;
@@ -67,7 +66,7 @@ public class CsvImportService {
     private final S3Uploader s3Uploader;
     private final EpisodeRepository episodeRepository;
     private final QuarterRepository quarterRepository;
-    private final AnimeSeasonRepository animeSeasonRepository;
+    private final AnimeQuarterRepository animeQuarterRepository;
     private final WeekRepository weekRepository;
     private final AnimeCornerRepository animeCornerRepository;
     private final AnilabRepository anilabRepository;
@@ -315,10 +314,6 @@ public class CsvImportService {
                 log.error("❌ CSV 레코드 처리 실패: {}", record, e);
             }
         }
-    }
-
-    public void importNewSeason(Integer year, Integer quarter, NewSeasonRequestDto request) throws IOException {
-
     }
 
     void importEpisodes(
@@ -571,7 +566,7 @@ public class CsvImportService {
         return convertToWebpAndGet(tempDir, name, original);
     }
 
-    public Map<Integer, Long> importAnimes(Season season, MultipartFile animeCsv) throws IOException {
+    public Map<Integer, Long> importAnimes(Quarter quarter, MultipartFile animeCsv) throws IOException {
         HashMap<Integer, Long> idMap = new HashMap<>();
 
         Reader reader = new InputStreamReader(animeCsv.getInputStream(), StandardCharsets.UTF_8);
@@ -664,7 +659,7 @@ public class CsvImportService {
 
                 Anime saved = animeRepository.save(anime);
 
-                animeSeasonRepository.save(AnimeSeason.create(saved, season));
+                animeQuarterRepository.save(AnimeQuarter.create(saved, quarter));
 
                 String imageUrl = record.get("mainImageUrl");
 

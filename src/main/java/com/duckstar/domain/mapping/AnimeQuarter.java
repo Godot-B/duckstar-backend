@@ -1,7 +1,7 @@
 package com.duckstar.domain.mapping;
 
 import com.duckstar.domain.Anime;
-import com.duckstar.domain.Season;
+import com.duckstar.domain.Quarter;
 import com.duckstar.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +9,7 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AnimeSeason extends BaseEntity {
+public class AnimeQuarter extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,15 +20,15 @@ public class AnimeSeason extends BaseEntity {
     private Anime anime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "season_id", nullable = false)
-    private Season season;
+    @JoinColumn(name = "quarter_id", nullable = false)
+    private Quarter quarter;
 
-    protected AnimeSeason(Anime anime, Season season) {
+    protected AnimeQuarter(Anime anime, Quarter quarter) {
         this.anime = anime;
-        this.season = season;
+        this.quarter = quarter;
     }
 
-    public static AnimeSeason create(Anime anime, Season season) {
-        return new AnimeSeason(anime, season);
+    public static AnimeQuarter create(Anime anime, Quarter quarter) {
+        return new AnimeQuarter(anime, quarter);
     }
 }

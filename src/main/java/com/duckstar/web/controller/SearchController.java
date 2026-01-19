@@ -1,6 +1,7 @@
 package com.duckstar.web.controller;
 
 import com.duckstar.apiPayload.ApiResponse;
+import com.duckstar.service.QuarterService;
 import com.duckstar.service.SearchService;
 import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.SearchResponseDto;
@@ -21,10 +22,11 @@ public class SearchController {
 
     private final WeekService weekService;
     private final SearchService searchService;
+    private final QuarterService quarterService;
 
-    @GetMapping("/seasons")
-    public ApiResponse<List<SeasonResponseDto>> getSeasons() {
-        return ApiResponse.onSuccess(weekService.getSeasons());
+    @GetMapping("/quarters")
+    public ApiResponse<List<QuarterResponseDto>> getQuarters() {
+        return ApiResponse.onSuccess(quarterService.getQuarters());
     }
 
     @Operation(summary = "금주의 분류된 편성표 조회 API", description =

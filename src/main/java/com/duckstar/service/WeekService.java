@@ -6,12 +6,10 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.Quarter;
-import com.duckstar.domain.Season;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.enums.DayOfWeekShort;
-import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
+import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
-import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.PageInfo;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
@@ -40,8 +38,7 @@ import static com.duckstar.web.dto.WeekResponseDto.*;
 public class WeekService {
 
     private final WeekRepository weekRepository;
-    private final AnimeSeasonRepository animeSeasonRepository;
-    private final SeasonRepository seasonRepository;
+    private final AnimeQuarterRepository animeQuarterRepository;
     private final EpisodeRepository episodeRepository;
 
     private final AnilabRepository anilabRepository;
@@ -65,27 +62,6 @@ public class WeekService {
     public Long getWeekIdByYQW(Integer year, Integer quarter, Integer week) {
         return weekRepository.findWeekIdByYQW(year, quarter, week)
                 .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
-    }
-
-    public List<SeasonResponseDto> getSeasons() {
-        return seasonRepository.findAll().stream()
-                .filter(Season::getIsPrepared)
-                .sorted(
-                        Comparator.comparing(Season::getYearValue).reversed()
-                                .thenComparing(Season::getTypeOrder, Comparator.reverseOrder())
-                )
-                .collect(Collectors.groupingBy(
-                        Season::getYearValue,
-                        LinkedHashMap::new,
-                        Collectors.mapping(Season::getType, Collectors.toList())
-                ))
-                .entrySet().stream()
-                .map(e -> SeasonResponseDto.builder()
-                        .year(e.getKey())
-                        .types(e.getValue())
-                        .build()
-                )
-                .toList();
     }
 
     public AnimePreviewListDto getWeeklyScheduleFromOffset(LocalTime offset) {
@@ -138,7 +114,7 @@ public class WeekService {
     public AnimePreviewListDto getScheduleByQuarterId(Integer year, Integer quarter) {
         Long quarterId = getQuarterIdByYQ(year, quarter);
         List<AnimePreviewDto> animePreviews =
-                animeSeasonRepository.getAnimePreviewsByQuarter(quarterId);
+                animeQuarterRepository.getAnimePreviewsByQuarter(quarterId);
 
         // 임시 그룹핑
         Map<DayOfWeekShort, List<AnimePreviewDto>> groupedMap = animePreviews.stream()
@@ -242,17 +218,14 @@ public class WeekService {
     }
 
     @Transactional
-    public void getOrCreateWeek(YQWRecord record, LocalDateTime weekStartedAt, Quarter quarter) {
-        int weekValue = record.weekValue();
-        Optional<Week> weekOpt = weekRepository
-                .findByQuarter_IdAndWeekValue(quarter.getId(), weekValue);
-        if (weekOpt.isEmpty()) {
-            weekRepository.save(Week.create(
-                    quarter,
-                    weekValue,
-                    weekStartedAt
-            ));
-        }
+    public Week getOrCreateWeek(
+            YQWRecord record,
+            LocalDateTime weekStartedAt,
+            Quarter quarter
+    ) {
+        Integer weekValue = record.weekValue();
+        return weekRepository.findByQuarterAndWeekValue(quarter, weekValue)
+                .orElseGet(() -> weekRepository.save(Week.create(quarter, weekValue, weekStartedAt)));
     }
 
     public List<WeekDto> getAllWeeks() {

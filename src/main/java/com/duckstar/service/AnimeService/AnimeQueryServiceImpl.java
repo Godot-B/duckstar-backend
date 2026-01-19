@@ -9,13 +9,11 @@ import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
-import com.duckstar.repository.AnimeCandidate.AnimeCandidateRepository;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
 import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeRepository;
-import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
+import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
-import com.duckstar.web.dto.AnimeResponseDto;
 import com.duckstar.web.dto.RankInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -27,13 +25,14 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import static com.duckstar.web.dto.AnimeResponseDto.*;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AnimeQueryServiceImpl implements AnimeQueryService {
     private final AnimeRepository animeRepository;
-    private final AnimeCandidateRepository animeCandidateRepository;
-    private final AnimeSeasonRepository animeSeasonRepository;
+    private final AnimeQuarterRepository animeQuarterRepository;
     private final AnimeOttRepository animeOttRepository;
     private final AnimeCharacterRepository animeCharacterRepository;
     private final EpisodeRepository episodeRepository;
@@ -87,7 +86,7 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
     }
 
     @Override
-    public AnimeResponseDto.AnimeHomeDto getAnimeHomeDtoById(Long animeId) {
+    public AnimeHomeDto getAnimeHomeDtoById(Long animeId) {
         // 애니 정보, 분기 성적 통계
         Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
@@ -95,7 +94,7 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
         LocalDateTime premiereDateTime = anime.getPremiereDateTime();
 
         LocalTime airTime = anime.getAirTime();
-        AnimeResponseDto.AnimeInfoDto animeInfoDto = AnimeResponseDto.AnimeInfoDto.builder()
+        AnimeInfoDto animeInfoDto = AnimeInfoDto.builder()
                 .medium(anime.getMedium())
                 .status(anime.getStatus())
                 .totalEpisodes(anime.getTotalEpisodes())
@@ -112,18 +111,18 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
                 .genre(anime.getGenre())
                 .author(anime.getAuthor())
                 .minAge(anime.getMinAge())
-                .officalSite(anime.getOfficialSite())
+                .officialSite(anime.getOfficialSite())
                 .mainImageUrl(anime.getMainImageUrl())
                 .mainThumbnailUrl(anime.getMainThumbnailUrl())
-                .seasonDtos(
-                        animeSeasonRepository.getSeasonDtosByAnimeId(animeId)
+                .quarterDtos(
+                        animeQuarterRepository.getQuarterDtosByAnimeId(animeId)
                 )
                 .ottDtos(
                         animeOttRepository.getOttDtosByAnimeId(animeId)
                 )
                 .build();
 
-        AnimeResponseDto.AnimeStatDto animeStatDto = AnimeResponseDto.AnimeStatDto.builder()
+        AnimeStatDto animeStatDto = AnimeStatDto.builder()
                 .debutRank(anime.getDebutRank())
                 .debutDate(anime.getDebutDate())
                 .peakRank(anime.getPeakRank())
@@ -131,7 +130,7 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
                 .weeksOnTop10(anime.getWeeksOnTop10())
                 .build();
 
-        return AnimeResponseDto.AnimeHomeDto.builder()
+        return AnimeHomeDto.builder()
                 .animeInfoDto(animeInfoDto)
                 .animeStatDto(animeStatDto)
                 .episodeResponseDtos(

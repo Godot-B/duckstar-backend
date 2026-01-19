@@ -6,7 +6,6 @@ import com.duckstar.domain.Week;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
-import com.duckstar.repository.SeasonRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.AnimeService.AnimeQueryService;
 import org.junit.jupiter.api.Disabled;
@@ -25,8 +24,6 @@ public class AnimeServiceTest extends TestContainersConfig {
 
     @Autowired
     AnimeQueryService animeQueryService;
-    @Autowired
-    private SeasonRepository seasonRepository;
     @Autowired
     private EpisodeRepository episodeRepository;
     @Autowired

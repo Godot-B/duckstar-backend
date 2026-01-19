@@ -2,9 +2,7 @@ package com.duckstar.abroad.reader;
 
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Quarter;
-import com.duckstar.domain.Season;
-import com.duckstar.repository.QuarterRepository;
-import com.duckstar.repository.SeasonRepository;
+import com.duckstar.service.QuarterService;
 import com.duckstar.service.WeekService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +21,8 @@ import static com.duckstar.web.dto.admin.CsvRequestDto.*;
 public class CsvController {
 
     private final CsvImportService csvImportService;
-    private final QuarterRepository quarterRepository;
-    private final SeasonRepository seasonRepository;
     private final WeekService weekService;
+    private final QuarterService quarterService;
 
     @Operation(summary = "어워드 후보 csv를 서버에 변환 및 업로드")
     @PostMapping(value = "/import/surveys/{surveyId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -39,20 +36,18 @@ public class CsvController {
 
     @Operation(summary = "새로운 분기 정보 csv를 서버에 변환 및 업로드")
     @PostMapping(value = "/import/{year}/{quarter}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> importNewSeason(
+    public ResponseEntity<?> importNewQuarter(
             @PathVariable Integer year,
             @PathVariable Integer quarter,
-            @ModelAttribute NewSeasonRequestDto request
+            @ModelAttribute NewQuarterRequestDto request
     ) throws IOException {
-        Quarter savedQuarter = quarterRepository.findByYearValueAndQuarterValue(year, quarter)
-                .orElseGet(() -> quarterRepository.save(Quarter.create(year, quarter)));
-        Season savedSeason = seasonRepository.findById(savedQuarter.getId())
-                .orElseGet(() -> seasonRepository.save(Season.create(year, savedQuarter)));
+        Quarter savedQuarter = quarterService.getOrCreateQuarter(year, quarter);
 
-        Map<Integer, Long> animeIdMap = csvImportService.importAnimes(savedSeason, request.getAnimeCsv());
+        Map<Integer, Long> animeIdMap = csvImportService.importAnimes(savedQuarter, request.getAnimeCsv());
         Map<Integer, Long> characterIdMap = csvImportService.importCharacters(request.getCharactersCsv());
 
-        Map<Long, Anime> animeMap = csvImportService.importAnimeCharacters(request.getAnimeCharactersCsv(), animeIdMap, characterIdMap);
+        Map<Long, Anime> animeMap = csvImportService.importAnimeCharacters(
+                request.getAnimeCharactersCsv(), animeIdMap, characterIdMap);
         csvImportService.importEpisodes(request.getEpisodesCsv(), animeMap, animeIdMap);
         return ResponseEntity.ok("✅ 데이터 import 성공");
     }

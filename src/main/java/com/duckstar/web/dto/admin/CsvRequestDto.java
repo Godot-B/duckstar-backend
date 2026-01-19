@@ -16,7 +16,7 @@ public class CsvRequestDto {
 
     @Getter
     @Setter
-    public static class NewSeasonRequestDto {
+    public static class NewQuarterRequestDto {
         @Schema(type = "string", format = "binary")
         MultipartFile animeCsv;
 

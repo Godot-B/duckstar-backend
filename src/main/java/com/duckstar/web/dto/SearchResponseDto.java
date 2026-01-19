@@ -3,7 +3,6 @@ package com.duckstar.web.dto;
 import com.duckstar.domain.enums.AnimeStatus;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.enums.Medium;
-import com.duckstar.domain.enums.SeasonType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +10,6 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 @Builder
 @Getter
@@ -22,9 +20,9 @@ public class SearchResponseDto {
 
     @Builder
     @Getter
-    public static class SeasonResponseDto {
+    public static class QuarterResponseDto {
         Integer year;
-        List<SeasonType> types;
+        List<Integer> quarters;
     }
 
     @Builder

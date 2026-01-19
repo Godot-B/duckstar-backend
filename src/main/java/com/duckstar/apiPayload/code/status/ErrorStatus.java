@@ -18,8 +18,6 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 분기 관련
     QUARTER_NOT_FOUND(HttpStatus.BAD_REQUEST, "QUARTER4001", "존재하지 않는 분기입니다."),
-    QUARTER_VALUE_REQUIRED(HttpStatus.BAD_REQUEST, "QUARTER4002", "분기 값이 필요합니다."),
-    SEASON_NOT_FOUND(HttpStatus.BAD_REQUEST, "QUARTER4003", "존재하지 않는 시즌입니다."),
 
     // 주 관련
     WEEK_NOT_FOUND(HttpStatus.BAD_REQUEST, "WEEK4001", "존재하지 않는 주입니다."),
@@ -41,6 +39,8 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 에피소드
     EPISODE_NOT_FOUND(HttpStatus.BAD_REQUEST, "EPISODE4001", "존재하지 않는 에피소드입니다."),
+    CANNOT_DELETE_EPISODE(HttpStatus.BAD_REQUEST, "EPISODE4002", "이미 투표를 받았거나 관련 댓글이 있어서 지울 수 없습니다. 개발팀에 문의하세요."),
+    INVALID_RESCHEDULE_TIME(HttpStatus.BAD_REQUEST, "EPISODE4003", "시간 조정 대상 에피소드가 전/후 회차의 일정과 겹칩니다. 개발팀에 문의하세요."),
 
     // 투표
     VOTE_CLOSED(HttpStatus.BAD_REQUEST, "VOTE4001", "현재 닫힌 투표입니다."),
