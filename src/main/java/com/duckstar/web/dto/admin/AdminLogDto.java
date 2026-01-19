@@ -1,6 +1,8 @@
 package com.duckstar.web.dto.admin;
 
+import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.AdminTaskType;
+import com.duckstar.domain.mapping.AdminActionLog;
 import com.duckstar.web.dto.PageInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,12 +27,6 @@ public class AdminLogDto {
     public static class IpManagementLogDto {
         Long logId;
 
-        Long memberId;
-
-        String profileImageUrl;
-
-        String managerNickname;
-
         Long weekId;
         Integer year;
         Integer quarter;
@@ -38,11 +34,39 @@ public class AdminLogDto {
 
         String ipHash;
 
-        AdminTaskType taskType;
         String reason;
 
         Boolean isUndoable;  // undo 가능한지 여부
 
+        ManagerProfileDto memberProfileDto;
+    }
+
+    @Builder
+    @Getter
+    @AllArgsConstructor
+    public static class ManagerProfileDto {
+        Long memberId;
+
+        String profileImageUrl;
+
+        String managerNickname;
+
+        AdminTaskType taskType;
+
         LocalDateTime managedAt;
+
+        public static ManagerProfileDto of(Member member, AdminActionLog adminActionLog) {
+            if (member == null || adminActionLog == null) {
+                return null;
+            }
+
+            return ManagerProfileDto.builder()
+                    .memberId(member.getId())
+                    .profileImageUrl(member.getProfileImageUrl())
+                    .managerNickname(member.getNickname())
+                    .taskType(adminActionLog.getAdminTaskType())
+                    .managedAt(adminActionLog.getCreatedAt())
+                    .build();
+        }
     }
 }

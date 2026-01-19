@@ -1,10 +1,15 @@
 package com.duckstar.service.EpisodeService;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
+import com.duckstar.apiPayload.exception.handler.WeekHandler;
 import com.duckstar.domain.Week;
+import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
+import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.WeekService;
+import com.duckstar.web.dto.admin.ContentResponseDto.AdminEpisodeListDto;
 import com.duckstar.web.support.VoteCookieManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +23,7 @@ import java.util.stream.Stream;
 
 import static com.duckstar.web.dto.VoteResponseDto.*;
 import static com.duckstar.web.dto.WeekResponseDto.*;
+import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +34,8 @@ public class EpisodeQueryServiceImpl implements EpisodeQueryService {
     private final VoteCookieManager voteCookieManager;
 
     private final WeekService weekService;
+    private final WeekRepository weekRepository;
+    private final AnimeRepository animeRepository;
 
     /**
      * 별점 투표 방식
@@ -112,5 +120,34 @@ public class EpisodeQueryServiceImpl implements EpisodeQueryService {
 
         return episodeRepository.getCandidateFormDto(episodeId, principalKeys)
                 .orElseThrow(() -> new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
+    }
+
+    @Override
+    public AdminEpisodeListDto getAdminEpisodesByAnimeId(Long animeId) {
+        animeRepository.findById(animeId).orElseThrow(() ->
+                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
+
+        List<EpisodeInfoDto> episodeInfoDtos =
+                episodeRepository.getEpisodeInfoDtosByAnimeId(animeId);
+
+        return AdminEpisodeListDto.builder()
+                .episodeTotalCount(episodeInfoDtos.size())
+                .episodeInfoDtos(episodeInfoDtos)
+                .build();
+    }
+
+    @Override
+    public AdminScheduleInfoDto getAdminScheduleByWeekId(Long weekId) {
+        Week week = weekRepository.findWeekById(weekId).orElseThrow(() ->
+                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
+
+        List<ScheduleInfoDto> scheduleInfoDtos =
+                episodeRepository.getScheduleInfoDtosByWeekId(weekId);
+
+        return AdminScheduleInfoDto.builder()
+                .weekDto(WeekDto.of(week))
+                .animeTotalCount(scheduleInfoDtos.size())
+                .scheduleInfoDtos(scheduleInfoDtos)
+                .build();
     }
 }

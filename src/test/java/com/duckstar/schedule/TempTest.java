@@ -11,13 +11,12 @@ import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.repository.AnimeRepository;
-import com.duckstar.repository.AnimeSeason.AnimeSeasonRepository;
+import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
 import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
 import com.duckstar.repository.SurveyRepository;
-import com.duckstar.repository.SurveyVote.SurveyVoteRepository;
 import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.VoteService.VoteCommandServiceImpl;
@@ -30,9 +29,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -55,7 +52,7 @@ public class TempTest {
     @Autowired
     private VoteCommandServiceImpl voteCommandServiceImpl;
     @Autowired
-    private AnimeSeasonRepository animeSeasonRepository;
+    private AnimeQuarterRepository animeQuarterRepository;
     @Autowired
     private SurveyRepository surveyRepository;
     @Autowired
@@ -64,8 +61,6 @@ public class TempTest {
     private QuarterRepository quarterRepository;
     @Autowired
     private WeekService weekService;
-    @Autowired
-    private SurveyVoteRepository surveyVoteRepository;
 
     @Test
     @Transactional
@@ -250,50 +245,6 @@ public class TempTest {
 //                )
 //        );
 //    }
-
-    @Test
-    @Transactional
-    @Rollback(false)
-    public void delayEpisode() {
-        Episode targetEp = episodeRepository.findById(1522L).get();
-
-        LocalDateTime scheduledAt = targetEp.getScheduledAt();
-        Anime anime = targetEp.getAnime();
-        List<Episode> episodes = episodeRepository.
-                findAllByAnime_IdOrderByScheduledAtAsc(anime.getId());
-
-        int idx = 0;
-        for (Episode episode : episodes) {
-            if (episode.getScheduledAt().equals(scheduledAt)) break;
-            idx += 1;
-        }
-
-        //=== target 포함 이후 에피소드들: 연기일 기준으로 한주씩 미루기 ===//
-        LocalDate date = LocalDate.of(2026, 1, 10);
-
-        LocalTime manualTime = null;
-
-        // 직접입력 또는 주석 처리
-//        manualTime = LocalTime.of(20, 30);
-
-        LocalTime startTimeToSet = manualTime != null ?
-                manualTime :
-                targetEp.getScheduledAt().toLocalTime();
-
-        LocalDateTime delayedDate = LocalDateTime.of(date, startTimeToSet);
-
-        // 직전 에피소드 nextEp 스케줄 수정
-        if (idx > 0) {
-            episodes.get(idx - 1).setNextEpScheduledAt(delayedDate);
-        }
-        // target 포함 이후 에피소드들 수정
-        for (int i = idx; i < episodes.size(); i++) {
-            Episode episode = episodes.get(i);
-            episode.setScheduledAt(delayedDate);
-            delayedDate = delayedDate.plusWeeks(1);
-            episode.setNextEpScheduledAt(delayedDate);
-        }
-    }
 
     @Test
     @Transactional

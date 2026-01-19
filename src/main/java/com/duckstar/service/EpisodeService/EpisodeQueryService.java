@@ -1,10 +1,13 @@
 package com.duckstar.service.EpisodeService;
 
+import com.duckstar.web.dto.admin.ContentResponseDto;
+import com.duckstar.web.dto.admin.ContentResponseDto.AdminEpisodeListDto;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
 import static com.duckstar.web.dto.VoteResponseDto.*;
+import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 
 public interface EpisodeQueryService {
     LiveCandidateListDto getLiveCandidatesByWindow(
@@ -25,4 +28,8 @@ public interface EpisodeQueryService {
             Long memberId,
             HttpServletRequest requestRaw
     );
+
+    AdminEpisodeListDto getAdminEpisodesByAnimeId(Long animeId);
+
+    AdminScheduleInfoDto getAdminScheduleByWeekId(Long weekId);
 }

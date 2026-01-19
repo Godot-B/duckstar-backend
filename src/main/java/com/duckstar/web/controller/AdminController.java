@@ -10,10 +10,11 @@ import com.duckstar.security.service.ShadowBanService;
 import com.duckstar.service.AdminActionLogService;
 import com.duckstar.service.AnimeService.AnimeCommandService;
 import com.duckstar.service.ChartService;
+import com.duckstar.service.EpisodeService.EpisodeCommandService;
+import com.duckstar.service.EpisodeService.EpisodeQueryService;
 import com.duckstar.service.SubmissionService;
 import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.admin.AdminLogDto.IpManagementLogSliceDto;
-import com.duckstar.web.dto.admin.EpisodeRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -29,9 +30,10 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
-import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
+import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 import static com.duckstar.web.dto.admin.CsvRequestDto.*;
+import static com.duckstar.web.dto.admin.EpisodeRequestDto.*;
 import static com.duckstar.web.dto.admin.SubmissionResponseDto.*;
 
 @RestController
@@ -40,26 +42,47 @@ import static com.duckstar.web.dto.admin.SubmissionResponseDto.*;
 @Validated
 public class AdminController {
 
+    private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
+
     private final ShadowBanService shadowBanService;
     private final SubmissionService submissionService;
-    private final WeekVoteSubmissionRepository weekVoteSubmissionRepository;
     private final AdminActionLogService adminActionLogService;
     private final CsvImportService csvImportService;
     private final ChartService chartService;
     private final AnimeCommandService animeCommandService;
     private final WeekService weekService;
+    private final EpisodeQueryService episodeQueryService;
+    private final EpisodeCommandService episodeCommandService;
+
+    /**
+     * 애니메이션 관리자 화면
+     */
+    @GetMapping("/animes")
+    public ApiResponse<Void> getAnimes() {
+        //TODO 페이징 필요
+        return ApiResponse.onSuccess(null);
+    }
 
     @Operation(summary = "애니메이션 총 화수 수정 API")
-    @PostMapping("/{animeId}/total-episodes")
-    public ApiResponse<EpisodeResultDto> updateTotalEpisodes(
-            @PathVariable Long animeId, @Valid @RequestBody EpisodeRequestDto request) {
-        return ApiResponse.onSuccess(animeCommandService.updateTotalEpisodes(animeId, request));
+    @PostMapping("/animes/{animeId}/total-episodes")
+    public ApiResponse<EpisodeManageResultDto> updateTotalEpisodes(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @PathVariable Long animeId,
+            @Valid @RequestBody TotalEpisodesRequestDto request
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(
+                animeCommandService.updateTotalEpisodes(memberId, animeId, request));
     }
 
     @Operation(summary = "애니메이션 총 화수 알 수 없음 Set API")
     @PatchMapping("/{animeId}/total-episodes/unknown")
-    public ApiResponse<EpisodeResultDto> updateTotalEpisodes(@PathVariable Long animeId) {
-        return ApiResponse.onSuccess(animeCommandService.setUnknown(animeId));
+    public ApiResponse<EpisodeManageResultDto> updateTotalEpisodes(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @PathVariable Long animeId
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(animeCommandService.setUnknown(memberId, animeId));
     }
 
     @Operation(summary = "애니메이션 등록 API")
@@ -75,13 +98,70 @@ public class AdminController {
         return ApiResponse.onSuccess(animeCommandService.updateAnimeImage(animeId, request));
     }
 
-    @Operation(summary = "에피소드 휴방 API")
-    // 방영시간(필드) 수정, 에피소드 생성(삽입)
-    @PostMapping("/animes/{animeId}/{episodeId}")
-    public ApiResponse<Void> breakEpisode(@PathVariable Long animeId,
-                                          @PathVariable Long episodeId) {
+    /**
+     * 시간표 관리자 화면
+     */
+    @Operation(summary = "애니메이션 별 에피소드 조회")
+    @GetMapping("/animes/{animeId}/episodes")
+    public ApiResponse<AdminEpisodeListDto> getEpisodesByAnime(@PathVariable Long animeId) {
+        return ApiResponse.onSuccess(
+                episodeQueryService.getAdminEpisodesByAnimeId(animeId));
+    }
 
-        return ApiResponse.onSuccess(null);
+    // 모든 주차 조회 API : GET /api/v1/chart/weeks 재사용
+
+    @Operation(summary = "주간(월 18시 정책 기준) 에피소드 조회")
+    @GetMapping("/weeks/{weekId}")
+    public ApiResponse<AdminScheduleInfoDto> getEpisodes(@PathVariable Long weekId) {
+        return ApiResponse.onSuccess(
+                episodeQueryService.getAdminScheduleByWeekId(weekId));
+    }
+
+    @Operation(summary = "에피소드 정보 수정 API")
+    @PatchMapping("/episodes/{episodeId}")
+    public ApiResponse<EpisodeManageResultDto> rescheduleEpisode(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @PathVariable Long episodeId,
+            ModifyRequestDto request
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(
+                episodeCommandService.modifyEpisode(memberId, episodeId, request));
+    }
+
+    @Operation(summary = "에피소드 휴방 API")
+    @PostMapping("/episodes/{episodeId}")
+    public ApiResponse<EpisodeManageResultDto> breakEpisode(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @PathVariable Long episodeId
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(
+                episodeCommandService.breakEpisode(memberId, episodeId));
+    }
+
+    @Operation(summary = "에피소드 삭제 API",
+            description = "아직 투표를 받지 않았거나 관련 댓글이 없을 때만 삭제 가능. " +
+                    "(기능 사용 대표 예시: 아직 방영하지 않은 에피소드가 삭제 대상일 때 사용)")
+    @DeleteMapping("/episodes/{episodeId}")
+    public ApiResponse<EpisodeManageResultDto> deleteEpisode(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @PathVariable Long episodeId
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(
+                episodeCommandService.deleteEpisode(memberId, episodeId));
+    }
+
+    @Operation(summary = "에피소드 추가(큐잉) API", description = "큐잉만 가능 - Tail(끝) 에피소드 추가 방식")
+    @PostMapping("/episodes")
+    public ApiResponse<EpisodeManageResultDto> queueEpisode(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            CreateRequestDto request
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(
+                episodeCommandService.queueEpisode(memberId, request));
     }
 
     /**

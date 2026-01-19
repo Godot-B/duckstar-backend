@@ -36,6 +36,12 @@ public abstract class Comment extends BaseEntity {
     @Column(nullable = false)
     private Long contentIdForIdx;
 
+    /**
+     * Week 이 아니라 Episode 와 관계를 맺는 이유
+     *  1. isUserTaggedEp 댓글의 경우 에피소드와 연관관계가 불가피
+     *      -> Episode(에피소드 댓글)와 Week(일반 댓글) 2번 조인 -> 1번으로 줄이기 위해
+     *  2. 같은 주차에 2개 이상의 에피소드가 방영되는 경우를 커버
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "episode_id")
     private Episode episode;
@@ -101,6 +107,10 @@ public abstract class Comment extends BaseEntity {
 
     public void setEpisode(Episode episode) {
         this.episode = episode;
+    }
+
+    public void setEpisodeId(Long episodeId) {
+
     }
 
     public void updateBody(String body) {

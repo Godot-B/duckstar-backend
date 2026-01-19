@@ -9,4 +9,14 @@ public enum AdminTaskType {
 
     WITHDRAW,
     UNDO_WITHDRAW,
+
+    EPISODE_BREAK,
+    EPISODE_RESCHEDULE,
+    EPISODE_CREATE,
+    EPISODE_DELETE,
+
+    EPISODE_MODIFY_NUMBER,
+
+    // 애니메이션 정보 관리
+    ANIME_EPISODE_TOTAL_COUNT
 }
