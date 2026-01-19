@@ -22,7 +22,4 @@ public interface AnimeQueryService {
     AnimeHomeDto getAnimeHomeDtoById(Long animeId);
 
     Optional<Episode> findCurrentEpisode(Anime anime, LocalDateTime now);
-
-//    // legacy
-//    List<Anime> getAnimesForCandidate(Season season, LocalDateTime now);
 }

@@ -84,19 +84,4 @@ public class WeekVoteSubmissionRepositoryCustomImpl implements WeekVoteSubmissio
                 .orderBy(episodeStar.updatedAt.desc())
                 .fetch();
     }
-
-    @Override
-    public boolean existsByWeek_IdAndMember_Id(Long weekId, Long memberId) {
-        return queryFactory.select(
-                        episodeStar.starScore
-                ).from(episodeStar)
-                .join(episodeStar.weekVoteSubmission, weekVoteSubmission)
-                .where(
-                        weekVoteSubmission.week.id.eq(weekId)
-                                .and(weekVoteSubmission.member.id.eq(memberId))
-                                // null 이거나 0인 starScore 제외
-                                .and(episodeStar.starScore.gt(0))
-                )
-                .fetchFirst() != null;
-    }
 }

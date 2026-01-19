@@ -4,7 +4,6 @@ import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.domain.enums.BallotType;
 import com.duckstar.domain.enums.Gender;
 import com.duckstar.validation.annotation.AnimeVoteConstraint;
-import com.duckstar.web.dto.SurveyRequestDto;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -12,7 +11,6 @@ import java.util.List;
 
 import static com.duckstar.util.ConstraintUtil.addViolationAndFalse;
 import static com.duckstar.web.dto.SurveyRequestDto.*;
-import static com.duckstar.web.dto.VoteRequestDto.*;
 
 public class AnimeVoteConstraintValidator implements ConstraintValidator<AnimeVoteConstraint, AnimeVoteRequest> {
 

@@ -4,7 +4,6 @@ import com.duckstar.abroad.aniLab.Anilab;
 import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.enums.ContentType;
-import com.duckstar.domain.enums.SurveyType;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.vo.RankInfo;
 import com.duckstar.web.dto.CommentResponseDto.CommentDto;
@@ -132,26 +131,6 @@ public class RankInfoDto {
                     .rankPreviewDto(rankPreviewDto)
                     .build();
         }
-
-//        public static DuckstarRankPreviewDto of(AnimeCandidate animeCandidate) {
-//            com.duckstar.domain.mapping.legacy_vote.RankInfo rankInfo = animeCandidate.getRankInfo();
-//            Anime anime = animeCandidate.getAnime();
-//            RankPreviewDto rankPreviewDto = RankPreviewDto.builder()
-//                    .type(ContentType.ANIME)
-//                    .contentId(anime.getId())
-//                    .rank(rankInfo != null ? rankInfo.getRank() : null)
-//                    .rankDiff(rankInfo != null ? rankInfo.getRankDiff() : null)
-//                    .consecutiveWeeksAtSameRank(rankInfo != null ? rankInfo.getConsecutiveWeeksAtSameRank() : null)
-//                    .mainThumbnailUrl(anime.getMainThumbnailUrl())
-//                    .title(anime.getTitleKor())
-//                    .subTitle(anime.getCorp())
-//                    .build();
-//
-//            return DuckstarRankPreviewDto.builder()
-////                    .votePercent(rankInfo != null ? rankInfo.getVotePercent() : null)
-//                    .rankPreviewDto(rankPreviewDto)
-//                    .build();
-//        }
     }
 
     @Builder

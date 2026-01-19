@@ -10,7 +10,6 @@ import com.duckstar.domain.enums.BannerType;
 import com.duckstar.domain.enums.EpEvaluateState;
 import com.duckstar.domain.enums.SurveyStatus;
 import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
-import com.duckstar.domain.mapping.surveyVote.SurveyVote;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.duckstar.domain.vo.RankInfo;
@@ -38,7 +37,6 @@ public class ChartService {
     private final EpisodeRepository episodeRepository;
     private final EpisodeStarRepository episodeStarRepository;
     private final HomeBannerRepository homeBannerRepository;
-    private final WeekService weekService;
 
     // 0.5(중간 수준) -> 0.3 으로 작아질 수록 평점 가중치 우선됨
     // ⚠️ 권장: 0.5 또는 0.3
@@ -47,139 +45,6 @@ public class ChartService {
     private final SurveyCandidateRepository surveyCandidateRepository;
     private final SurveyVoteRepository surveyVoteRepository;
     private final SurveyVoteSubmissionRepository surveyVoteSubmissionRepository;
-
-//    @Transactional
-//    public void buildDuckstars(LocalDateTime lastWeekEndAt, Long lastWeekId, Long secondLastWeekId) {
-//        Week lastWeek = weekRepository.findWeekById(lastWeekId).orElseThrow(() ->
-//                new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
-//
-//        //=== 투표 집계, 통계 필드 업데이트 ===//
-//        List<Episode> episodes = episodeRepository
-//                        .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
-//                                lastWeek.getStartDateTime(), lastWeek.getEndDateTime());
-//
-//        List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllByWeekId(lastWeekId);
-//
-//        Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()
-//                .collect(Collectors.groupingBy(es -> es.getEpisode().getId()));
-//
-//        List<Integer> voterCountList = new ArrayList<>();
-//        for (Episode episode : episodes) {
-//            List<EpisodeStar> episodeStars = episodeStarMap.get(episode.getId());
-//            if (episodeStars == null || episodeStars.isEmpty()) {
-//                 voterCountList.add(0);
-//                // ⚠️ 전환용
-//                // (1) 아래를 위로 대체
-//                int voterCount = episode.getVoterCount();
-//                voterCountList.add(voterCount);
-//
-//            } else {
-//                int voterCount = episodeStars.size();
-//                voterCountList.add(voterCount);
-//
-//                int[] scores = new int[10];
-//                for (EpisodeStar episodeStar : episodeStars) {
-//                    Integer starScore = episodeStar.getStarScore();
-//                    int idx = starScore - 1;
-//                    scores[idx] += 1;
-//                }
-//
-//                episode.setStats(voterCount, scores);
-//            }
-//        }
-//        // 전체 투표 수
-//        int totalVotes = voterCountList.stream().mapToInt(Integer::intValue).sum();
-//
-//
-//                // ⚠️ 전환용
-//                // (2) uniqueVoterCount 하드 코딩
-//        // 고유 투표자 수
-//        int uniqueVoterCount = 72/*(int) allEpisodeStars.stream()
-//                .map(es -> es.getWeekVoteSubmission().getId())
-//                .distinct()
-//                .count()*/;
-//        lastWeek.updateAnimeVotes(totalVotes, uniqueVoterCount);
-//        int minVotes = (int) Math.ceil(0.10 * uniqueVoterCount);
-//
-//        List<Episode> eligible = new ArrayList<>(
-//                episodes.stream()
-//                        .filter(e -> e.getVoterCount() >= minVotes)
-//                        .toList()
-//        );
-//
-//        List<Episode> ineligible = new ArrayList<>(
-//                episodes.stream()
-//                        .filter(e -> e.getVoterCount() < minVotes && e.getVoterCount() > 0)
-//                        .toList()
-//        );
-//
-//        // 가중치 총 합계
-//        double weightedSum = eligible.stream().mapToDouble(Episode::getWeightedSum).sum();
-//
-//        List<Integer> eligibleCountList = voterCountList.stream()
-//                .filter(c -> c >= minVotes)
-//                .sorted()
-//                .toList();
-//
-//        int eligibleTotalVotes = eligibleCountList.stream().mapToInt(Integer::intValue).sum();
-//
-//        int eligibleSize = eligible.size();
-//
-//        int median = eligible.isEmpty() ? 0 :
-//                (eligibleSize % 2 == 1)
-//                ? eligibleCountList.get(eligibleSize / 2)
-//                : (eligibleCountList.get(eligibleSize / 2 - 1) + eligibleCountList.get(eligibleSize / 2)) / 2;
-//
-//        double C = eligibleTotalVotes == 0 ? 0.0 : weightedSum / eligibleTotalVotes;
-//
-//        int p75 = computeP75(eligibleCountList);  // 에피소드별 득표수의 75 분위수
-//        int mRule = Math.round(0.25f * uniqueVoterCount);
-//        int m = Math.max(median, Math.max(p75, mRule));
-//
-//        m = Math.max(m, 10); // 하한
-//        m = Math.min(m, 40); // 상한 (유입 급증 방지)
-//
-//        System.out.println("test: " + "weightedSum = " + weightedSum + ", C =" + C + ", m =" + m);
-//        //=== 정렬 및 차트 만들기 ===//
-//        Map<Integer, List<Episode>> chart = buildChart(eligible, ineligible, m, C);
-//
-//        //=== 지난 순위와 결합, RankInfo 셋팅 ===//
-//        Week secondLastWeek = weekRepository.findWeekById(secondLastWeekId).orElse(null);
-//
-//        Map<Long, RankInfo> lastRankInfoMap = Map.of();
-//        if (secondLastWeek != null) {
-//            List<Episode> lastEpisodes = episodeRepository
-//                    .findAllByScheduledAtGreaterThanEqualAndScheduledAtLessThan(
-//                    secondLastWeek.getStartDateTime(), secondLastWeek.getEndDateTime());
-//
-//            if (lastEpisodes != null && !lastEpisodes.isEmpty()) {
-//                lastRankInfoMap = lastEpisodes.stream()
-//                        .filter(e -> e.getRankInfo() != null)
-//                        .collect(Collectors.toMap(
-//                                e -> e.getAnime().getId(),
-//                                Episode::getRankInfo
-//                        ));
-//            }
-//        }
-//
-//        for (Map.Entry<Integer, List<Episode>> entry : chart.entrySet()) {
-//            int rank = entry.getKey();
-//            for (Episode episode : entry.getValue()) {  // 동점자 각각 처리
-//                Long animeId = episode.getAnime().getId();
-//                RankInfo lastRankInfo = lastRankInfoMap.get(animeId);
-//
-//                RankInfo rankInfo = RankInfo.create(
-//                        episode.getStarAverage(),
-//                        episode.getVoterCount(),
-//                        lastRankInfo,
-//                        lastWeekEndAt.toLocalDate(),
-//                        rank
-//                );
-//
-//                episode.setRankInfo(lastWeek, lastRankInfo, rankInfo);
-//            }
-//        }
-//    }
 
     @Transactional
     public void calculateRankByYQW(Long weekId) {
@@ -199,7 +64,9 @@ public class ChartService {
             throw new WeekHandler(ErrorStatus.WEEK_ANNOUNCED_ALREADY);
         }
 
-        //=== 회수된 표 제외 === //
+        //=== 회수된 표 제외 ===//
+        // WeekVoteSubmission과 관계지은 EpisodeStar들만 조회
+        // ALWAYS_OPEN 인 에피소드는 WeekVoteSubmission의 관계 없이 생성되므로 OK (추후 개발)
         List<EpisodeStar> allEpisodeStars = episodeStarRepository.findAllEligibleByWeekId(lastWeekId);
 
         Map<Long, List<EpisodeStar>> episodeStarMap = allEpisodeStars.stream()

@@ -77,7 +77,7 @@ public class RankInfo {
         if (notNew) {
             newRankInfo.rankDiff = lastRank - rank;
 
-            if (newRankInfo.rankDiff == 0) {
+            if (newRankInfo.rankDiff.equals(0)) {
                 newRankInfo.consecutiveWeeksAtSameRank = anime.getSameRankWeekStreak() + 1;
             } else {
                 newRankInfo.consecutiveWeeksAtSameRank = 1;

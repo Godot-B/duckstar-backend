@@ -1,6 +1,5 @@
 package com.duckstar.repository.SurveyCandidate;
 
-import com.duckstar.domain.mapping.surveyVote.SurveyVote;
 import com.duckstar.security.MemberPrincipal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -14,6 +14,4 @@ public interface WeekVoteSubmissionRepositoryCustom {
     List<SubmissionCountDto> getSubmissionCountDtos(Pageable pageable);
 
     List<EpisodeStarDto> getEpisodeStarDtosByWeekIdAndIpHash(Long weekId, String ipHash);
-
-    boolean existsByWeek_IdAndMember_Id(Long weekId, Long memberId);
 }
