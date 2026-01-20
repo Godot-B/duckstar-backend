@@ -73,10 +73,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 )
                 .from(episode)
                 .where(episode.anime.id.eq(animeId))
-                .orderBy(
-                        episode.scheduledAt.asc(),
-                        episode.isBreak.desc().nullsLast()
-                )
+                .orderBy(episode.scheduledAt.asc())
                 .fetch();
 
         // 이후 세팅
@@ -520,10 +517,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .from(episode)
                 .leftJoin(adminActionLog).on(adminActionLog.episode.id.eq(episode.id))
                 .where(episode.anime.id.eq(animeId))
-                .orderBy(
-                        episode.scheduledAt.asc(),
-                        episode.id.asc()
-                )
+                .orderBy(episode.scheduledAt.asc())
                 .fetch();
 
         // 이후 세팅
@@ -570,10 +564,7 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
                 .where(
                         episode.scheduledAt.between(week.startDateTime, week.endDateTime)
                 )
-                .orderBy(
-                        episode.scheduledAt.asc(),
-                        episode.isBreak.desc().nullsLast()
-                )
+                .orderBy(episode.scheduledAt.asc())
                 .fetch();
 
         // 이후 세팅
@@ -584,13 +575,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     }
 
     @Override
-    public List<Episode> findEpisodesByReleaseOrder(Long animeId) {
+    public List<Episode> findEpisodesByReleaseOrderByAnimeId(Long animeId) {
         return queryFactory.selectFrom(episode)
                 .where(episode.anime.id.eq(animeId))
-                .orderBy(
-                        episode.scheduledAt.asc(),
-                        episode.isBreak.desc().nullsLast()
-                )
+                .orderBy(episode.scheduledAt.asc())
                 .fetch();
     }
 }

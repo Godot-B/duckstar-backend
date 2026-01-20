@@ -1,6 +1,7 @@
 package com.duckstar.service.EpisodeService;
 
 import com.duckstar.apiPayload.code.status.ErrorStatus;
+import com.duckstar.apiPayload.exception.handler.AnimeHandler;
 import com.duckstar.apiPayload.exception.handler.EpisodeHandler;
 import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.domain.Anime;
@@ -9,6 +10,7 @@ import com.duckstar.domain.enums.AdminTaskType;
 import com.duckstar.domain.mapping.AdminActionLog;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
+import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.service.AdminActionLogService;
@@ -19,10 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
-import static com.duckstar.web.dto.admin.AdminLogDto.*;
 import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 import static com.duckstar.web.dto.admin.EpisodeRequestDto.*;
 
@@ -38,6 +40,7 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
     private final AdminActionLogService adminActionLogService;
 
     final int MIN_EPISODE_GAP_MINUTES = 24;
+    private final AnimeRepository animeRepository;
 
     @Override
     public void updateAllEpisodeStates() {
@@ -73,7 +76,7 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         //=== 에피소드 방영 시간 수정 ===//
         LocalDateTime rescheduledAt = request.getRescheduledAt();
         if (rescheduledAt != null) {
-            List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrder(targetEp.getAnime().getId());
+            List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(targetEp.getAnime().getId());
             int idx = episodes.indexOf(targetEp);
 
             // 시간 수정 및 앞뒤 간격 검증
@@ -83,10 +86,12 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
                     member, targetEp, AdminTaskType.EPISODE_RESCHEDULE);
         }
 
-        return EpisodeManageResultDto.builder()
-                .episodeResultDto(null)
-                .managerProfileDto(ManagerProfileDto.of(member, adminActionLog))
-                .build();
+        return EpisodeManageResultDto.toResultDto(
+                null,
+                null,
+                member,
+                adminActionLog
+        );
     }
 
     private void validateAndReschedule(List<Episode> episodes, int idx, LocalDateTime rescheduledAt) {
@@ -128,7 +133,7 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
 
         //=== 휴방으로 셋팅 ===//
         brokenEp.breakEpisode();
-        List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrder(animeId);
+        List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(animeId);
 
         int idx = episodes.indexOf(brokenEp);
 
@@ -167,17 +172,12 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         AdminActionLog adminActionLog = adminActionLogService.saveAdminActionLog(
                 member, brokenEp, AdminTaskType.EPISODE_BREAK);
 
-        return EpisodeManageResultDto.builder()
-                .episodeResultDto(
-                        EpisodeResultDto.builder()
-                                .addedEpisodes(List.of(EpisodeDto.of(saved)))
-                                .deletedEpisodes(null)
-                                .build()
-                )
-                .managerProfileDto(
-                        ManagerProfileDto.of(member, adminActionLog)
-                )
-                .build();
+        return EpisodeManageResultDto.toResultDto(
+                List.of(EpisodeDto.of(saved)),
+                null,
+                member,
+                adminActionLog
+        );
     }
 
     @Override
@@ -196,7 +196,7 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         Long animeId = anime.getId();
 
         //=== 에피소드 삭제를 위한 일정 변경 ===//
-        List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrder(animeId);
+        List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(animeId);
         int idx = episodes.indexOf(targetEp);
         if (idx == episodes.size() - 1) {
             /* tail 이면 단순 삭제 */
@@ -228,22 +228,65 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         AdminActionLog adminActionLog = adminActionLogService.saveAdminActionLog(
                 member, targetEp, AdminTaskType.EPISODE_DELETE);
 
-        return EpisodeManageResultDto.builder()
-                .episodeResultDto(
-                        EpisodeResultDto.builder()
-                        .addedEpisodes(null)
-                        .deletedEpisodes(List.of(EpisodeDto.of(targetEp)))
-                        .build()
-                )
-                .managerProfileDto(
-                        ManagerProfileDto.of(member, adminActionLog)
-                )
-                .build();
+        return EpisodeManageResultDto.toResultDto(
+                null,
+                List.of(EpisodeDto.of(targetEp)),
+                member,
+                adminActionLog
+        );
     }
 
     @Override
-    public EpisodeManageResultDto queueEpisode(Long memberId, CreateRequestDto request) {
+    public EpisodeManageResultDto queueEpisode(Long memberId, Long animeId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() ->
+                new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        return null;
+        Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
+                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
+
+        LocalTime airTime = anime.getAirTime();
+        if (airTime == null) {
+            throw new AnimeHandler(ErrorStatus.ANIME_AIR_TIME_NOT_SET);
+        }
+
+        int episodeNumber = 1;
+        LocalDateTime scheduledAt;
+
+        List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(animeId);
+        if (!episodes.isEmpty()) {
+            Episode oldLast = episodes.get(episodes.size() - 1);
+            oldLast.setIsLastEpisode(false);
+
+            episodeNumber = oldLast.getEpisodeNumber() + 1;
+            scheduledAt = LocalDateTime.of(
+                    oldLast.getScheduledAt().toLocalDate(),
+                    airTime
+            );
+        } else {
+            scheduledAt = anime.getPremiereDateTime();
+        }
+
+        Episode newLast = Episode.create(
+                anime,
+                episodeNumber,
+                scheduledAt,
+                scheduledAt.plusWeeks(1),
+                true
+        );
+        Episode saved = episodeRepository.save(newLast);
+
+        //=== 댓글 연관관계 재설정 및 로그 기록 ===//
+        commentService.redefineRelationWithTails(
+                animeId, List.of(saved), null);
+
+        AdminActionLog adminActionLog = adminActionLogService.saveAdminActionLog(
+                member, saved, AdminTaskType.EPISODE_CREATE);
+
+        return EpisodeManageResultDto.toResultDto(
+                List.of(EpisodeDto.of(saved)),
+                null,
+                member,
+                adminActionLog
+        );
     }
 }

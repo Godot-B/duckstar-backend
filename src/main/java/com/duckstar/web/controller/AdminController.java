@@ -63,6 +63,10 @@ public class AdminController {
         return ApiResponse.onSuccess(null);
     }
 
+    // 애니메이션 정보 수정 API
+    // 1. 단순 수정
+    // 2. airTime, premiereDateTime 데이터 일치(정규화 없이) 생각
+
     @Operation(summary = "애니메이션 총 화수 수정 API")
     @PostMapping("/animes/{animeId}/total-episodes")
     public ApiResponse<EpisodeManageResultDto> updateTotalEpisodes(
@@ -108,6 +112,17 @@ public class AdminController {
                 episodeQueryService.getAdminEpisodesByAnimeId(animeId));
     }
 
+    @Operation(summary = "에피소드 추가(큐잉) API", description = "큐잉만 가능 - Tail(끝) 에피소드 추가 방식")
+    @PostMapping("/animes/{animeId}/episodes")
+    public ApiResponse<EpisodeManageResultDto> queueEpisode(
+            @AuthenticationPrincipal MemberPrincipal principal,
+            @PathVariable Long animeId
+    ) {
+        Long memberId = principal == null ? null : principal.getId();
+        return ApiResponse.onSuccess(
+                episodeCommandService.queueEpisode(memberId, animeId));
+    }
+
     // 모든 주차 조회 API : GET /api/v1/chart/weeks 재사용
 
     @Operation(summary = "주간(월 18시 정책 기준) 에피소드 조회")
@@ -151,17 +166,6 @@ public class AdminController {
         Long memberId = principal == null ? null : principal.getId();
         return ApiResponse.onSuccess(
                 episodeCommandService.deleteEpisode(memberId, episodeId));
-    }
-
-    @Operation(summary = "에피소드 추가(큐잉) API", description = "큐잉만 가능 - Tail(끝) 에피소드 추가 방식")
-    @PostMapping("/episodes")
-    public ApiResponse<EpisodeManageResultDto> queueEpisode(
-            @AuthenticationPrincipal MemberPrincipal principal,
-            CreateRequestDto request
-    ) {
-        Long memberId = principal == null ? null : principal.getId();
-        return ApiResponse.onSuccess(
-                episodeCommandService.queueEpisode(memberId, request));
     }
 
     /**

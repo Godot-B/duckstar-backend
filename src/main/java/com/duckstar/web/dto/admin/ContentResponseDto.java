@@ -1,5 +1,7 @@
 package com.duckstar.web.dto.admin;
 
+import com.duckstar.domain.Member;
+import com.duckstar.domain.mapping.AdminActionLog;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,5 +60,24 @@ public class ContentResponseDto {
         EpisodeResultDto episodeResultDto;
 
         ManagerProfileDto managerProfileDto;
+
+        public static EpisodeManageResultDto toResultDto(
+                List<EpisodeDto> added,
+                List<EpisodeDto> deleted,
+                Member member,
+                AdminActionLog adminActionLog
+        ) {
+            return EpisodeManageResultDto.builder()
+                    .episodeResultDto(
+                            EpisodeResultDto.builder()
+                                    .addedEpisodes(added)
+                                    .deletedEpisodes(deleted)
+                                    .build()
+                    )
+                    .managerProfileDto(
+                            ManagerProfileDto.of(member, adminActionLog)
+                    )
+                    .build();
+        }
     }
 }

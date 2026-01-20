@@ -14,15 +14,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_submission_wpc",
+                        columnNames = {"week_id", "principal_key", "category"})
+        },
         indexes = {
                 @Index(name = "idx_submission_wp",
                         columnList = "week_id, principal_key"),
                 @Index(name = "idx_submission_wm",
                         columnList = "week_id, member_id")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_submission_wpc",
-                        columnNames = {"week_id", "principal_key", "category"})
         }
 )
 public class WeekVoteSubmission extends BaseEntity {

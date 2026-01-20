@@ -12,5 +12,5 @@ public interface EpisodeCommandService {
 
     EpisodeManageResultDto deleteEpisode(Long memberId, Long episodeId);
 
-    EpisodeManageResultDto queueEpisode(Long memberId, CreateRequestDto request);
+    EpisodeManageResultDto queueEpisode(Long memberId, Long animeId);
 }

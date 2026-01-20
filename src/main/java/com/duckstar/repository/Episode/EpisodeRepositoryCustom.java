@@ -33,5 +33,5 @@ public interface EpisodeRepositoryCustom {
 
     List<ScheduleInfoDto> getScheduleInfoDtosByWeekId(Long weekId);
 
-    List<Episode> findEpisodesByReleaseOrder(Long animeId);
+    List<Episode> findEpisodesByReleaseOrderByAnimeId(Long animeId);
 }

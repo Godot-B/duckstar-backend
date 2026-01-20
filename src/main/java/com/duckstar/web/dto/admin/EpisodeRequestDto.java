@@ -26,17 +26,4 @@ public class EpisodeRequestDto {
 
         LocalDateTime rescheduledAt;
     }
-
-    @Builder
-    @Getter
-    public static class CreateRequestDto {
-        @NotNull
-        Integer episodeNumber;
-
-        @NotNull
-        LocalDateTime scheduledAt;
-
-        @NotNull
-        Boolean isBreak;
-    }
 }

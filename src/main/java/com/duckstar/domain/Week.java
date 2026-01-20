@@ -12,13 +12,13 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
-        indexes = {
-                @Index(name = "idx_week_q",
-                        columnList = "quarter_id")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_week_qw",
                         columnNames = {"quarter_id", "week_value"})
+        },
+        indexes = {
+                @Index(name = "idx_week_q",
+                        columnList = "quarter_id")
         }
 )
 public class Week extends BaseEntity {

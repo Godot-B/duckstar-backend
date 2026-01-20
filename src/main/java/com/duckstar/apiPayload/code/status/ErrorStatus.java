@@ -33,6 +33,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
+    ANIME_AIR_TIME_NOT_SET(HttpStatus.BAD_REQUEST, "ANIME4002", "애니메이션의 정규 방영 시간이 정해지지 않았습니다."),
 
     // 캐릭터
     CHARACTER_NOT_FOUND(HttpStatus.BAD_REQUEST, "CHARACTER4001", "존재하지 않는 캐릭터입니다."),

@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 
 import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
-import static com.duckstar.web.dto.admin.AdminLogDto.*;
 import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
 import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 import static com.duckstar.web.dto.admin.EpisodeRequestDto.*;
@@ -311,17 +310,23 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
                     .build();
         }
 
-        List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrder(animeId);
+        List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(animeId);
         List<Episode> addedEpisodes = new ArrayList<>();
         List<Episode> deletedEpisodes = new ArrayList<>();
 
         if (oldTotal < newTotal) {
             anime.setTotalEpisodes(newTotal);
+
             Episode oldLastEpisode = episodes.get(episodes.size() - 1);
             oldLastEpisode.setIsLastEpisode(false);
 
+            //=== 애니메이션의 airTime 기준 시각으로 에피소드 생성 ===//
+            LocalTime airTime = anime.getAirTime();
             int diff = newTotal - oldTotal;
-            LocalDateTime scheduledAt = oldLastEpisode.getNextEpScheduledAt();
+            LocalDateTime scheduledAt = LocalDateTime.of(
+                    oldLastEpisode.getNextEpScheduledAt().toLocalDate(),
+                    airTime
+            );
 
             LocalDateTime nextEpScheduledAt;
             for (int i = 0; i < diff; i++) {
@@ -365,11 +370,6 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
                     .ifPresent(ep -> ep.setIsLastEpisode(true));
         }
 
-        EpisodeResultDto result = EpisodeResultDto.builder()
-                .addedEpisodes(addedEpisodes.stream().map(EpisodeDto::of).toList())
-                .deletedEpisodes(deletedEpisodes.stream().map(EpisodeDto::of).toList())
-                .build();
-
         //=== 댓글 연관관계 재설정 및 로그 기록 ===//
         commentService.redefineRelationWithTails(
                 animeId, addedEpisodes, deletedEpisodes);
@@ -377,10 +377,12 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
         AdminActionLog adminActionLog = adminActionLogService.saveAdminActionLog(
                 member, anime, AdminTaskType.ANIME_EPISODE_TOTAL_COUNT);
 
-        return EpisodeManageResultDto.builder()
-                .episodeResultDto(result)
-                .managerProfileDto(ManagerProfileDto.of(member, adminActionLog))
-                .build();
+        return EpisodeManageResultDto.toResultDto(
+                addedEpisodes.stream().map(EpisodeDto::of).toList(),
+                deletedEpisodes.stream().map(EpisodeDto::of).toList(),
+                member,
+                adminActionLog
+        );
     }
 
     @Override
@@ -397,9 +399,11 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
         AdminActionLog adminActionLog = adminActionLogService.saveAdminActionLog(
                 member, anime, AdminTaskType.ANIME_EPISODE_TOTAL_COUNT);
 
-        return EpisodeManageResultDto.builder()
-                .episodeResultDto(null)
-                .managerProfileDto(ManagerProfileDto.of(member, adminActionLog))
-                .build();
+        return EpisodeManageResultDto.toResultDto(
+                null,
+                null,
+                member,
+                adminActionLog
+        );
     }
 }

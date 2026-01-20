@@ -16,12 +16,24 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_episode_as",
+                        columnNames = {"anime_id", "scheduled_at"})
+        },
         indexes = {
                 @Index(name = "idx_episode_s",
                         columnList = "scheduled_at"),
         }
 )
 public class Episode extends BaseEntity {
+    /**
+     * 역할 3가지
+     *  1. 애니메이션 회차 정보 (anime, episodeNumber, isBreak, isRescheduled)
+     *  2. 시간 슬롯 역할 (scheduledAt, nextEpScheduledAt)
+     *  3. 순위/별점 정보
+     *
+     * //TODO 추후 반드시 정규화
+     */
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,8 +47,6 @@ public class Episode extends BaseEntity {
     @JoinColumn(name = "week_id")
     private Week week;  // 순위 결정 시점에 셋팅
 
-    //=== 결방, 변칙 편성 update API 마련 필요 ===//
-
     private Integer episodeNumber;
 
     @Column(nullable = false)
@@ -48,7 +58,7 @@ public class Episode extends BaseEntity {
 
     private LocalDateTime nextEpScheduledAt;
 
-    // ** 마지막 에피소드 식별 플래그
+    // ** 마지막 에피소드 식별 플래그 for 1분 윈도우 스케줄링 방식
     private boolean isLastEpisode = false;
 
     // [별점 방식]
