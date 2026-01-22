@@ -23,7 +23,7 @@ public interface EpisodeRepositoryCustom {
 
     List<AnimePreviewDto> getAnimePreviewsByDuration(LocalDateTime weekStart, LocalDateTime weekEnd);
 
-    List<AnimeRankDto> getAnimeRankDtosByWeekIdWithOverFetch(Long weekId, LocalDateTime weekEndDateTime, Pageable pageable);
+    List<AnimeRankDto> getAnimeRankDtosByWeekId(Long weekId, LocalDateTime weekEndDateTime, int offset, int limit);
 
     List<PremieredEpRecord> findPremieredEpRecordsInWindow(LocalDateTime windowStart, LocalDateTime windowEnd);
 

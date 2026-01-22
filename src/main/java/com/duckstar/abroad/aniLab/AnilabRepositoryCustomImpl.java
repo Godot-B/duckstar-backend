@@ -15,14 +15,12 @@ public class AnilabRepositoryCustomImpl implements AnilabRepositoryCustom {
     private final QAnilab anilab = QAnilab.anilab;
 
     @Override
-    public List<Anilab> findAllByWeek_IdWithOverFetch(Long weekId, Pageable pageable) {
-        int pageSize = pageable.getPageSize();
-
+    public List<Anilab> findAllByWeek_Id(Long weekId, int offset, int limit) {
         return queryFactory.selectFrom(anilab)
                 .where(anilab.week.id.eq(weekId))
                 .orderBy(anilab.rank.asc(), anilab.title.asc())
-                .offset((long) pageable.getPageNumber() * (pageSize - 1))
-                .limit(pageSize)
+                .offset(offset)
+                .limit(limit)
                 .fetch();
     }
 }

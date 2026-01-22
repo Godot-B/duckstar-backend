@@ -14,7 +14,6 @@ import com.duckstar.repository.Week.WeekRepository;
 import com.duckstar.web.dto.PageInfo;
 import com.duckstar.web.dto.RankInfoDto.RankPreviewDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,35 +161,33 @@ public class WeekService {
     }
 
     public AnimeRankSliceDto getAnimeRankSliceDto(Long weekId, Pageable pageable) {
-        int page = pageable.getPageNumber();
-        int size = pageable.getPageSize();
-
-        Pageable overFetch = PageRequest.of(
-                page,
-                size + 1,
-                pageable.getSort()
-        );
-
         Week week = weekRepository.findById(weekId)
                 .orElseThrow(() -> new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
         if (!week.getAnnouncePrepared()) throw new WeekHandler(ErrorStatus.ANNOUNCEMENT_NOT_PREPARED);
 
         LocalDateTime weekEndDateTime = week.getEndDateTime();
-        List<AnimeRankDto> rows =
-                episodeRepository.getAnimeRankDtosByWeekIdWithOverFetch(weekId, weekEndDateTime, overFetch);
+
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+
+        List<AnimeRankDto> rows = episodeRepository
+                .getAnimeRankDtosByWeekId(
+                        weekId, weekEndDateTime, page * size, size + 1);
         boolean duckstarHasNext = rows.size() > size;
 
-        List<RankPreviewDto> animeCornerRankDtos =
-                animeCornerRepository.findAllByWeek_IdWithOverFetch(weekId, overFetch).stream()
-                        .map(RankPreviewDto::of)
-                        .toList();
+        List<RankPreviewDto> animeCornerRankDtos = animeCornerRepository
+                .findAllByWeek_Id(weekId, page * size, size + 1)
+                .stream()
+                .map(RankPreviewDto::of)
+                .toList();
         boolean animeCornerHasNext = animeCornerRankDtos.size() > size;
 
-        List<RankPreviewDto> aniLabRankDtos =
-                anilabRepository.findAllByWeek_IdWithOverFetch(weekId, overFetch).stream()
-                        .map(RankPreviewDto::of)
-                        .toList();
+        List<RankPreviewDto> aniLabRankDtos = anilabRepository
+                .findAllByWeek_Id(weekId, page * size, size + 1)
+                .stream()
+                .map(RankPreviewDto::of)
+                .toList();
         boolean aniLabHasNext = aniLabRankDtos.size() > size;
 
         boolean hasNextTotal = duckstarHasNext || animeCornerHasNext || aniLabHasNext;

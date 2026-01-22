@@ -42,7 +42,6 @@ public class AnimeRequestDto {
         MultipartFile mainImage;
 
         List<OttDto> ottDtos;
-
     }
 
 

@@ -16,7 +16,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -42,8 +41,9 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
             Long animeId,
             List<Long> episodeIds,
             CommentSortType sortBy,
-            Pageable pageable,
-            MemberPrincipal principal
+            MemberPrincipal principal,
+            int offset,
+            int limit
     ) {
         Long principalId;
         boolean isAdmin;
@@ -84,7 +84,6 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
 
         BooleanExpression episodeCondition = episodeIds.isEmpty() ? null : episode.id.in(episodeIds);
 
-        int pageSize = pageable.getPageSize();
         List<Tuple> tuples = queryFactory.select(
                         likeIdSubquery,
                         isLikedExpression,
@@ -115,8 +114,8 @@ public class AnimeCommentRepositoryCustomImpl implements AnimeCommentRepositoryC
                                 .or(animeComment.replyCount.gt(0))
                 )
                 .orderBy(getOrder(sortBy))  // 정렬
-                .offset((long) pageable.getPageNumber() * (pageSize - 1))
-                .limit(pageSize)
+                .offset(offset)
+                .limit(limit)
                 .fetch();
 
         //=== 이 부분 왜 있지? ===//

@@ -15,6 +15,7 @@ public class WeekResponseDto {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class WeekDto {
         Integer year;
 

@@ -15,7 +15,6 @@ import com.duckstar.security.repository.ShadowBanRepository;
 import com.duckstar.service.VoteService.VoteCommandService;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,14 +39,8 @@ public class SubmissionService {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
 
-        Pageable overFetch = PageRequest.of(
-                page,
-                size + 1,
-                pageable.getSort()
-        );
-
-        List<SubmissionCountDto> rows =
-                submissionRepository.getSubmissionCountDtos(overFetch);
+        List<SubmissionCountDto> rows = submissionRepository
+                .getSubmissionCountDtos(page * size, size + 1);
 
         boolean hasNext = rows.size() > size;
         if (hasNext) rows = rows.subList(0, size);

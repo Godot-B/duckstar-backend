@@ -11,7 +11,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -29,8 +28,9 @@ public class ReplyRepositoryCustomImpl implements ReplyRepositoryCustom {
     @Override
     public List<ReplyDto> getReplyDtos(
             Long commentId,
-            Pageable pageable,
-            MemberPrincipal principal
+            MemberPrincipal principal,
+            int offset,
+            int limit
     ) {
         Long principalId;
         boolean isAdmin;
@@ -67,7 +67,6 @@ public class ReplyRepositoryCustomImpl implements ReplyRepositoryCustom {
             isLikedExpression = Expressions.constant(false);
         }
 
-        int pageSize = pageable.getPageSize();
         List<Tuple> tuples = queryFactory.select(
                         likeIdSubquery,
                         isLikedExpression,
@@ -92,8 +91,8 @@ public class ReplyRepositoryCustomImpl implements ReplyRepositoryCustom {
                         )
                 )
                 .orderBy(reply.createdAt.asc())
-                .offset((long) pageable.getPageNumber() * (pageSize - 1))
-                .limit(pageSize)
+                .offset(offset)
+                .limit(limit)
                 .fetch();
 
         List<Long> replyIds = tuples.stream()

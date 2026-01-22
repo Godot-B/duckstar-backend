@@ -8,7 +8,6 @@ import com.duckstar.security.domain.QShadowBan;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -39,9 +38,7 @@ public class WeekVoteSubmissionRepositoryCustomImpl implements WeekVoteSubmissio
     }
 
     @Override
-    public List<SubmissionCountDto> getSubmissionCountDtos(Pageable pageable) {
-        int pageSize = pageable.getPageSize();
-
+    public List<SubmissionCountDto> getSubmissionCountDtos(int offset, int limit) {
         return queryFactory.select(
                         Projections.constructor(
                                 SubmissionCountDto.class,
@@ -61,8 +58,8 @@ public class WeekVoteSubmissionRepositoryCustomImpl implements WeekVoteSubmissio
                 .leftJoin(shadowBan).on(shadowBan.ipHash.eq(weekVoteSubmission.ipHash))
                 .groupBy(week.id, weekVoteSubmission.ipHash)
                 .orderBy(week.startDateTime.desc(), weekVoteSubmission.count().desc())
-                .offset((long) pageable.getPageNumber() * (pageSize - 1))
-                .limit(pageSize)
+                .offset(offset)
+                .limit(limit)
                 .fetch();
     }
 

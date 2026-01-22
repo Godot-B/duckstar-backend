@@ -23,7 +23,6 @@ import com.duckstar.web.dto.CommentResponseDto.CommentDto;
 import com.duckstar.web.dto.CommentResponseDto.DeleteResultDto;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,22 +131,16 @@ public class CommentService {
             totalCount = animeCommentRepository.countTotalElements(animeId, episodeIds);
         }
 
-        Pageable overFetch = PageRequest.of(
-                page,
-                size + 1,
-                pageable.getSort()
-        );
-
         List<CommentDto> rows = animeCommentRepository.getCommentDtos(
                 animeId,
                 episodeIds,
                 sortBy,
-                overFetch,
-                principal
+                principal,
+                page * size,
+                size + 1
         );
 
         boolean commentsHasNext = rows.size() > size;
-
         if (commentsHasNext) rows = rows.subList(0, size);
 
         PageInfo pageInfo = PageInfo.builder()

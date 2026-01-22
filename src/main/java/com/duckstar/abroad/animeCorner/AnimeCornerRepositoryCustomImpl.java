@@ -17,14 +17,12 @@ public class AnimeCornerRepositoryCustomImpl implements AnimeCornerRepositoryCus
     private final QAnimeCorner animeCorner = QAnimeCorner.animeCorner;
 
     @Override
-    public List<AnimeCorner> findAllByWeek_IdWithOverFetch(Long weekId, Pageable pageable) {
-        int pageSize = pageable.getPageSize();
-
+    public List<AnimeCorner> findAllByWeek_Id(Long weekId, int offset, int limit) {
         return queryFactory.selectFrom(animeCorner)
                 .where(animeCorner.week.id.eq(weekId))
                 .orderBy(animeCorner.rank.asc(), animeCorner.title.asc())
-                .offset((long) pageable.getPageNumber() * (pageSize - 1))
-                .limit(pageSize)
+                .offset(offset)
+                .limit(limit)
                 .fetch();
     }
 }

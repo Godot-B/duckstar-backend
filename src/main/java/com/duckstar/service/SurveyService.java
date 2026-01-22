@@ -43,7 +43,8 @@ public class SurveyService {
         surveys.forEach(survey -> survey.updateStatus(now));
     }
 
-    public SurveyRankPage getSurveyRankPage(Long surveyId, MemberPrincipal principal, Pageable pageable) {
+    public SurveyRankPage getSurveyRankPage(
+            Long surveyId, MemberPrincipal principal, Pageable pageable) {
         Survey survey = surveyRepository.findById(surveyId).orElseThrow(() ->
                 new SurveyHandler(ErrorStatus.SURVEY_NOT_FOUND));
 

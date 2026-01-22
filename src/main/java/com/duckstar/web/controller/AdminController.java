@@ -4,6 +4,7 @@ import com.duckstar.abroad.reader.CsvImportService;
 import com.duckstar.apiPayload.ApiResponse;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AdminHandler;
+import com.duckstar.domain.enums.ManageFilterType;
 import com.duckstar.repository.WeekVoteSubmission.WeekVoteSubmissionRepository;
 import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.service.ShadowBanService;
@@ -14,7 +15,7 @@ import com.duckstar.service.EpisodeService.EpisodeCommandService;
 import com.duckstar.service.EpisodeService.EpisodeQueryService;
 import com.duckstar.service.SubmissionService;
 import com.duckstar.service.WeekService;
-import com.duckstar.web.dto.admin.AdminLogDto.IpManagementLogSliceDto;
+import com.duckstar.web.dto.admin.AdminLogDto.ManagementLogSliceDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -54,8 +55,18 @@ public class AdminController {
     private final EpisodeQueryService episodeQueryService;
     private final EpisodeCommandService episodeCommandService;
 
+    @Operation(summary = "매니저 관리 로그 조회 API", description = "커서 기반 무한 스크롤")
+    @GetMapping("/logs")
+    public ApiResponse<ManagementLogSliceDto> getAdminLogsOnIpManagement(
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam ManageFilterType filterType
+    ) {
+        return ApiResponse.onSuccess(
+                adminActionLogService.getManagementLogs(pageable, filterType));
+    }
+
     /**
-     * 애니메이션 관리자 화면
+     * 애니메이션 데이터 관리
      */
     @GetMapping("/animes")
     public ApiResponse<Void> getAnimes() {
@@ -63,9 +74,16 @@ public class AdminController {
         return ApiResponse.onSuccess(null);
     }
 
-    // 애니메이션 정보 수정 API
-    // 1. 단순 수정
-    // 2. airTime, premiereDateTime 데이터 일치(정규화 없이) 생각
+    @Operation(summary = "애니메이션 등록 API")
+    @PostMapping("/animes")
+    public ApiResponse<Long> addAnime(
+            @Valid @ModelAttribute PostRequestDto request) throws IOException {
+        return ApiResponse.onSuccess(animeCommandService.addAnime(request));
+    }
+
+    //TODO 애니메이션 정보 수정 API
+    // - 단순 수정
+    // - airTime, premiereDateTime 데이터 일치(정규화 없이) 생각
 
     @Operation(summary = "애니메이션 총 화수 수정 API")
     @PostMapping("/animes/{animeId}/total-episodes")
@@ -86,24 +104,22 @@ public class AdminController {
             @PathVariable Long animeId
     ) {
         Long memberId = principal == null ? null : principal.getId();
-        return ApiResponse.onSuccess(animeCommandService.setUnknown(memberId, animeId));
-    }
-
-    @Operation(summary = "애니메이션 등록 API")
-    @PostMapping("/animes")
-    public ApiResponse<Long> addAnime(@Valid @ModelAttribute PostRequestDto request) throws IOException {
-        return ApiResponse.onSuccess(animeCommandService.addAnime(request));
+        return ApiResponse.onSuccess(
+                animeCommandService.setUnknown(memberId, animeId));
     }
 
     @Operation(summary = "애니메이션 메인 이미지 수정 API")
     @PostMapping("/animes/{animeId}")
-    public ApiResponse<Long> updateAnimeImage(@PathVariable Long animeId,
-                                      @ModelAttribute ImageRequestDto request) throws IOException {
-        return ApiResponse.onSuccess(animeCommandService.updateAnimeImage(animeId, request));
+    public ApiResponse<Long> updateAnimeImage(
+            @PathVariable Long animeId,
+            @ModelAttribute ImageRequestDto request
+    ) throws IOException {
+        return ApiResponse.onSuccess(
+                animeCommandService.updateAnimeImage(animeId, request));
     }
 
     /**
-     * 시간표 관리자 화면
+     * 시간표 관리 (에피소드 데이터 관리)
      */
     @Operation(summary = "애니메이션 별 에피소드 조회")
     @GetMapping("/animes/{animeId}/episodes")
@@ -171,14 +187,6 @@ public class AdminController {
     /**
      * 제출 현황 관리
      */
-    @Operation(summary = "IP 관리 로그 조회 API", description = "커서 기반 무한 스크롤")
-    @GetMapping("/submissions/logs")
-    public ApiResponse<IpManagementLogSliceDto> getAdminLogsOnIpManagement(
-            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
-        return ApiResponse.onSuccess(
-                adminActionLogService.getIpManagementLogs(pageable));
-    }
-
     @Operation(summary = "IP별 제출 수 슬라이스 조회 API", description = "커서 기반 무한 스크롤")
     @GetMapping("/submissions")
     public ApiResponse<SubmissionCountSliceDto> getSubmissionCountGroupByIp(

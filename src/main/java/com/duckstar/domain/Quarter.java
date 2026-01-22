@@ -42,4 +42,8 @@ public class Quarter extends BaseEntity {
     public static Quarter create(Integer yearValue, Integer quarterValue) {
         return new Quarter(yearValue, quarterValue);
     }
+
+    public void tempSetPrepared(Boolean isPrepared) {
+        this.isPrepared = isPrepared;
+    }
 }

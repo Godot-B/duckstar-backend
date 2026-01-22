@@ -11,12 +11,14 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.duckstar.web.dto.WeekResponseDto.*;
+
 public class AdminLogDto {
 
     @Builder
     @Getter
-    public static class IpManagementLogSliceDto {
-        List<IpManagementLogDto> ipManagementLogDtos;
+    public static class ManagementLogSliceDto {
+        List<ManagementLogDto> managementLogDtos;
 
         PageInfo pageInfo;
     }
@@ -24,18 +26,23 @@ public class AdminLogDto {
     @Builder
     @Getter
     @AllArgsConstructor
-    public static class IpManagementLogDto {
+    public static class ManagementLogDto {
         Long logId;
 
-        Long weekId;
-        Integer year;
-        Integer quarter;
-        Integer week;
-
+        // 관계되는 하나만 셋팅됨
+        Long animeId;
+        Long episodeId;
         String ipHash;
 
-        String reason;
+        // 에피소드 관리
+            // 애니메이션 관리
+            String titleKor;
+        Integer episodeNumber;
 
+        // IP 관리
+        Long weekId;
+        WeekDto weekDto;
+        String reason;
         Boolean isUndoable;  // undo 가능한지 여부
 
         ManagerProfileDto memberProfileDto;

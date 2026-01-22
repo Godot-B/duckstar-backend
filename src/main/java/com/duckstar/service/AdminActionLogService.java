@@ -3,12 +3,12 @@ package com.duckstar.service;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.AdminTaskType;
+import com.duckstar.domain.enums.ManageFilterType;
 import com.duckstar.domain.mapping.AdminActionLog;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AdminActionLog.AdminActionLogRepository;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,18 +24,12 @@ public class AdminActionLogService {
 
     private final AdminActionLogRepository adminActionLogRepository;
 
-    public IpManagementLogSliceDto getIpManagementLogs(Pageable pageable) {
+    public ManagementLogSliceDto getManagementLogs(Pageable pageable, ManageFilterType filterType) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
 
-        Pageable overFetch = PageRequest.of(
-                page,
-                size + 1,
-                pageable.getSort()
-        );
-
-        List<IpManagementLogDto> rows =
-                adminActionLogRepository.getIpManagementLogDtos(overFetch);
+        List<ManagementLogDto> rows = adminActionLogRepository
+                .getManagementLogDtos(filterType, page * size, size + 1);
 
         boolean hasNext = rows.size() > size;
         if (hasNext) rows = rows.subList(0, size);
@@ -46,8 +40,8 @@ public class AdminActionLogService {
                 .size(size)
                 .build();
 
-        return IpManagementLogSliceDto.builder()
-                .ipManagementLogDtos(rows)
+        return ManagementLogSliceDto.builder()
+                .managementLogDtos(rows)
                 .pageInfo(pageInfo)
                 .build();
     }

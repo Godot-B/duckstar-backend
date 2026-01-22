@@ -16,7 +16,6 @@ import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.web.dto.PageInfo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,19 +114,14 @@ public class ReplyService {
             totalCount = replyRepository.countAllByParent_id(commentId);
         }
 
-        Pageable overFetch = PageRequest.of(
-                page,
+        List<ReplyDto> rows = replyRepository.getReplyDtos(
+                commentId,
+                principal,
+                page * size,
                 size + 1
         );
 
-        List<ReplyDto> rows = replyRepository.getReplyDtos(
-                commentId,
-                overFetch,
-                principal
-        );
-
         boolean repliesHasNext = rows.size() > size;
-
         if (repliesHasNext) rows = rows.subList(0, size);
 
         PageInfo pageInfo = PageInfo.builder()
