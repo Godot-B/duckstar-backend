@@ -6,18 +6,21 @@ import com.duckstar.domain.Anime;
 import com.duckstar.domain.Quarter;
 import com.duckstar.domain.Survey;
 import com.duckstar.domain.Week;
+import com.duckstar.domain.mapping.AnimeQuarter;
 import com.duckstar.domain.mapping.surveyVote.SurveyCandidate;
+import com.duckstar.domain.mapping.removeNeeded.AnimeSeason;
+import com.duckstar.domain.mapping.removeNeeded.Season;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.domain.mapping.weeklyVote.EpisodeStar;
 import com.duckstar.domain.vo.RankInfo;
-import com.duckstar.repository.AnimeRepository;
+import com.duckstar.repository.*;
 import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.EpisodeStar.EpisodeStarRepository;
-import com.duckstar.repository.QuarterRepository;
 import com.duckstar.repository.SurveyCandidate.SurveyCandidateRepository;
-import com.duckstar.repository.SurveyRepository;
 import com.duckstar.repository.Week.WeekRepository;
+import com.duckstar.repository.removeNeeded.AnimeSeasonRepository;
+import com.duckstar.repository.removeNeeded.SeasonRepository;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.VoteService.VoteCommandServiceImpl;
 import com.duckstar.service.WeekService;
@@ -61,6 +64,25 @@ public class TempTest {
     private QuarterRepository quarterRepository;
     @Autowired
     private WeekService weekService;
+    @Autowired
+    private AnimeSeasonRepository animeSeasonRepository;
+    @Autowired
+    private SeasonRepository seasonRepository;
+
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void 쿼터_시즌_마이그레이션() {
+        List<AnimeSeason> animeSeasons = animeSeasonRepository.findAll();
+        animeSeasons.forEach(as -> {
+            animeQuarterRepository.save(
+                    AnimeQuarter.create(as.getAnime(), as.getSeason().getQuarter())
+            );
+        });
+
+        List<Season> seasons = seasonRepository.findAll();
+        seasons.forEach(s -> s.getQuarter().tempSetPrepared(s.getIsPrepared()));
+    }
 
     @Test
     @Transactional
