@@ -38,6 +38,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.duckstar.domain.enums.DayOfWeekShort.*;
 import static com.duckstar.util.QuarterUtil.*;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
@@ -152,11 +153,8 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
         }
 
         //=== 애니메이션 저장 ===//
-        String airTimeString = request.getAirTime();
-        LocalTime airTime = LocalTime.of(
-                Integer.parseInt(airTimeString.split(":")[0]),
-                Integer.parseInt(airTimeString.split(":")[1])
-        );
+        DayOfWeekShort dayOfWeek = request.getDayOfWeek();
+        LocalTime airTime = request.getAirTime();
 
         Anime anime = Anime.builder()
                 .titleKor(request.getTitleKor())
@@ -168,7 +166,7 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
                 .status(status)
                 .airTime(airTime)
                 .premiereDateTime(premiereDateTime)
-                .dayOfWeek(request.getDayOfWeek())
+                .dayOfWeek(dayOfWeek)
                 .totalEpisodes(totalEpisodes)
 
                 .corp(request.getCorp())
@@ -201,18 +199,46 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
             //=== 에피소드 생성 ===//
             if (totalEpisodes != null) {
                 List<Episode> episodes = new ArrayList<>();
+
                 LocalDateTime scheduledAt = premiereDateTime;
-                for (int i = 0; i < totalEpisodes; i++) {
-                    LocalDateTime nextEpScheduledAt = scheduledAt.plusWeeks(1);
-                    boolean isLastEpisode = i == (totalEpisodes - 1);
+                LocalDateTime nextEpScheduledAt = scheduledAt.plusWeeks(1);
+                if (dayOfWeek.getValue() > 7 || airTime == null) {  // 방향(dayOfWeek, airTime) 없을 때
+                    for (int i = 0; i < totalEpisodes; i++) {
+                        boolean isLastEpisode = i == (totalEpisodes - 1);
+                        episodes.add(Episode.create(
+                                saved,
+                                i + 1,
+                                scheduledAt,
+                                nextEpScheduledAt,
+                                isLastEpisode
+                        ));
+                        scheduledAt = nextEpScheduledAt;
+                    }
+                } else {  // 방향 존재
+                    nextEpScheduledAt = LocalDateTime.of(
+                            adjustDateByDayOfWeek(premiereDateTime.plusWeeks(1), dayOfWeek),
+                            airTime
+                    );
                     episodes.add(Episode.create(
                             saved,
-                            i + 1,
+                            1,
                             scheduledAt,
                             nextEpScheduledAt,
-                            isLastEpisode
+                            false
                     ));
-                    scheduledAt = nextEpScheduledAt;
+
+                    for (int i = 1; i < totalEpisodes; i++) {
+                        scheduledAt = nextEpScheduledAt;
+                        nextEpScheduledAt = scheduledAt.plusWeeks(1);
+                        boolean isLastEpisode = i == (totalEpisodes - 1);
+                        episodes.add(Episode.create(
+                                saved,
+                                i + 1,
+                                scheduledAt,
+                                nextEpScheduledAt,
+                                isLastEpisode
+                        ));
+                    }
                 }
                 episodeRepository.saveAll(episodes);
 
@@ -320,15 +346,20 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
             Episode oldLastEpisode = episodes.get(episodes.size() - 1);
             oldLastEpisode.setIsLastEpisode(false);
 
-            //=== 애니메이션의 airTime 기준 시각으로 에피소드 생성 ===//
+            //=== 애니메이션의 dayOfWeek, airTime 기준 시각으로 에피소드 생성 ===//
+            DayOfWeekShort dayOfWeek = anime.getDayOfWeek();
             LocalTime airTime = anime.getAirTime();
-            int diff = newTotal - oldTotal;
+            if (dayOfWeek.getValue() > 7 || airTime == null) {
+                throw new AnimeHandler(ErrorStatus.TVA_DIRECTION_NOT_SET);
+            }
+
+            LocalDateTime nextEpScheduledAt = oldLastEpisode.getNextEpScheduledAt();
             LocalDateTime scheduledAt = LocalDateTime.of(
-                    oldLastEpisode.getNextEpScheduledAt().toLocalDate(),
+                    adjustDateByDayOfWeek(nextEpScheduledAt, dayOfWeek),
                     airTime
             );
 
-            LocalDateTime nextEpScheduledAt;
+            int diff = newTotal - oldTotal;
             for (int i = 0; i < diff; i++) {
                 int episodeNumber = oldTotal + i + 1;
                 nextEpScheduledAt = scheduledAt.plusWeeks(1);
@@ -344,7 +375,7 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
 
                 addedEpisodes.add(saved);
 
-                scheduledAt = scheduledAt.plusWeeks(1);
+                scheduledAt = nextEpScheduledAt;
             }
 
         } else {

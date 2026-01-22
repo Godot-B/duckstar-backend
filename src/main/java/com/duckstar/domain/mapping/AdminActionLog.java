@@ -14,6 +14,12 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_admin_action_log_c",
+                        columnList = "created_at")
+        }
+)
 public class AdminActionLog extends BaseEntity {
 
     @Id

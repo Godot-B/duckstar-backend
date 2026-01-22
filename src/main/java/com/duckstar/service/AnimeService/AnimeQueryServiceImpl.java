@@ -16,7 +16,9 @@ import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.web.dto.RankInfoDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
+import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 
 @Service
 @RequiredArgsConstructor
@@ -149,5 +152,22 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
     public Optional<Episode> findCurrentEpisode(Anime anime, LocalDateTime now) {
         return episodeRepository
                 .findEpisodeByAnimeAndScheduledAtLessThanEqualAndNextEpScheduledAtGreaterThan(anime, now, now);
+    }
+
+    @Override
+    public AdminAnimeListDto getAdminAnimeListDto(Long quarterId, Pageable pageable) {
+
+        Page<AdminAnimeDto> items = animeQuarterRepository
+                .getAdminAnimeDtosByQuarterId(quarterId, pageable);
+
+        return AdminAnimeListDto.builder()
+                .adminAnimeDtos(items.getContent())
+                .page(items.getNumber())
+                .size(items.getSize())
+                .totalPages(items.getTotalPages())
+                .totalElements(items.getTotalElements())
+                .isFirst(items.isFirst())
+                .isLast(items.isLast())
+                .build();
     }
 }

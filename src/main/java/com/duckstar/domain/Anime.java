@@ -49,16 +49,21 @@ public class Anime extends BaseEntity {
 
     private String titleEng;
 
+    /**
+     * 에피소드는 벡터와 같다 (단, 1화는 예외가 많으므로 따로 두기: premiereDateTime)
+     *  - 방향: dayOfWeek, airTime
+     *  - 크기: totalEpisodes
+     */
+    private LocalDateTime premiereDateTime;  // 첫 방영 시간
+
+    // 방향 설정: 정규 방송 기준
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)")
     private DayOfWeekShort dayOfWeek;
+    private LocalTime airTime;
 
-    //=== MIGRATION to TIME ===//
-    private LocalTime airTime;  // 정규 방송 시간
-
+    // 크기 설정
     private Integer totalEpisodes;  // TVA 경우 기본 12개
-
-    private LocalDateTime premiereDateTime;  // 첫 방영 시간
 
     @Column(length = 100)
     private String corp;

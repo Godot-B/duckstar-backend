@@ -127,12 +127,12 @@ public class EpisodeQueryServiceImpl implements EpisodeQueryService {
         animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
-        List<EpisodeInfoDto> episodeInfoDtos =
+        List<AdminEpisodeDto> adminEpisodeDtos =
                 episodeRepository.getEpisodeInfoDtosByAnimeId(animeId);
 
         return AdminEpisodeListDto.builder()
-                .episodeTotalCount(episodeInfoDtos.size())
-                .episodeInfoDtos(episodeInfoDtos)
+                .episodeTotalCount(adminEpisodeDtos.size())
+                .adminEpisodeDtos(adminEpisodeDtos)
                 .build();
     }
 

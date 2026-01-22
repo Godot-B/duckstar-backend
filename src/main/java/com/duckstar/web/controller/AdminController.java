@@ -10,6 +10,7 @@ import com.duckstar.security.MemberPrincipal;
 import com.duckstar.security.service.ShadowBanService;
 import com.duckstar.service.AdminActionLogService;
 import com.duckstar.service.AnimeService.AnimeCommandService;
+import com.duckstar.service.AnimeService.AnimeQueryService;
 import com.duckstar.service.ChartService;
 import com.duckstar.service.EpisodeService.EpisodeCommandService;
 import com.duckstar.service.EpisodeService.EpisodeQueryService;
@@ -54,24 +55,30 @@ public class AdminController {
     private final WeekService weekService;
     private final EpisodeQueryService episodeQueryService;
     private final EpisodeCommandService episodeCommandService;
+    private final AnimeQueryService animeQueryService;
 
     @Operation(summary = "매니저 관리 로그 조회 API", description = "커서 기반 무한 스크롤")
     @GetMapping("/logs")
     public ApiResponse<ManagementLogSliceDto> getAdminLogsOnIpManagement(
-            @ParameterObject @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam ManageFilterType filterType
+            @RequestParam ManageFilterType filterType,
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable
     ) {
         return ApiResponse.onSuccess(
-                adminActionLogService.getManagementLogs(pageable, filterType));
+                adminActionLogService.getManagementLogs(filterType, pageable));
     }
 
     /**
      * 애니메이션 데이터 관리
      */
+    // 모든 분기 조회 API : GET /api/v1/search/quarters 재사용
+
     @GetMapping("/animes")
-    public ApiResponse<Void> getAnimes() {
-        //TODO 페이징 필요
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<AdminAnimeListDto> getAnimes(
+            @RequestParam Long quarterId,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ApiResponse.onSuccess(
+                animeQueryService.getAdminAnimeListDto(quarterId, pageable));
     }
 
     @Operation(summary = "애니메이션 등록 API")

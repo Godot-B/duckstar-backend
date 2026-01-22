@@ -7,6 +7,7 @@ import com.duckstar.apiPayload.exception.handler.MemberHandler;
 import com.duckstar.domain.Anime;
 import com.duckstar.domain.Member;
 import com.duckstar.domain.enums.AdminTaskType;
+import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.mapping.AdminActionLog;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import static com.duckstar.domain.enums.DayOfWeekShort.adjustDateByDayOfWeek;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
 import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 import static com.duckstar.web.dto.admin.EpisodeRequestDto.*;
@@ -244,25 +246,27 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
-        LocalTime airTime = anime.getAirTime();
-        if (airTime == null) {
-            throw new AnimeHandler(ErrorStatus.ANIME_AIR_TIME_NOT_SET);
-        }
-
         int episodeNumber = 1;
         LocalDateTime scheduledAt;
 
         List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(animeId);
         if (!episodes.isEmpty()) {
+            DayOfWeekShort dayOfWeek = anime.getDayOfWeek();
+            LocalTime airTime = anime.getAirTime();
+            if (dayOfWeek.getValue() > 7 || airTime == null) {
+                throw new AnimeHandler(ErrorStatus.TVA_DIRECTION_NOT_SET);
+            }
+
             Episode oldLast = episodes.get(episodes.size() - 1);
             oldLast.setIsLastEpisode(false);
 
             episodeNumber = oldLast.getEpisodeNumber() + 1;
             scheduledAt = LocalDateTime.of(
-                    oldLast.getScheduledAt().toLocalDate(),
+                    adjustDateByDayOfWeek(oldLast.getNextEpScheduledAt(), dayOfWeek),
                     airTime
             );
         } else {
+            // 에피소드가 없다면 첫 방영시간 기준의 1화부터 생성
             scheduledAt = anime.getPremiereDateTime();
         }
 

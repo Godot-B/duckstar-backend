@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 
@@ -26,7 +27,7 @@ public class AnimeRequestDto {
         @NotNull
         Medium medium;
 
-        String airTime;     // 문자열, 입력 시 프론트에서 아래 방영일에 우선 채워줌
+        LocalTime airTime;     // 문자열, 입력 시 프론트에서 아래 방영일에 우선 채워줌
         LocalDateTime premiereDateTime;  // 입력 시 프론트에서 아래 요일에 우선 채워줌
         DayOfWeekShort dayOfWeek;
         Integer totalEpisodes;
