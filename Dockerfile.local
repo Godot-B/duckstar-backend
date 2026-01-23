@@ -1,8 +1,8 @@
-FROM public.ecr.aws/docker/library/eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# 1. 보안을 위한 실행 유저 추가 (alpine 기준)
-RUN addgroup -S spring && adduser -S spring -G spring
+# 1. 보안을 위한 실행 유저 추가 (Ubuntu/Debian 기준)
+RUN groupadd -r spring && useradd -r -g spring spring
 USER spring:spring
 
 # 2. 빌드 아티팩트 복사
