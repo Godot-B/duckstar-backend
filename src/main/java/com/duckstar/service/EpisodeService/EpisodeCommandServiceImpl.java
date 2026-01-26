@@ -16,6 +16,7 @@ import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.security.repository.MemberRepository;
 import com.duckstar.service.AdminActionLogService;
 import com.duckstar.service.CommentService;
+import com.duckstar.util.QuarterUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.duckstar.domain.enums.DayOfWeekShort.adjustDateByDayOfWeek;
+import static com.duckstar.domain.enums.DayOfWeekShort.adjustTimeByDirection;
 import static com.duckstar.web.dto.EpisodeResponseDto.*;
+import static com.duckstar.web.dto.admin.AdminLogDto.*;
 import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 import static com.duckstar.web.dto.admin.EpisodeRequestDto.*;
 
@@ -52,7 +55,7 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
     }
 
     @Override
-    public EpisodeManageResultDto modifyEpisode(
+    public List<ManagerProfileDto> modifyEpisode(
             Long memberId,
             Long episodeId,
             ModifyRequestDto request
@@ -63,37 +66,33 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         Episode targetEp = episodeRepository.findById(episodeId).orElseThrow(() ->
                 new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
 
-        AdminActionLog adminActionLog = null;
+        List<AdminActionLog> logs = new ArrayList<>();
 
         //=== 에피소드 회차 수정 ===//
         Integer episodeNumber = request.getEpisodeNumber();
-        if (episodeNumber != null) {
+        if (episodeNumber != null && !episodeNumber.equals(targetEp.getEpisodeNumber())) {
             targetEp.setEpisodeNumber(episodeNumber);
 
-            // 로그 기록
-            adminActionLog = adminActionLogService.saveAdminActionLog(
-                    member, targetEp, AdminTaskType.EPISODE_MODIFY_NUMBER);
+            logs.add(adminActionLogService.saveAdminActionLog(
+                    member, targetEp, AdminTaskType.EPISODE_MODIFY_NUMBER));
         }
 
         //=== 에피소드 방영 시간 수정 ===//
         LocalDateTime rescheduledAt = request.getRescheduledAt();
-        if (rescheduledAt != null) {
+        if (rescheduledAt != null && !rescheduledAt.equals(targetEp.getScheduledAt())) {
             List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(targetEp.getAnime().getId());
             int idx = episodes.indexOf(targetEp);
 
             // 시간 수정 및 앞뒤 간격 검증
             validateAndReschedule(episodes, idx, rescheduledAt);
 
-            adminActionLog = adminActionLogService.saveAdminActionLog(
-                    member, targetEp, AdminTaskType.EPISODE_RESCHEDULE);
+            logs.add(adminActionLogService.saveAdminActionLog(
+                    member, targetEp, AdminTaskType.EPISODE_RESCHEDULE));
         }
 
-        return EpisodeManageResultDto.toResultDto(
-                null,
-                null,
-                member,
-                adminActionLog
-        );
+        return logs.stream()
+                .map(log -> ManagerProfileDto.of(member, log))
+                .toList();
     }
 
     private void validateAndReschedule(List<Episode> episodes, int idx, LocalDateTime rescheduledAt) {
@@ -183,15 +182,17 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
     }
 
     @Override
-    public EpisodeManageResultDto deleteEpisode(Long memberId, Long episodeId) {
+    public ManagerProfileDto deleteMoreThanNextWeekEpisode(
+            Long memberId, Long episodeId, LocalDateTime baseTime) {
         Member member = memberRepository.findById(memberId).orElseThrow(() ->
                 new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         Episode targetEp = episodeRepository.findById(episodeId).orElseThrow(() ->
                 new EpisodeHandler(ErrorStatus.EPISODE_NOT_FOUND));
 
-        if (targetEp.getVoterCount() > 0 || animeCommentRepository.existsByEpisode(targetEp)) {
-            throw new EpisodeHandler(ErrorStatus.CANNOT_DELETE_EPISODE);
+        LocalDateTime nextWeekStartedAt = QuarterUtil.getThisWeekStartedAt(baseTime).plusWeeks(1);
+        if (targetEp.getScheduledAt().isBefore(nextWeekStartedAt)) {
+            throw new EpisodeHandler(ErrorStatus.CANNOT_DELETE_CURRENT_OR_BEFORE_EPISODE);
         }
 
         Anime anime = targetEp.getAnime();
@@ -200,6 +201,14 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         //=== 에피소드 삭제를 위한 일정 변경 ===//
         List<Episode> episodes = episodeRepository.findEpisodesByReleaseOrderByAnimeId(animeId);
         int idx = episodes.indexOf(targetEp);
+
+        Integer episodeNumber = targetEp.getEpisodeNumber();
+        LocalDateTime scheduledAt = targetEp.getScheduledAt();
+
+        episodeRepository.delete(targetEp);
+        episodeRepository.flush(); // delete 를 업데이트보다 먼저하기 위해
+        // ** 이유: JPA의 Flush 기본 순서는 업데이트가 딜리트보다 먼저이므로 아래에서 UK 제약조건 오류 발생
+
         if (idx == episodes.size() - 1) {
             /* tail 이면 단순 삭제 */
             if (idx > 0) {
@@ -207,20 +216,18 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
             }
         } else {
             // tail이 아니면 뒤에 오는 회차 번호와 시간 모두 앞으로 당기기
-            Integer episodeNumber = targetEp.getEpisodeNumber();
-            LocalDateTime scheduledAt = targetEp.getScheduledAt();
             for (int i = idx + 1; i < episodes.size(); i++) {
+                LocalDateTime nextEpScheduledAt = scheduledAt.plusWeeks(1);
+
                 Episode current = episodes.get(i);
                 current.setEpisodeNumber(episodeNumber);
                 current.setScheduledAt(scheduledAt);
-                current.setNextEpScheduledAt(scheduledAt.plusWeeks(1));
+                current.setNextEpScheduledAt(nextEpScheduledAt);
 
                 episodeNumber += 1;
                 scheduledAt = scheduledAt.plusWeeks(1);
             }
         }
-
-        episodeRepository.delete(targetEp);
 
         // 애니메이션 totalEpisodes 변경
         Integer totalEpisodes = anime.getTotalEpisodes();
@@ -228,14 +235,9 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
 
         // 로그 기록
         AdminActionLog adminActionLog = adminActionLogService.saveAdminActionLog(
-                member, targetEp, AdminTaskType.EPISODE_DELETE);
+                member, anime, AdminTaskType.FUTURE_EPISODE_DELETE);
 
-        return EpisodeManageResultDto.toResultDto(
-                null,
-                List.of(EpisodeDto.of(targetEp)),
-                member,
-                adminActionLog
-        );
+        return ManagerProfileDto.of(member, adminActionLog);
     }
 
     @Override
@@ -253,7 +255,8 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
         if (!episodes.isEmpty()) {
             DayOfWeekShort dayOfWeek = anime.getDayOfWeek();
             LocalTime airTime = anime.getAirTime();
-            if (dayOfWeek.getValue() > 7 || airTime == null) {
+            boolean hasNoDirection = dayOfWeek.getValue() > 7 || airTime == null;
+            if (hasNoDirection) {
                 throw new AnimeHandler(ErrorStatus.TVA_DIRECTION_NOT_SET);
             }
 
@@ -261,10 +264,12 @@ public class EpisodeCommandServiceImpl implements EpisodeCommandService {
             oldLast.setIsLastEpisode(false);
 
             episodeNumber = oldLast.getEpisodeNumber() + 1;
-            scheduledAt = LocalDateTime.of(
-                    adjustDateByDayOfWeek(oldLast.getNextEpScheduledAt(), dayOfWeek),
+            scheduledAt = adjustTimeByDirection(
+                    oldLast.getNextEpScheduledAt(),
+                    dayOfWeek,
                     airTime
             );
+
         } else {
             // 에피소드가 없다면 첫 방영시간 기준의 1화부터 생성
             scheduledAt = anime.getPremiereDateTime();
