@@ -7,6 +7,14 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 
+///  한 주는 월요일 ~ 일요일 이지만
+///  실제로는 [월요일 18시, 월요일 18시) 이며 [포함, 배제) 이다.
+///
+///  ex1) [23-09-25 (월 18시), 23-10-02 (월 18시)) 은 23년 4분기 1주차 이며 (다음 분기 하루 포함),
+///       [23-10-02 (월 18시), 23-10-09 (월 18시)) 은 23년 4분기 2주차 이다.
+///
+///  ex2) [23-12-25 (월 18시), 24-01-01 (월 18시)) 은 23년 4분기 14주차 이며 (다음 분기 하루도 포함하지 않음),
+///       [24-01-01 (월 18시), 24-01-08 (월 18시)) 은 24년 1분기 1주차 이다.
 public class QuarterUtil {
     private static final int ANCHOR_HOUR = 18;
 
@@ -53,7 +61,7 @@ public class QuarterUtil {
      * time 이 속한 "비즈니스 분기"의 (연도, 분기, 앵커 시작시각)을 판정
      * 구간 정의: [anchor(y,q), anchor(y',q'))  (좌측 포함, 우측 배타)
      */
-    public static AnchorInfo resolveAnchor(LocalDateTime time) {
+    private static AnchorInfo resolveAnchor(LocalDateTime time) {
         int y = time.getYear();
         int q = calendarQuarter(time.getMonthValue());
         LocalDateTime currAnchor = anchorForQuarter(y, q);
@@ -96,6 +104,6 @@ public class QuarterUtil {
         // 예: 18:00 이전이면 전날로 판정되게끔 18시간 빼기
         LocalDate businessDate = time.minusHours(ANCHOR_HOUR).toLocalDate();
         LocalDate monday = businessDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        return LocalDateTime.of(monday, LocalTime.of(18, 0));
+        return LocalDateTime.of(monday, LocalTime.of(ANCHOR_HOUR, 0));
     }
 }

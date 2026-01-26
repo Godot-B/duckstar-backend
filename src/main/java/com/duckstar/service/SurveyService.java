@@ -102,7 +102,7 @@ public class SurveyService {
                 .surveyId(survey.getId())
                 .hasVoted(hasVoted)
                 .status(survey.getStatus())
-                .year(survey.getYear())
+                .year(survey.getYearValue())
                 .type(survey.getSurveyType())
                 .startDateTime(survey.getStartDateTime())
                 .endDateTime(survey.getEndDateTime())

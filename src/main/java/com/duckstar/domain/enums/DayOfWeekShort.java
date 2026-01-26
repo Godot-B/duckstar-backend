@@ -1,7 +1,6 @@
 package com.duckstar.domain.enums;
 
 import java.time.DateTimeException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -23,9 +22,14 @@ public enum DayOfWeekShort {
         return ordinal() + 1;
     }
 
-    public static LocalDate adjustDateByDayOfWeek(LocalDateTime localDateTime, DayOfWeekShort dayOfWeekShort) {
-        int daysDiff = localDateTime.getDayOfWeek().getValue() - dayOfWeekShort.getValue();
-        return localDateTime.plusDays(daysDiff).toLocalDate();
+    public static LocalDateTime adjustTimeByDirection(
+            LocalDateTime time,
+            DayOfWeekShort dayOfWeekShort,
+            LocalTime airTime
+    ) {
+        LocalDateTime shiftedTime = time.minusHours(NIGHT_OFFSET);
+        int daysDiff = dayOfWeekShort.getValue() - shiftedTime.getDayOfWeek().getValue();
+        return shiftedTime.plusDays(daysDiff).with(airTime);
     }
 
     public static DayOfWeekShort of(int dayOfWeek) {

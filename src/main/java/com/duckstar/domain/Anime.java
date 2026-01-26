@@ -17,6 +17,8 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.duckstar.domain.enums.DayOfWeekShort.adjustTimeByDirection;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -51,8 +53,8 @@ public class Anime extends BaseEntity {
 
     /**
      * 에피소드는 벡터와 같다 (단, 1화는 예외가 많으므로 따로 두기: premiereDateTime)
-     *  - 방향: dayOfWeek, airTime
-     *  - 크기: totalEpisodes
+     * - 방향: dayOfWeek, airTime
+     * - 크기: totalEpisodes
      */
     private LocalDateTime premiereDateTime;  // 첫 방영 시간
 
@@ -104,7 +106,36 @@ public class Anime extends BaseEntity {
 
     private Integer weeksOnTop10;
 
-    public void setStatus(AnimeStatus status) { this.status = status; }
+    public void setStatus(AnimeStatus status) {
+        this.status = status;
+    }
+
+    public void setStatusWhenCreateByBase(LocalDateTime base) {
+        status = AnimeStatus.UPCOMING;
+        if (premiereDateTime != null) {
+            boolean isPremiered = !base.isBefore(premiereDateTime);
+            if (isPremiered) {
+                status = AnimeStatus.NOW_SHOWING;
+            }
+
+            if (medium == Medium.TVA) {
+                LocalDateTime lastEpScheduledAt = premiereDateTime.plusWeeks(totalEpisodes - 1);
+                boolean hasDirection = dayOfWeek.getValue() <= 7 && airTime != null;
+                if (hasDirection) {
+                    lastEpScheduledAt = adjustTimeByDirection(
+                            lastEpScheduledAt,
+                            dayOfWeek,
+                            airTime
+                    );
+                }
+
+                boolean isLastEpAired = !base.isBefore(lastEpScheduledAt.plusMinutes(24));
+                if (isLastEpAired) {
+                    status = AnimeStatus.ENDED;
+                }
+            }
+        }
+    }
 
     public void initRankInfo(Integer debutRank, LocalDate debutDate) {
         this.lastRank = debutRank;
@@ -133,5 +164,14 @@ public class Anime extends BaseEntity {
 
     public void setTotalEpisodes(Integer totalEpisodes) {
         this.totalEpisodes = totalEpisodes;
+    }
+
+    public void setDirection(DayOfWeekShort dayOfWeek, LocalTime airTime) {
+        this.dayOfWeek = dayOfWeek != null && dayOfWeek.getValue() <= 7 ? dayOfWeek : this.dayOfWeek;
+        this.airTime = airTime != null ? airTime : this.airTime;
+    }
+
+    public void setCorp(String corp) {
+        this.corp = corp;
     }
 }

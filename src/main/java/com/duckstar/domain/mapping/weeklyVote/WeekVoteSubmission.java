@@ -4,7 +4,6 @@ import com.duckstar.domain.Member;
 import com.duckstar.domain.Week;
 import com.duckstar.domain.common.BaseEntity;
 import com.duckstar.domain.enums.ContentType;
-import com.duckstar.domain.enums.Gender;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -56,9 +55,6 @@ public class WeekVoteSubmission extends BaseEntity {
     @Column(length = 80, nullable = false)
     private String principalKey;
 
-//    @Enumerated(EnumType.STRING)
-//    private Gender gender;  // 일반 투표 방식에서 필요
-
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(10)", nullable = false)
     private ContentType category;
@@ -72,7 +68,6 @@ public class WeekVoteSubmission extends BaseEntity {
             String userAgent,
             String fpHash,
             String principalKey,
-//            Gender gender,
             ContentType category
     ) {
         this.isBlocked = isBlocked;
@@ -83,7 +78,6 @@ public class WeekVoteSubmission extends BaseEntity {
         this.userAgent = userAgent;
         this.fpHash = fpHash;
         this.principalKey = principalKey;
-//        this.gender = gender;
         this.category = category;
     }
 
@@ -96,7 +90,6 @@ public class WeekVoteSubmission extends BaseEntity {
             String userAgent,
             String fpHash,
             String principalKey,
-//            Gender gender,
             ContentType category
     ) {
         return new WeekVoteSubmission(
@@ -108,7 +101,6 @@ public class WeekVoteSubmission extends BaseEntity {
                 userAgent,
                 fpHash,
                 principalKey,
-//                gender,
                 category
         );
     }

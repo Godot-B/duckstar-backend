@@ -320,22 +320,28 @@ public class VoteCommandServiceImpl implements VoteCommandService {
             episodeStar = episodeStarRepository.findById(episodeStarId).orElseThrow(() ->
                     new VoteHandler(ErrorStatus.STAR_NOT_FOUND));
             boolean isBlocked = episodeStar.getWeekVoteSubmission().isBlocked();
+
+            Integer oldStarScore = episodeStar.getStarScore();
             Integer newStarScore = request.getStarScore();
 
-            //=== 표 수정 권한 검증 ===//
-            boolean isProperEpisode = episodeStar.getEpisode()
-                    .equals(episode);
+            // 다를 때만 별점 반영
+            if (!Objects.equals(oldStarScore, newStarScore)) {
 
-            String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
-            boolean isProperVoter = episodeStar.getWeekVoteSubmission().getPrincipalKey()
-                    .equals(principalKey);
+                //=== 표 수정 권한 검증 ===//
+                boolean isProperEpisode = episodeStar.getEpisode()
+                        .equals(episode);
 
-            if (!isProperEpisode || !isProperVoter) {
-                throw new AuthHandler(ErrorStatus.STAR_UNAUTHORIZED);
+                String principalKey = voteCookieManager.toPrincipalKey(memberId, cookieId);
+                boolean isProperVoter = episodeStar.getWeekVoteSubmission().getPrincipalKey()
+                        .equals(principalKey);
+
+                if (!isProperEpisode || !isProperVoter) {
+                    throw new AuthHandler(ErrorStatus.STAR_UNAUTHORIZED);
+                }
+
+                // 별점 반영
+                episodeStar.updateStarScore(isBlocked, newStarScore);
             }
-
-            // 별점 반영
-            episodeStar.updateStarScore(isBlocked, newStarScore);
 
         } else {
             //=== 제출 및 투표 ===//
@@ -456,24 +462,25 @@ public class VoteCommandServiceImpl implements VoteCommandService {
             episodeStar = episodeStarRepository.findById(episodeStarId).orElseThrow(() ->
                     new VoteHandler(ErrorStatus.STAR_NOT_FOUND));
             boolean isBlocked = episodeStar.getWeekVoteSubmission().isBlocked();
-            Integer newStarScore = request.getStarScore();
-
-            //=== 표 수정 권한 검증 ===//
-            boolean isProperEpisode = episodeStar.getEpisode()
-                    .equals(episode);
-
-            String principalKey = voteCookieManager.toPrincipalKey(memberId, null);
-            boolean isProperVoter = episodeStar.getWeekVoteSubmission().getPrincipalKey()
-                    .equals(principalKey);
-
-            if (!isProperEpisode || !isProperVoter) {
-                throw new AuthHandler(ErrorStatus.STAR_UNAUTHORIZED);
-            }
 
             Integer oldStarScore = episodeStar.getStarScore();
+            Integer newStarScore = request.getStarScore();
 
-            // 다를 때만 별점 반영 (updated_at 제공 때문에)
+            // 다를 때만 별점 반영
             if (!Objects.equals(oldStarScore, newStarScore)) {
+
+                //=== 표 수정 권한 검증 ===//
+                boolean isProperEpisode = episodeStar.getEpisode()
+                        .equals(episode);
+
+                String principalKey = voteCookieManager.toPrincipalKey(memberId, null);
+                boolean isProperVoter = episodeStar.getWeekVoteSubmission().getPrincipalKey()
+                        .equals(principalKey);
+
+                if (!isProperEpisode || !isProperVoter) {
+                    throw new AuthHandler(ErrorStatus.STAR_UNAUTHORIZED);
+                }
+
                 episodeStar.updateStarScore(isBlocked, newStarScore);
             }
 

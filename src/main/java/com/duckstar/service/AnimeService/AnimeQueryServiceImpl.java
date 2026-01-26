@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.duckstar.web.dto.AnimeResponseDto.*;
+import static com.duckstar.web.dto.RankInfoDto.*;
 import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 
 @Service
@@ -43,7 +44,7 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
     private final AnilabRepository anilabRepository;
 
     @Override
-    public List<RankInfoDto.DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
+    public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
         List<Episode> episodes =
                 episodeRepository.findEpisodesByWeekOrdered(
                         weekId,
@@ -51,12 +52,12 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
                 );
 
         return episodes.stream()
-                .map(RankInfoDto.DuckstarRankPreviewDto::of)
+                .map(DuckstarRankPreviewDto::of)
                 .toList();
     }
 
     @Override
-    public List<RankInfoDto.RankPreviewDto> getAnimeCornerPreviewsByWeekId(Long weekId, int size) {
+    public List<RankPreviewDto> getAnimeCornerPreviewsByWeekId(Long weekId, int size) {
         List<AnimeCorner> animeCorners =
                 animeCornerRepository.findAllByWeek_Id(
                         weekId,
@@ -64,12 +65,12 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
                 );
 
         return animeCorners.stream()
-                .map(RankInfoDto.RankPreviewDto::of)
+                .map(RankPreviewDto::of)
                 .toList();
     }
 
     @Override
-    public List<RankInfoDto.RankPreviewDto> getAnilabPreviewsByWeekId(Long weekId, int size) {
+    public List<RankPreviewDto> getAnilabPreviewsByWeekId(Long weekId, int size) {
         List<Anilab> anilabs =
                 anilabRepository.findAllByWeek_Id(
                         weekId,
@@ -77,7 +78,7 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
                 );
 
         return anilabs.stream()
-                .map(RankInfoDto.RankPreviewDto::of)
+                .map(RankPreviewDto::of)
                 .toList();
     }
 

@@ -1,56 +1,60 @@
 package com.duckstar.util;
 
-import com.duckstar.TestContainersConfig;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 
+import static com.duckstar.util.QuarterUtil.*;
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
-@Disabled("로컬 개발용 테스트")
-@ActiveProfiles("test")
-public class QuarterUtilTest extends TestContainersConfig {
-
+public class QuarterUtilTest {
+    ///  한 주는 월요일 ~ 일요일 이지만
+    ///  실제로는 [월요일 18시, 월요일 18시) 이며 [포함, 배제) 이다.
+    ///
+    ///  ex1) [23-09-25 (월 18시), 23-10-02 (월 18시)) 은 23년 4분기 1주차 이며 (다음 분기 하루 포함),
+    ///       [23-10-02 (월 18시), 23-10-09 (월 18시)) 은 23년 4분기 2주차 이다.
+    ///
+    ///  ex2) [23-12-25 (월 18시), 24-01-01 (월 18시)) 은 23년 4분기 14주차 이며 (다음 분기 하루도 포함하지 않음),
+    ///       [24-01-01 (월 18시), 24-01-08 (월 18시)) 은 24년 1분기 1주차 이다.
     @Test
-    void testQ1Anchor() {
-        // 2022 Q4 시작 anchor = 9/30 19:00
-        LocalDateTime anchor = QuarterUtil.resolveAnchor(LocalDateTime.of(2023,1,1,0,0))
-                .anchorStart();
-        assertThat(anchor).isEqualTo(LocalDateTime.of(2022,9,30,19,0));
+    public void 주_시작일_경계_테스트() {
+        LocalDateTime monday18H = LocalDateTime
+                .of(2023, 12, 25, 18, 0);
+
+        // 월요일 18시가 주 시작일이 맞는지 테스트
+        LocalDateTime thisWeekStartedAt = getThisWeekStartedAt(monday18H);
+        assertThat(thisWeekStartedAt).isEqualTo(monday18H);
+
+        // 1분이라도 앞선 시간은 이전 주 시작일
+        LocalDateTime lastWeekStartedAt = getThisWeekStartedAt(monday18H.minusMinutes(1));
+        assertThat(lastWeekStartedAt).isEqualTo(monday18H.minusWeeks(1));
     }
 
     @Test
-    void testQ2Anchor() {
-        // 2023 Q2 시작 anchor = 3/31 19:00
-        LocalDateTime anchor = QuarterUtil.resolveAnchor(LocalDateTime.of(2023,4,1,0,0))
-                .anchorStart();
-        assertThat(anchor).isEqualTo(LocalDateTime.of(2023,3,31,19,0));
-    }
+    public void 레코드_경계_테스트() {
+        // 23-12-25 (월) 17:59
+        //  -> 23년 4분기 13주차
+        YQWRecord r1 = getThisWeekRecord(LocalDateTime.of(2023,12,25,17,59));
+        assertThat(r1.yearValue()).isEqualTo(2023);
+        assertThat(r1.quarterValue()).isEqualTo(4);
+        assertThat(r1.weekValue()).isEqualTo(13);
 
-    @Test
-    void testBoundary() {
-        // 3/31 18:59 → Q1 마지막 주
-        var r1 = QuarterUtil.getThisWeekRecord(LocalDateTime.of(2023,3,31,18,59));
-        assertThat(r1.quarterValue()).isEqualTo(1);
+        // 23-12-25 (월) 18:00 ~ 24-01-01 (월) 17:59
+        //  -> 같은 23년 4분기 14주차
+        YQWRecord r2 = getThisWeekRecord(LocalDateTime.of(2023,12,25,18,0));
+        YQWRecord r3 = getThisWeekRecord(LocalDateTime.of(2024,1,1,17,59));
+        assertThat(r3.yearValue()).isEqualTo(r2.yearValue());
+        assertThat(r3.quarterValue()).isEqualTo(r2.quarterValue());
+        assertThat(r3.weekValue()).isEqualTo(r2.weekValue());
+        assertThat(r2.yearValue()).isEqualTo(2023);
+        assertThat(r2.quarterValue()).isEqualTo(4);
+        assertThat(r2.weekValue()).isEqualTo(14);
 
-        // 3/31 19:00 → Q2 첫째 주
-        var r2 = QuarterUtil.getThisWeekRecord(LocalDateTime.of(2023,3,31,19,0));
-        assertThat(r2.quarterValue()).isEqualTo(2);
-        assertThat(r2.weekValue()).isEqualTo(1);
-    }
-
-    @Test
-    void testWeekProgression() {
-        // Q1 anchor = 1/6 19:00 → week 1
-        var r1 = QuarterUtil.getThisWeekRecord(LocalDateTime.of(2023,1,6,19,0));
-        assertThat(r1.weekValue()).isEqualTo(1);
-
-        // +7일 → week 2
-        var r2 = QuarterUtil.getThisWeekRecord(LocalDateTime.of(2023,1,13,20,0));
-        assertThat(r2.weekValue()).isEqualTo(2);
+        // 24-01-01 (월) 18:00
+        //  -> 24년 1분기 1주차
+        YQWRecord r4 = getThisWeekRecord(LocalDateTime.of(2024,1,1,18,0));
+        assertThat(r4.yearValue()).isEqualTo(2024);
+        assertThat(r4.quarterValue()).isEqualTo(1);
+        assertThat(r4.weekValue()).isEqualTo(1);
     }
 }

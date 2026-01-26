@@ -43,7 +43,7 @@ public class AdminActionLog extends BaseEntity {
     private Episode episode;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(15)")
+    @Column(columnDefinition = "varchar(50)")
     private AdminTaskType adminTaskType;
 
     @Column(length = 64)

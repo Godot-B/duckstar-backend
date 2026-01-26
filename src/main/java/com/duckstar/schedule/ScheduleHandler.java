@@ -1,6 +1,7 @@
 package com.duckstar.schedule;
 
 import com.duckstar.domain.Quarter;
+import com.duckstar.domain.Week;
 import com.duckstar.service.AnimeService.AnimeCommandService;
 import com.duckstar.service.QuarterService;
 import com.duckstar.service.SurveyService;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -44,26 +44,29 @@ public class ScheduleHandler {
     // 매주 월요일 18시
     @Scheduled(cron = "0 0 18 * * MON")
     public void startNewWeek() {
-
-        // ** 어드민 모드와의 상태 충돌 해소 플래그 없음 주의
-
-        LocalDateTime nowWithAnchorHour = LocalDateTime.of(
-                LocalDate.now(),
-                LocalTime.of(ANCHOR_HOUR, 0)
-        );
+        LocalDateTime nowWithAnchorHour = LocalDateTime.now().with(
+                LocalTime.of(ANCHOR_HOUR, 0));
 
         // 새로운 주 생성
-        YQWRecord record = getThisWeekRecord(nowWithAnchorHour);
-        getOrCreateQuarterAndWeek(record, getThisWeekStartedAt(nowWithAnchorHour));
+        getSafeWeekByTime(nowWithAnchorHour);
     }
 
     // 파사드
-    public void getOrCreateQuarterAndWeek(YQWRecord record, LocalDateTime weekStartedAt) {
-        int yearValue = record.yearValue();
+    public Week getSafeWeekByTime(LocalDateTime time) {
+        LocalDateTime weekStartedAt = getThisWeekStartedAt(time);
 
-        Quarter quarter = quarterService.getOrCreateQuarter(yearValue, record.quarterValue());
+        YQWRecord record = getThisWeekRecord(weekStartedAt);
 
-        weekService.getOrCreateWeek(record, weekStartedAt,quarter);
+        Quarter quarter = quarterService.getOrCreateQuarter(
+                record.yearValue(),
+                record.quarterValue()
+        );
+
+        return weekService.getOrCreateWeek(
+                quarter,
+                record.weekValue(),
+                weekStartedAt
+        );
     }
 
     /**

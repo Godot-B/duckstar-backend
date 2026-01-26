@@ -1,15 +1,17 @@
 package com.duckstar.service.AnimeService;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.duckstar.web.dto.admin.AnimeRequestDto.*;
+import static com.duckstar.web.dto.admin.AdminLogDto.*;
 import static com.duckstar.web.dto.admin.ContentResponseDto.*;
-import static com.duckstar.web.dto.admin.EpisodeRequestDto.*;
 
 public interface AnimeCommandService {
     void updateStatesByWindows();
 
-    Long addAnime(PostRequestDto request) throws IOException;
+    Long createAnime(Long memberId, PostRequestDto request) throws IOException;
 
     Long updateAnimeImage(Long animeId, ImageRequestDto request) throws IOException;
 
@@ -20,4 +22,6 @@ public interface AnimeCommandService {
     );
 
     EpisodeManageResultDto setUnknown(Long memberId, Long animeId);
+
+    List<ManagerProfileDto> updateInfo(Long memberId, Long animeId, InfoRequestDto request, LocalDateTime now);
 }

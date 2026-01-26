@@ -22,4 +22,13 @@ public class Ott extends BaseEntity {
 
     @Column(nullable = false)
     private Integer typeOrder;
+
+    private Ott(OttType type, Integer typeOrder) {
+        this.type = type;
+        this.typeOrder = typeOrder;
+    }
+
+    public static Ott create(OttType type) {
+        return new Ott(type, type.getOrder());
+    }
 }

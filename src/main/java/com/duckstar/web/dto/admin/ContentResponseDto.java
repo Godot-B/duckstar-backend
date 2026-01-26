@@ -22,6 +22,7 @@ public class ContentResponseDto {
     @AllArgsConstructor
     public static class AdminAnimeDto {
         Long animeId;
+
         String titleKor;
         String corp;
         String mainThumbnailUrl;

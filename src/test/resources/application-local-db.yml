@@ -14,7 +14,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-
   security:
     ip-hash:
       key: local-secret-key-1234567890

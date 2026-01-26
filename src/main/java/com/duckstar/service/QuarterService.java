@@ -1,11 +1,10 @@
 package com.duckstar.service;
 
-import com.duckstar.apiPayload.code.status.ErrorStatus;
-import com.duckstar.apiPayload.exception.handler.QuarterHandler;
+import com.duckstar.domain.Anime;
 import com.duckstar.domain.Quarter;
+import com.duckstar.domain.mapping.AnimeQuarter;
+import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.QuarterRepository;
-import com.duckstar.util.QuarterUtil;
-import com.duckstar.web.dto.SearchResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +20,7 @@ import static com.duckstar.web.dto.SearchResponseDto.*;
 @Transactional(readOnly = true)
 public class QuarterService {
     private final QuarterRepository quarterRepository;
+    private final AnimeQuarterRepository animeQuarterRepository;
 
     public List<QuarterResponseDto> getQuarters() {
         return quarterRepository.findAll().stream()
@@ -50,38 +50,43 @@ public class QuarterService {
     }
 
     @Transactional
-    public List<Quarter> getOrCreateQuartersByEdges(
+    public void saveQuartersBetweenEdges(
+            Anime anime,
             YQWRecord firstEpWeekRecord,
             YQWRecord lastEpWeekRecord
     ) {
         YQWRecord currentQuarterRecord = firstEpWeekRecord;
-        if (lastEpWeekRecord == null) {
-            Quarter quarter = getOrCreateQuarter(
-                    currentQuarterRecord.yearValue(),
-                    currentQuarterRecord.quarterValue()
-            );
-            return Collections.singletonList(quarter);
-        }
-
-        // 걸치는 마지막 분기가 특정 분기의 4주차 이상이라면 포함
-        boolean isLastQuarterIncluded = lastEpWeekRecord.weekValue() >= 4;
-        YQWRecord lastQuarterRecord = isLastQuarterIncluded ?
-                lastEpWeekRecord :
-                lastEpWeekRecord.getPreviousQuarterRecord();
-
         List<Quarter> quarters = new ArrayList<>();
-        while (currentQuarterRecord.yearValue() != lastQuarterRecord.yearValue() ||
-                currentQuarterRecord.quarterValue() != lastQuarterRecord.quarterValue()) {
+        quarters.add(
+                getOrCreateQuarter(
+                        currentQuarterRecord.yearValue(),
+                        currentQuarterRecord.quarterValue()
+                )
+        );
 
-            quarters.add(
-                    getOrCreateQuarter(
-                            currentQuarterRecord.yearValue(),
-                            currentQuarterRecord.quarterValue()
-                    )
-            );
+        if (lastEpWeekRecord != null) {
+            // 걸치는 마지막 분기가 특정 분기의 4주차 이상이라면 포함
+            boolean isLastQuarterIncluded = lastEpWeekRecord.weekValue() >= 4;
+            YQWRecord lastQuarterRecord = isLastQuarterIncluded ?
+                    lastEpWeekRecord :
+                    lastEpWeekRecord.getPreviousQuarterRecord();
+            while (currentQuarterRecord.yearValue() != lastQuarterRecord.yearValue() ||
+                    currentQuarterRecord.quarterValue() != lastQuarterRecord.quarterValue()) {
+                currentQuarterRecord = currentQuarterRecord.getNextQuarterRecord();
 
-            currentQuarterRecord = currentQuarterRecord.getNextQuarterRecord();
+                quarters.add(
+                        getOrCreateQuarter(
+                                currentQuarterRecord.yearValue(),
+                                currentQuarterRecord.quarterValue()
+                        )
+                );
+            }
         }
-        return quarters;
+
+        List<AnimeQuarter> animeQuarters = quarters.stream()
+                .map(q -> AnimeQuarter.create(anime, q))
+                .toList();
+
+        animeQuarterRepository.saveAll(animeQuarters);
     }
 }
