@@ -485,10 +485,10 @@ public class EpisodeRepositoryCustomImpl implements EpisodeRepositoryCustom {
     }
 
     @Override
-    public List<EpisodeInfoDto> getEpisodeInfoDtosByAnimeId(Long animeId) {
-        List<EpisodeInfoDto> dtos = queryFactory.select(
+    public List<AdminEpisodeDto> getEpisodeInfoDtosByAnimeId(Long animeId) {
+        List<AdminEpisodeDto> dtos = queryFactory.select(
                         Projections.constructor(
-                                EpisodeInfoDto.class,
+                                AdminEpisodeDto.class,
                                 Projections.constructor(
                                         EpisodeDto.class,
                                         Expressions.as(

@@ -9,10 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-import static com.duckstar.util.QuarterUtil.*;
-import static com.duckstar.util.QuarterUtil.getThisWeekRecord;
-import static com.duckstar.util.QuarterUtil.getThisWeekStartedAt;
-
 @Component
 @RequiredArgsConstructor
 @Profile("!test")
@@ -27,14 +23,10 @@ public class EpisodeStartupInitializer {
 
         // 이번 주 Week 없다면 생성
         LocalDateTime now = LocalDateTime.now();
-        YQWRecord thisWeekRecord = getThisWeekRecord(now);
-        scheduleHandler.getOrCreateQuarterAndWeek(
-                thisWeekRecord, getThisWeekStartedAt(now));
+        scheduleHandler.getSafeWeekByTime(now);
 
         // 지난 주 Week 없다면 생성
         LocalDateTime nowMinusWeek = LocalDateTime.now().minusWeeks(1);
-        YQWRecord lastWeekRecord = getThisWeekRecord(nowMinusWeek);
-        scheduleHandler.getOrCreateQuarterAndWeek(
-                lastWeekRecord, getThisWeekStartedAt(nowMinusWeek));
+        scheduleHandler.getSafeWeekByTime(nowMinusWeek);
     }
 }

@@ -33,7 +33,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 애니메이션
     ANIME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ANIME4001", "존재하지 않는 애니메이션입니다."),
-    ANIME_AIR_TIME_NOT_SET(HttpStatus.BAD_REQUEST, "ANIME4002", "애니메이션의 정규 방영 시간이 정해지지 않았습니다."),
+    TVA_DIRECTION_NOT_SET(HttpStatus.BAD_REQUEST, "ANIME4002", "애니메이션의 정규 방영 요일or시간이 정해지지 않았습니다."),
 
     // 캐릭터
     CHARACTER_NOT_FOUND(HttpStatus.BAD_REQUEST, "CHARACTER4001", "존재하지 않는 캐릭터입니다."),
@@ -42,6 +42,7 @@ public enum ErrorStatus implements BaseErrorCode {
     EPISODE_NOT_FOUND(HttpStatus.BAD_REQUEST, "EPISODE4001", "존재하지 않는 에피소드입니다."),
     CANNOT_DELETE_EPISODE(HttpStatus.BAD_REQUEST, "EPISODE4002", "이미 투표를 받았거나 관련 댓글이 있어서 지울 수 없습니다. 개발팀에 문의하세요."),
     INVALID_RESCHEDULE_TIME(HttpStatus.BAD_REQUEST, "EPISODE4003", "시간 조정 대상 에피소드가 전/후 회차의 일정과 겹칩니다. 개발팀에 문의하세요."),
+    CANNOT_DELETE_CURRENT_OR_BEFORE_EPISODE(HttpStatus.BAD_REQUEST, "EPISODE4004", "다음 주 등의 미래 에피소드가 아니어서 지울 수 없습니다. 개발팀에 문의하세요."),
 
     // 투표
     VOTE_CLOSED(HttpStatus.BAD_REQUEST, "VOTE4001", "현재 닫힌 투표입니다."),

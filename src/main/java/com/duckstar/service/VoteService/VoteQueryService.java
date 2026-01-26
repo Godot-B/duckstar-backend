@@ -59,7 +59,7 @@ public class VoteQueryService {
         }
 
         return AnimeCandidateListDto.builder()
-                .year(survey.getYear())
+                .year(survey.getYearValue())
                 .type(survey.getSurveyType())
                 .animeCandidates(animeCandidates)
                 .candidatesCount(animeCandidates.size())
@@ -106,7 +106,7 @@ public class VoteQueryService {
                 .memberId(memberId)
                 .nickName(memberId != null ? submission.getMember().getNickname() : null)
                 .submissionId(submissionId)
-                .year(survey.getYear())
+                .year(survey.getYearValue())
                 .type(survey.getSurveyType())
                 .normalCount(normalCount)
                 .bonusCount(size - normalCount)

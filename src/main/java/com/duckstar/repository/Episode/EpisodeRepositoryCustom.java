@@ -1,7 +1,6 @@
 package com.duckstar.repository.Episode;
 
 import com.duckstar.domain.mapping.weeklyVote.Episode;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,7 +28,7 @@ public interface EpisodeRepositoryCustom {
 
     Optional<CandidateFormDto> getCandidateFormDto(Long episodeId, List<String> principalKeys);
 
-    List<EpisodeInfoDto> getEpisodeInfoDtosByAnimeId(Long animeId);
+    List<AdminEpisodeDto> getEpisodeInfoDtosByAnimeId(Long animeId);
 
     List<ScheduleInfoDto> getScheduleInfoDtosByWeekId(Long weekId);
 

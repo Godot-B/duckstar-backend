@@ -216,11 +216,10 @@ public class WeekService {
 
     @Transactional
     public Week getOrCreateWeek(
-            YQWRecord record,
-            LocalDateTime weekStartedAt,
-            Quarter quarter
+            Quarter quarter,
+            int weekValue,
+            LocalDateTime weekStartedAt
     ) {
-        Integer weekValue = record.weekValue();
         return weekRepository.findByQuarterAndWeekValue(quarter, weekValue)
                 .orElseGet(() -> weekRepository.save(Week.create(quarter, weekValue, weekStartedAt)));
     }

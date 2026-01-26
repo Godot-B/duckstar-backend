@@ -24,7 +24,7 @@ public class AdminActionLogService {
 
     private final AdminActionLogRepository adminActionLogRepository;
 
-    public ManagementLogSliceDto getManagementLogs(Pageable pageable, ManageFilterType filterType) {
+    public ManagementLogSliceDto getManagementLogs(ManageFilterType filterType, Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
 

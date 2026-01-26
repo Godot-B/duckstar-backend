@@ -26,15 +26,12 @@ import java.time.LocalDateTime;
         }
 )
 public class Episode extends BaseEntity {
-    /**
-     * 역할 3가지
-     *  1. 애니메이션 회차 정보 (anime, episodeNumber, isBreak, isRescheduled)
-     *  2. 시간 슬롯 역할 (scheduledAt, nextEpScheduledAt)
-     *  3. 순위/별점 정보
-     *
-     * //TODO 추후 반드시 정규화
-     */
-
+    /// 역할 3가지
+    ///  1. 애니메이션 회차 정보 (anime, episodeNumber, isBreak, isRescheduled)
+    ///  2. 시간 슬롯 역할 (scheduledAt, nextEpScheduledAt)
+    ///  3. 순위/별점 정보
+    ///
+    /// TODO 추후 반드시 정규화
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -59,7 +56,7 @@ public class Episode extends BaseEntity {
     private LocalDateTime nextEpScheduledAt;
 
     // ** 마지막 에피소드 식별 플래그 for 1분 윈도우 스케줄링 방식
-    private boolean isLastEpisode = false;
+    private Boolean isLastEpisode = false;
 
     // [별점 방식]
     private Integer voterCount = 0;  // 투표 수 (또는 투표자 수)

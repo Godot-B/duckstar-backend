@@ -109,10 +109,6 @@ public abstract class Comment extends BaseEntity {
         this.episode = episode;
     }
 
-    public void setEpisodeId(Long episodeId) {
-
-    }
-
     public void updateBody(String body) {
         this.body = body;
     }

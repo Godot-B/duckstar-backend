@@ -18,6 +18,20 @@ public enum DayOfWeekShort {
     private static final DayOfWeekShort[] ENUMS = DayOfWeekShort.values();
     private static final int NIGHT_OFFSET = 5;
 
+    public int getValue() {
+        return ordinal() + 1;
+    }
+
+    public static LocalDateTime adjustTimeByDirection(
+            LocalDateTime time,
+            DayOfWeekShort dayOfWeekShort,
+            LocalTime airTime
+    ) {
+        LocalDateTime shiftedTime = time.minusHours(NIGHT_OFFSET);
+        int daysDiff = dayOfWeekShort.getValue() - shiftedTime.getDayOfWeek().getValue();
+        return shiftedTime.plusDays(daysDiff).with(airTime);
+    }
+
     public static DayOfWeekShort of(int dayOfWeek) {
         if (dayOfWeek < 1 || dayOfWeek > 7) {
             throw new DateTimeException("Invalid value for DayOfWeek: " + dayOfWeek);
@@ -34,8 +48,9 @@ public enum DayOfWeekShort {
     public static DayOfWeekShort getLogicalDay(LocalTime actualTime, DayOfWeekShort actualDayOfWeek) {
         if (actualTime == null) return actualDayOfWeek;
         boolean isMidNight = actualTime.getHour() < 5;
-        int ordinal = actualDayOfWeek.ordinal();
-        return isMidNight ? ENUMS[ordinal == 0 ? ENUMS.length - 2 : ordinal - 1] : actualDayOfWeek;
+        int value = actualDayOfWeek.getValue();
+        DayOfWeekShort yesterDay = value == 1 ? of(7) : of(value - 1);
+        return isMidNight ? yesterDay : actualDayOfWeek;
     }
     
     public static int getLogicalHour(LocalTime dateTime) {

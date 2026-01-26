@@ -19,7 +19,7 @@ public class Survey extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer year;
+    private Integer yearValue;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(20)")

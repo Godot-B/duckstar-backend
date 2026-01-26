@@ -14,6 +14,12 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        indexes = {
+                @Index(name = "idx_admin_action_log_c",
+                        columnList = "created_at")
+        }
+)
 public class AdminActionLog extends BaseEntity {
 
     @Id
@@ -37,7 +43,7 @@ public class AdminActionLog extends BaseEntity {
     private Episode episode;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(15)")
+    @Column(columnDefinition = "varchar(50)")
     private AdminTaskType adminTaskType;
 
     @Column(length = 64)

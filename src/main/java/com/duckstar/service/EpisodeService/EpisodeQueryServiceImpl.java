@@ -8,6 +8,7 @@ import com.duckstar.domain.Week;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.repository.Week.WeekRepository;
+import com.duckstar.schedule.ScheduleHandler;
 import com.duckstar.service.WeekService;
 import com.duckstar.web.dto.admin.ContentResponseDto.AdminEpisodeListDto;
 import com.duckstar.web.support.VoteCookieManager;
@@ -30,12 +31,13 @@ import static com.duckstar.web.dto.admin.ContentResponseDto.*;
 @Transactional(readOnly = true)
 public class EpisodeQueryServiceImpl implements EpisodeQueryService {
     private final EpisodeRepository episodeRepository;
-
-    private final VoteCookieManager voteCookieManager;
-
-    private final WeekService weekService;
     private final WeekRepository weekRepository;
     private final AnimeRepository animeRepository;
+
+    private final WeekService weekService;
+
+    private final VoteCookieManager voteCookieManager;
+    private final ScheduleHandler scheduleHandler;
 
     /**
      * 별점 투표 방식
@@ -60,7 +62,7 @@ public class EpisodeQueryServiceImpl implements EpisodeQueryService {
                 .getLiveCandidateDtos(principalKeys);
 
         LocalDateTime now = LocalDateTime.now();
-        Week currentWeek = weekService.getWeekByTime(now);
+        Week currentWeek = scheduleHandler.getSafeWeekByTime(now);
         Integer currentWeekValue = currentWeek.getWeekValue();
 
         // 분리: 이번 주
@@ -127,12 +129,12 @@ public class EpisodeQueryServiceImpl implements EpisodeQueryService {
         animeRepository.findById(animeId).orElseThrow(() ->
                 new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
 
-        List<EpisodeInfoDto> episodeInfoDtos =
+        List<AdminEpisodeDto> adminEpisodeDtos =
                 episodeRepository.getEpisodeInfoDtosByAnimeId(animeId);
 
         return AdminEpisodeListDto.builder()
-                .episodeTotalCount(episodeInfoDtos.size())
-                .episodeInfoDtos(episodeInfoDtos)
+                .episodeTotalCount(adminEpisodeDtos.size())
+                .adminEpisodeDtos(adminEpisodeDtos)
                 .build();
     }
 
