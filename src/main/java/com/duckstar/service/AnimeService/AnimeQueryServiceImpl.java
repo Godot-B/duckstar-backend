@@ -6,7 +6,9 @@ import com.duckstar.abroad.animeCorner.AnimeCorner;
 import com.duckstar.abroad.animeCorner.AnimeCornerRepository;
 import com.duckstar.apiPayload.code.status.ErrorStatus;
 import com.duckstar.apiPayload.exception.handler.AnimeHandler;
+import com.duckstar.apiPayload.exception.handler.QuarterHandler;
 import com.duckstar.domain.Anime;
+import com.duckstar.domain.Quarter;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.repository.AnimeCharacter.AnimeCharacterRepository;
@@ -14,7 +16,7 @@ import com.duckstar.repository.AnimeOtt.AnimeOttRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.AnimeQuarter.AnimeQuarterRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
-import com.duckstar.web.dto.RankInfoDto;
+import com.duckstar.repository.QuarterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +44,7 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
     private final EpisodeRepository episodeRepository;
     private final AnimeCornerRepository animeCornerRepository;
     private final AnilabRepository anilabRepository;
+    private final QuarterRepository quarterRepository;
 
     @Override
     public List<DuckstarRankPreviewDto> getAnimeRankPreviewsByWeekId(Long weekId, int size) {
@@ -156,10 +159,12 @@ public class AnimeQueryServiceImpl implements AnimeQueryService {
     }
 
     @Override
-    public AdminAnimeListDto getAdminAnimeListDto(Long quarterId, Pageable pageable) {
+    public AdminAnimeListDto getAdminAnimeListDto(Integer yearValue, Integer quarterValue, Pageable pageable) {
+        Quarter quarter = quarterRepository.findByYearValueAndQuarterValue(yearValue, quarterValue).orElseThrow(() ->
+                new QuarterHandler(ErrorStatus.QUARTER_NOT_FOUND));
 
         Page<AdminAnimeDto> items = animeQuarterRepository
-                .getAdminAnimeDtosByQuarterId(quarterId, pageable);
+                .getAdminAnimeDtosByQuarterId(quarter.getId(), pageable);
 
         return AdminAnimeListDto.builder()
                 .adminAnimeDtos(items.getContent())

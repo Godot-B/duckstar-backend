@@ -25,5 +25,5 @@ public interface AnimeQueryService {
 
     Optional<Episode> findCurrentEpisode(Anime anime, LocalDateTime now);
 
-    AdminAnimeListDto getAdminAnimeListDto(Long quarterId, Pageable pageable);
+    AdminAnimeListDto getAdminAnimeListDto(Integer yearValue, Integer quarterValue, Pageable pageable);
 }
