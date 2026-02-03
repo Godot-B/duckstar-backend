@@ -268,20 +268,25 @@ public class AnimeCommandServiceImpl implements AnimeCommandService {
 
     @Override
     public Long updateAnimeImage(Long animeId, ImageRequestDto request) throws IOException {
-        Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
-                new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
-
-        String mainUrl = anime.getMainImageUrl();
-        int oldMainVer = extractVersion("main", mainUrl);
-        String thumbUrl = anime.getMainThumbnailUrl();
-        int oldThumbVer = extractVersion("thumb", thumbUrl);
-
         MultipartFile reqMain = request.getMainImage();
-        if (reqMain != null) {
-            csvImportService.updateAnimeMain(reqMain, Math.max(oldMainVer, oldThumbVer) + 1, anime);
 
-            s3Uploader.delete(mainUrl);
-            s3Uploader.delete(thumbUrl);
+        if (reqMain != null) {
+            Anime anime = animeRepository.findById(animeId).orElseThrow(() ->
+                    new AnimeHandler(ErrorStatus.ANIME_NOT_FOUND));
+
+            String mainUrl = anime.getMainImageUrl();
+            if (mainUrl != null) {
+                int oldMainVer = extractVersion("main", mainUrl);
+                String thumbUrl = anime.getMainThumbnailUrl();
+                int oldThumbVer = extractVersion("thumb", thumbUrl);
+
+                csvImportService.updateAnimeMain(reqMain, Math.max(oldMainVer, oldThumbVer) + 1, anime);
+
+                s3Uploader.delete(mainUrl);
+                s3Uploader.delete(thumbUrl);
+            } else {
+                csvImportService.uploadAnimeMain(reqMain, anime);
+            }
 
             return anime.getId();
         } else {
