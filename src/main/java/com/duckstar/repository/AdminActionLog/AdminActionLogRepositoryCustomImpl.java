@@ -45,6 +45,7 @@ public class AdminActionLogRepositoryCustomImpl implements AdminActionLogReposit
                                 week.id,
                                 Projections.constructor(
                                         WeekDto.class,
+                                        week.id,
                                         quarter.yearValue,
                                         quarter.quarterValue,
                                         week.weekValue,

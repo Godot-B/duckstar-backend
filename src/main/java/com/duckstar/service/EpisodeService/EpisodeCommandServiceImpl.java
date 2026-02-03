@@ -10,7 +10,6 @@ import com.duckstar.domain.enums.AdminTaskType;
 import com.duckstar.domain.enums.DayOfWeekShort;
 import com.duckstar.domain.mapping.AdminActionLog;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
-import com.duckstar.repository.AnimeComment.AnimeCommentRepository;
 import com.duckstar.repository.AnimeRepository;
 import com.duckstar.repository.Episode.EpisodeRepository;
 import com.duckstar.security.repository.MemberRepository;
@@ -39,7 +38,6 @@ import static com.duckstar.web.dto.admin.EpisodeRequestDto.*;
 public class EpisodeCommandServiceImpl implements EpisodeCommandService {
     private final EpisodeRepository episodeRepository;
     private final MemberRepository memberRepository;
-    private final AnimeCommentRepository animeCommentRepository;
 
     private final CommentService commentService;
     private final AdminActionLogService adminActionLogService;

@@ -173,8 +173,8 @@ public class AdminController {
     // 모든 주차 조회 API : GET /api/v1/chart/weeks 재사용
 
     @Operation(summary = "주간(월 18시 정책 기준) 에피소드 조회")
-    @GetMapping("/weeks/{weekId}")
-    public ApiResponse<AdminScheduleInfoDto> getEpisodes(@PathVariable Long weekId) {
+    @GetMapping("/episodes")
+    public ApiResponse<AdminScheduleInfoDto> getEpisodes(@RequestParam Long weekId) {
         return ApiResponse.onSuccess(
                 episodeQueryService.getAdminScheduleByWeekId(weekId));
     }

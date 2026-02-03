@@ -1,5 +1,6 @@
 package com.duckstar.repository.Episode;
 
+import com.duckstar.domain.Week;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public interface EpisodeRepositoryCustom {
 
     List<AdminEpisodeDto> getEpisodeInfoDtosByAnimeId(Long animeId);
 
-    List<ScheduleInfoDto> getScheduleInfoDtosByWeekId(Long weekId);
+    List<ScheduleInfoDto> getScheduleInfoDtosByWeekId(Week week);
 
     List<Episode> findEpisodesByReleaseOrderByAnimeId(Long animeId);
 }

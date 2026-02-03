@@ -1,5 +1,6 @@
 package com.duckstar.web.dto;
 
+import com.duckstar.domain.Week;
 import com.duckstar.domain.mapping.weeklyVote.Episode;
 import com.duckstar.util.QuarterUtil;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,10 @@ public class EpisodeResponseDto {
         LocalDateTime scheduledAt;
 
         LocalDateTime nextEpScheduledAt;
+
+        public void setWeekDto(Week week) {
+            this.weekDto = WeekDto.of(week);
+        }
 
         public void setWeekDto(LocalDateTime scheduledAt) {
             weekDto = WeekDto.of(QuarterUtil.getThisWeekRecord(scheduledAt));

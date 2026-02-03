@@ -162,7 +162,7 @@ public class AnimeQuarterRepositoryCustomImpl implements AnimeQuarterRepositoryC
                                 )
                         ))
                 .from(anime)
-                .leftJoin(animeQuarter.anime, anime)
+                .leftJoin(animeQuarter).on(animeQuarter.anime.id.eq(anime.id))
                 .leftJoin(adminActionLog).on(adminActionLog.id.eq(
                         JPAExpressions.select(subLog.id)
                                 .from(subLog)

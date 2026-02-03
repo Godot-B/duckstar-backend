@@ -33,7 +33,6 @@ public class AdminLogDto {
         Long animeId;
         Long episodeId;
         String ipHash;
-
         // 에피소드 관리
             // 애니메이션 관리
             String titleKor;

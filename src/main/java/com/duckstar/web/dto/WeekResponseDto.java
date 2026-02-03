@@ -17,6 +17,8 @@ public class WeekResponseDto {
     @Getter
     @AllArgsConstructor
     public static class WeekDto {
+        Long id;
+
         Integer year;
 
         Integer quarter;
@@ -30,6 +32,7 @@ public class WeekResponseDto {
         public static WeekDto of(Week week) {
             Quarter quarter = week.getQuarter();
             return WeekDto.builder()
+                    .id(week.getId())
                     .year(quarter.getYearValue())
                     .quarter(quarter.getQuarterValue())
                     .week(week.getWeekValue())

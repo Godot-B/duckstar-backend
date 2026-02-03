@@ -144,7 +144,7 @@ public class EpisodeQueryServiceImpl implements EpisodeQueryService {
                 new WeekHandler(ErrorStatus.WEEK_NOT_FOUND));
 
         List<ScheduleInfoDto> scheduleInfoDtos =
-                episodeRepository.getScheduleInfoDtosByWeekId(weekId);
+                episodeRepository.getScheduleInfoDtosByWeekId(week);
 
         return AdminScheduleInfoDto.builder()
                 .weekDto(WeekDto.of(week))
